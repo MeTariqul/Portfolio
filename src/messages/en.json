@@ -1,0 +1,298 @@
+{
+  "meta": {
+    "title": "Md. Tariqul Islam — Full-Stack Web Developer",
+    "description": "Full-stack web developer from Savar, Dhaka, Bangladesh. I build fast, cinematic, AI-powered web experiences with Next.js, React, TypeScript, Python and Three.js.",
+    "ogDescription": "Full-stack developer crafting AI-powered, cinematic web experiences with Next.js & Python."
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "projects": "Projects",
+    "skills": "Skills",
+    "experience": "Experience",
+    "blog": "Blog",
+    "contact": "Contact",
+    "hire": "Hire Me"
+  },
+  "preloader": {
+    "loading": "LOADING"
+  },
+  "hero": {
+    "greet": "Hello, I'm",
+    "name": "Md. Tariqul Islam",
+    "roles": ["Full-Stack Developer", "Next.js & React", "Python & AI", "SaaS Builder"],
+    "subtitle": "I build fast, cinematic and AI-powered web experiences — real products, not tutorials. Currently crafting a universe of apps from Savar, Dhaka.",
+    "ctaWork": "Explore My Work",
+    "ctaCv": "Download CV",
+    "openToWork": "Open to work",
+    "status": "CSE @ Gono University",
+    "visitors": "visitors here now",
+    "scroll": "Scroll to explore",
+    "view": "view",
+    "visit": "Visit"
+  },
+  "about": {
+    "label": "About",
+    "heading": "The human behind the pixels",
+    "terminalTitle": "tariqul@portfolio",
+    "terminalLines": [
+      "> whoami",
+      "Md. Tariqul Islam — Full-Stack Web Developer",
+      "> location",
+      "Savar, Dhaka, Bangladesh (UTC+6)",
+      "> education",
+      "B.Sc. in CSE @ Gono Bishwabidyalay (2023 → 2027)",
+      "> stack",
+      "Next.js · React · TypeScript · Node.js · PostgreSQL · Prisma · Redis",
+      "> python",
+      "FastAPI · Django · pandas · NumPy · Selenium · BeautifulSoup · scikit-learn",
+      "> philosophy",
+      "I build real products that ship — not tutorial demos. If it doesn't work, it doesn't exist.",
+      "> focus",
+      "Web engineering, AI workflows and performance — shipped, measured, iterated.",
+      "> status",
+      "Currently open to freelance & full-time opportunities ✓"
+    ],
+    "stats": [
+      { "value": 12, "suffix": "+", "label": "Projects shipped" },
+      { "value": 25, "suffix": "+", "label": "Technologies" },
+      { "value": 5000, "suffix": "+", "label": "Cups of coffee" },
+      { "value": 120, "suffix": "K+", "label": "Lines of code" }
+    ],
+    "badges": ["Next.js 15", "React 19", "TypeScript", "Tailwind v4", "Three.js", "Python", "FastAPI", "Django", "PostgreSQL", "Prisma", "Redis", "AI / LLM", "Node.js", "Framer Motion", "Vercel", "Cloudflare"]
+  },
+  "projects": {
+    "label": "Projects",
+    "heading": "Things I've actually built",
+    "sub": "Real products, real problems, real code. Scroll horizontally — every card has a story.",
+    "featured": "Featured",
+    "code": "Code",
+    "live": "Live",
+    "more": "And more on GitHub",
+    "moreDesc": "20+ experiments, tools and repos — from AI study platforms to IPTV stream checkers.",
+    "visitGitHub": "Visit GitHub",
+    "items": [
+      {
+        "title": "CoverVerse",
+        "desc": "AI-powered assignment cover generator with 500+ templates, live preview, PDF/image export and offline support.",
+        "tags": ["Next.js", "AI", "PDF", "OCR"],
+        "category": "AI & Web App",
+        "featured": true
+      },
+      {
+        "title": "MeTariqul Tec Shop",
+        "desc": "Full-featured e-commerce platform with a custom cart, checkout flow and admin inventory management.",
+        "tags": ["Next.js", "PostgreSQL", "Prisma"],
+        "category": "E-commerce",
+        "featured": true
+      },
+      {
+        "title": "AI Study Platform",
+        "desc": "Upload docs (PDF/DOCX/PPTX), OCR scans, and get flashcards, quizzes and an AI tutor. Free vs Pro model included.",
+        "tags": ["OpenAI", "Gemini", "LangChain", "Python", "Redis"],
+        "category": "AI Platform",
+        "featured": true
+      },
+      {
+        "title": "Python Automation Suite",
+        "desc": "Scraping bots, data pipelines and workflow automations — Selenium, BeautifulSoup and pandas turning manual hours into seconds.",
+        "tags": ["Python", "Selenium", "pandas", "Automation"],
+        "category": "Automation"
+      },
+      {
+        "title": "Cloudflare Tunnel Monitor",
+        "desc": "Real-time dashboard that health-checks Cloudflare tunnels, tracks uptime and alerts on failures.",
+        "tags": ["Cloudflare", "Node.js", "WebSockets"],
+        "category": "DevOps"
+      },
+      {
+        "title": "IPTV Stream Checker",
+        "desc": "Watch IPTV from M3U playlists — auto health-checks channels every minute, hides broken ones, shows live viewer counts.",
+        "tags": ["Next.js", "M3U", "Vercel"],
+        "category": "Streaming"
+      },
+      {
+        "title": "PrintEdge",
+        "desc": "Printing shop platform with ordering, branding and daily-print-meme engine to keep the page alive.",
+        "tags": ["React", "Node.js", "MongoDB"],
+        "category": "Web App"
+      }
+    ]
+  },
+  "skills": {
+    "label": "Skills",
+    "heading": "My orbital arsenal",
+    "sub": "Drag to rotate. Every chip is a tool I've shipped with.",
+    "frontend": "Frontend",
+    "backend": "Backend & DevOps",
+    "ai": "AI & Tooling",
+    "python": "Python & Data"
+  },
+  "experience": {
+    "label": "Experience",
+    "heading": "The journey so far",
+    "items": [
+      {
+        "role": "Freelance Full-Stack Developer",
+        "org": "Fiverr",
+        "period": "2024 — Present",
+        "desc": "Designing and shipping production-grade websites, email campaigns and AI-assisted web apps for international clients."
+      },
+      {
+        "role": "B.Sc. in Computer Science & Engineering",
+        "org": "Gono Bishwabidyalay",
+        "period": "2023 — 2027",
+        "desc": "Focusing on web engineering, databases, operating systems and computer networks. Building real products alongside coursework."
+      },
+      {
+        "role": "Higher Secondary Certificate (HSC)",
+        "org": "Mirza Golam Hafiz College",
+        "period": "Completed",
+        "desc": "Science group — where the debugging habit first took root."
+      },
+      {
+        "role": "Secondary School Certificate (SSC)",
+        "org": "Adarsha High School",
+        "period": "Completed",
+        "desc": "First line of code, first broken build, first fix. Everything after was history."
+      }
+    ]
+  },
+  "blog": {
+    "label": "Blog",
+    "heading": "Notes from the lab",
+    "sub": "Case studies, experiments and hard-won lessons from shipping.",
+    "read": "Read article",
+    "readTime": "min read",
+    "all": "All posts",
+    "viewAll": "View all posts"
+  },
+  "contact": {
+    "label": "Contact",
+    "heading": "Let's build something intergalactic",
+    "sub": "Have a project, a role, or just want to talk code (or movies)? My inbox is a wormhole — drop a message.",
+    "name": "Your name",
+    "email": "Your email",
+    "message": "Your message",
+    "send": "Send Message",
+    "sending": "Transmitting…",
+    "successTitle": "Message received!",
+    "successDesc": "Thanks for reaching out. I'll get back to you within 24 hours — Earth time.",
+    "sendAnother": "Send another",
+    "emailLabel": "Email",
+    "locationLabel": "Location",
+    "followLabel": "Follow me",
+    "errors": {
+      "name": "Please tell me your name",
+      "email": "Enter a valid email address",
+      "message": "Message must be at least 10 characters"
+    },
+    "confirmSubject": "Thanks for reaching out — I'll reply soon",
+    "confirmGreeting": "Hi {name},",
+    "confirmBody": "I received your message. Thank you for taking the time — I usually reply within 24 hours, Earth time.",
+    "confirmSignature": "— Md. Tariqul Islam"
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "built": "Built with Next.js · Three.js · Framer Motion",
+    "top": "Back to top",
+    "visitors": "visitors on board"
+  },
+  "notFound": {
+    "title": "Lost in space",
+    "desc": "This page drifted into a black hole. Let's get you back to mission control.",
+    "back": "Return home"
+  },
+  "statement": {
+    "line1": "I don't build websites.",
+    "line2": "I build",
+    "line3": "experiences.",
+    "ghost": "BUILD"
+  },
+  "services": {
+    "label": "Services",
+    "heading": "What I can do for you",
+    "sub": "From idea to production — I handle the whole orbit.",
+    "items": [
+      {
+        "title": "Web Development",
+        "desc": "Blazing-fast, SEO-ready websites and apps with Next.js, React and TypeScript — shipped to production.",
+        "tags": ["Next.js", "React", "TypeScript", "Tailwind"]
+      },
+      {
+        "title": "AI Integration",
+        "desc": "LLM-powered features: chatbots, OCR pipelines, document analysis, smart search and AI tutoring.",
+        "tags": ["OpenAI", "Gemini", "LangChain", "RAG"]
+      },
+      {
+        "title": "UI & Motion Design",
+        "desc": "Cinematic interfaces with 3D WebGL scenes, micro-interactions and design systems people remember.",
+        "tags": ["Three.js", "Framer Motion", "shadcn/ui"]
+      },
+      {
+        "title": "Python & Automation",
+        "desc": "Scrapers, data pipelines, OCR workflows and ML tooling — plus FastAPI/Django backends that power the web apps.",
+        "tags": ["Python", "FastAPI", "Django", "Selenium", "pandas"]
+      },
+      {
+        "title": "DevOps & Performance",
+        "desc": "Free-tier-optimized hosting, CI/CD, monitoring and speed audits — Lighthouse 95+ as the baseline.",
+        "tags": ["Vercel", "Cloudflare", "Redis", "GitHub Actions"]
+      }
+    ]
+  },
+  "process": {
+    "label": "Process",
+    "heading": "How I work",
+    "sub": "A launch sequence, not a guessing game.",
+    "items": [
+      {
+        "title": "Discover",
+        "desc": "Goals, users, constraints. I dig until the problem is sharp enough to cut with."
+      },
+      {
+        "title": "Design",
+        "desc": "Wireframes → cinematic UI. Motion, hierarchy and micro-interactions planned from day one."
+      },
+      {
+        "title": "Build",
+        "desc": "Clean TypeScript, tested flows, fast APIs. I ship working software, not demos."
+      },
+      {
+        "title": "Ship & Iterate",
+        "desc": "Deploy, measure, refine. Performance budgets, analytics and continuous improvements."
+      }
+    ]
+  },
+  "testimonials": {
+    "label": "Testimonials",
+    "heading": "What clients say",
+    "sub": "Placeholder reviews — replace with your real Fiverr feedback anytime.",
+    "items": [
+      {
+        "quote": "Delivered ahead of schedule with a design that exceeded the brief. Communication was flawless throughout.",
+        "name": "Daniel R.",
+        "role": "E-commerce founder, USA",
+        "rating": 5
+      },
+      {
+        "quote": "The AI integration felt like magic. Our document workflow went from hours to seconds.",
+        "name": "Sarah M.",
+        "role": "Startup CEO, UK",
+        "rating": 5
+      },
+      {
+        "quote": "Fast, detail-obsessed and genuinely invested in the product. Best dev experience I've had on Fiverr.",
+        "name": "Ahmed K.",
+        "role": "Agency owner, UAE",
+        "rating": 5
+      }
+    ]
+  },
+  "cta": {
+    "title": "Have an idea?",
+    "title2": "Let's build it.",
+    "sub": "One message away from liftoff.",
+    "button": "Start a project"
+  }
+}

@@ -1,0 +1,56 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 2030 >>
+stream
+BT /F2 24 Tf 55 780 Td (MD. TARIQUL ISLAM) Tj ET
+BT /F1 13 Tf 55 742 Td (Full-Stack Web Developer) Tj ET
+BT /F1 10 Tf 55 729.5 Td (Savar, Dhaka, Bangladesh) Tj ET
+BT /F1 10 Tf 55 720.5 Td (github.com/MeTariqul   |   linkedin.com/in/metariqul) Tj ET
+BT /F2 12 Tf 55 697.5 Td (SUMMARY) Tj ET
+BT /F1 10 Tf 55 685.5 Td (CSE student and full-stack developer who ships real products - AI-powered web apps, e-commerce and developer tools - built with Next.js, React, TypeScript, Node.js, PostgreSQL, Prisma and Redis.) Tj ET
+BT /F2 12 Tf 55 666.5 Td (SKILLS) Tj ET
+BT /F1 10 Tf 55 654.5 Td (Frontend: React, Next.js, TypeScript, Tailwind CSS, Three.js, Framer Motion) Tj ET
+BT /F1 10 Tf 55 645.5 Td (Backend: Node.js, PostgreSQL, Prisma, Redis, REST APIs, JWT, WebSockets) Tj ET
+BT /F1 10 Tf 55 636.5 Td (AI: OpenAI, Gemini, LangChain, OCR, PDF pipelines | Infra: Vercel, Cloudflare, GitHub) Tj ET
+BT /F2 12 Tf 55 617.5 Td (EDUCATION) Tj ET
+BT /F1 10 Tf 55 605.5 Td (B.Sc. in Computer Science & Engineering - Gono Bishwabidyalay \(2023 - 2027\)) Tj ET
+BT /F1 10 Tf 55 596.5 Td (Higher Secondary \(HSC\) - Mirza Golam Hafiz College | Secondary \(SSC\) - Adarsha High School) Tj ET
+BT /F2 12 Tf 55 577.5 Td (SELECTED PROJECTS) Tj ET
+BT /F1 10 Tf 55 565.5 Td (CoverVerse - AI assignment cover generator: 500+ templates, live preview, PDF/image export, offline support.) Tj ET
+BT /F1 10 Tf 55 556.5 Td (MeTariqul Tec Shop - E-commerce platform with custom cart, checkout flow and inventory management.) Tj ET
+BT /F1 10 Tf 55 547.5 Td (AI Study Platform - Docs to flashcards/quizzes via OCR + LLMs, AI tutor, free-vs-pro billing.) Tj ET
+BT /F1 10 Tf 55 538.5 Td (Cloudflare Tunnel Monitor - Real-time tunnel health dashboard with uptime alerts.) Tj ET
+BT /F1 10 Tf 55 529.5 Td (IPTV Stream Checker - M3U playback with per-minute channel health checks and live viewer counts.) Tj ET
+BT /F2 12 Tf 55 510.5 Td (LINKS) Tj ET
+BT /F1 10 Tf 55 498.5 Td (GitHub: https://github.com/MeTariqul    LinkedIn: https://www.linkedin.com/in/metariqul) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000002332 00000 n 
+0000002402 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+2477
+%%EOF

@@ -1,0 +1,128 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { setRequestLocale, getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import { posts } from "@/lib/posts";
+import { site } from "@/lib/site";
+
+export function generateStaticParams() {
+  return posts.map((post) => ({ slug: post.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const post = posts.find((p) => p.slug === slug);
+  if (!post) return {};
+  return {
+    title: post.title,
+    description: post.description,
+    openGraph: {
+      title: post.title,
+      description: post.description,
+      type: "article",
+      publishedTime: post.date,
+    },
+  };
+}
+
+export default async function BlogPostPage({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}) {
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("blog");
+
+  const post = posts.find((p) => p.slug === slug);
+  if (!post) notFound();
+
+  return (
+    <article className="mx-auto max-w-3xl px-5 pb-32 pt-36 sm:px-8">
+      <Link
+        href="/blog"
+        data-cursor="link"
+        className="font-mono text-xs uppercase tracking-[0.25em] text-soft transition-colors hover:text-neon"
+      >
+        ← {t("label")}
+      </Link>
+
+      <h1 className="mt-6 font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+        {post.title}
+      </h1>
+
+      <div className="mt-6 flex flex-wrap items-center gap-4 font-mono text-xs uppercase tracking-[0.2em] text-soft">
+        <span className={`rounded-full bg-gradient-to-r ${post.gradient} bg-clip-text font-bold text-transparent`}>
+          {post.category}
+        </span>
+        <span>{post.date}</span>
+        <span>
+          {post.readTime} {t("readTime")}
+        </span>
+      </div>
+
+      <div className="mt-12 space-y-6">
+        {post.blocks.map((block, i) => {
+          switch (block.type) {
+            case "h2":
+              return (
+                <h2 key={i} className="pt-6 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+                  {block.text}
+                </h2>
+              );
+            case "p":
+              return (
+                <p key={i} className="text-base leading-relaxed text-soft sm:text-lg">
+                  {block.text}
+                </p>
+              );
+            case "list":
+              return (
+                <ul key={i} className="space-y-3 pl-1">
+                  {block.items.map((item, j) => (
+                    <li key={j} className="flex items-start gap-3 text-base text-soft sm:text-lg">
+                      <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gradient-to-r from-nebula to-neon" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              );
+            case "code":
+              return (
+                <div key={i} className="overflow-hidden rounded-2xl border border-line">
+                  <div className="flex items-center gap-2 border-b border-line bg-surface px-5 py-3">
+                    <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+                    <span className="ml-3 font-mono text-[11px] uppercase tracking-widest text-soft">
+                      {block.lang}
+                    </span>
+                  </div>
+                  <pre className="overflow-x-auto bg-black/60 p-5 font-mono text-[13px] leading-6 text-emerald-300">
+                    <code>{block.code}</code>
+                  </pre>
+                </div>
+              );
+          }
+        })}
+      </div>
+
+      <div className="mt-16 flex items-center justify-between border-t border-line pt-8">
+        <p className="font-mono text-xs uppercase tracking-[0.2em] text-soft">
+          {site.name}
+        </p>
+        <Link
+          href="/blog"
+          data-cursor="link"
+          className="font-mono text-xs uppercase tracking-[0.25em] text-soft transition-colors hover:text-neon"
+        >
+          {t("all")} →
+        </Link>
+      </div>
+    </article>
+  );
+}
