@@ -10,9 +10,22 @@ import {
   signOut,
   type AdminMessage,
 } from "@/app/actions/admin";
+import { BlogManager } from "./blog-manager";
+import { ProjectsManager } from "./projects-manager";
+import { SettingsManager } from "./settings-manager";
+
+type Tab = "messages" | "blog" | "projects" | "settings";
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: "messages", label: "Messages" },
+  { id: "blog", label: "Blog" },
+  { id: "projects", label: "Projects" },
+  { id: "settings", label: "Settings" },
+];
 
 export function AdminDashboard({ email }: { email: string }) {
   const router = useRouter();
+  const [tab, setTab] = useState<Tab>("messages");
   const [messages, setMessages] = useState<AdminMessage[] | null>(null);
   const [error, setError] = useState("");
 
@@ -66,7 +79,9 @@ export function AdminDashboard({ email }: { email: string }) {
       <header className="mb-10 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold tracking-tight">
-            <span className="gradient-text">Messages</span>
+            <span className="gradient-text">
+              {TABS.find((t) => t.id === tab)?.label}
+            </span>
           </h1>
           <p className="mt-2 font-mono text-xs uppercase tracking-[0.2em] text-soft">
             {unread} unread · signed in as {email}
@@ -81,17 +96,38 @@ export function AdminDashboard({ email }: { email: string }) {
         </button>
       </header>
 
+      <nav className="mb-8 flex flex-wrap gap-2">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`rounded-2xl px-5 py-3 font-mono text-xs font-semibold uppercase tracking-widest transition-colors ${
+              tab === t.id
+                ? "bg-ink text-bg"
+                : "border border-line bg-surface text-soft hover:text-ink"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </nav>
+
       {error && (
         <p className="mb-6 rounded-2xl border border-red-400/30 bg-red-400/10 px-5 py-3 text-sm text-red-400">
           {error}
         </p>
       )}
 
-      {messages === null ? (
-        <div className="grid place-items-center rounded-3xl border border-line bg-surface py-20 text-soft">
-          Loading…
-        </div>
-      ) : messages.length === 0 ? (
+      {tab === "blog" && <BlogManager />}
+      {tab === "projects" && <ProjectsManager />}
+      {tab === "settings" && <SettingsManager />}
+
+      {tab === "messages" &&
+        (messages === null ? (
+          <div className="grid place-items-center rounded-3xl border border-line bg-surface py-20 text-soft">
+            Loading…
+          </div>
+        ) : messages.length === 0 ? (
         <div className="grid place-items-center rounded-3xl border border-line bg-surface py-20 text-center">
           <Mail className="mb-4 h-8 w-8 text-soft/50" aria-hidden />
           <p className="text-soft">No messages yet.</p>
@@ -152,7 +188,7 @@ export function AdminDashboard({ email }: { email: string }) {
             </li>
           ))}
         </ul>
-      )}
+      ))}
     </div>
   );
 }

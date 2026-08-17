@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { posts } from "@/lib/posts";
+import { getBlogPosts } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Blog",
   description:
     "Case studies, engineering notes and lessons from shipping AI-powered web apps.",
 };
+
+export const revalidate = 60;
 
 export default async function BlogPage({
   params,
@@ -17,6 +20,7 @@ export default async function BlogPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("blog");
+  const all = (await getBlogPosts()) ?? posts;
 
   return (
     <div className="mx-auto max-w-5xl px-5 pb-32 pt-36 sm:px-8">
@@ -29,7 +33,7 @@ export default async function BlogPage({
       <p className="mt-4 max-w-xl text-soft">{t("sub")}</p>
 
       <div className="mt-16 space-y-6">
-        {posts.map((post, i) => (
+        {all.map((post, i) => (
           <Link
             key={post.slug}
             href={`/blog/${post.slug}`}

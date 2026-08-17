@@ -8,9 +8,12 @@ import { SectionHeading } from "./section-heading";
 import { ContactForm } from "./contact-form";
 import { Magnetic } from "./magnetic";
 import { site } from "@/lib/site";
+import type { SiteSettings } from "@/lib/content";
 
-export function Contact() {
+export function Contact({ settings }: { settings?: SiteSettings }) {
   const t = useTranslations("contact");
+  const email = settings?.email || site.email;
+  const location = settings?.location || site.location;
 
   return (
     <section id="contact" className="relative mx-auto max-w-7xl px-5 py-28 sm:px-8 lg:py-36">
@@ -49,11 +52,11 @@ export function Contact() {
                   {t("emailLabel")}
                 </p>
                 <a
-                  href={`mailto:${site.email}`}
+                  href={`mailto:${email}`}
                   data-cursor="link"
                   className="font-display text-lg font-medium transition-colors hover:text-neon"
                 >
-                  {site.email}
+                  {email}
                 </a>
               </div>
             </div>
@@ -66,7 +69,7 @@ export function Contact() {
                 <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-soft">
                   {t("locationLabel")}
                 </p>
-                <p className="font-display text-lg font-medium">{site.location}</p>
+                <p className="font-display text-lg font-medium">{location}</p>
               </div>
             </div>
 

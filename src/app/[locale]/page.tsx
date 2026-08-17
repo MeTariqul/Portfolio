@@ -16,6 +16,13 @@ import { CtaBand } from "@/components/cta-band";
 import { Contact } from "@/components/contact";
 import { WordDivider } from "@/components/word-divider";
 import { site } from "@/lib/site";
+import {
+  getBlogPosts,
+  getProjects,
+  getSettings,
+} from "@/lib/content";
+
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,
@@ -70,6 +77,13 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const [dbPosts, dbProjects, dbSettings] = await Promise.all([
+    getBlogPosts(),
+    getProjects(),
+    getSettings(),
+  ]);
+  const contactSettings = dbSettings?.contact;
+
   return (
     <>
       <Preloader waitForScenes />
@@ -79,15 +93,15 @@ export default async function HomePage({
       <About />
       <Services />
       <WordDivider words={["Build", "Create", "Ship"]} />
-      <Projects />
+      <Projects items={dbProjects ?? undefined} />
       <Skills />
       <Process />
       <Experience />
       <WordDivider words={["Design", "Code", "Repeat"]} />
-      <BlogSection />
+      <BlogSection posts={dbPosts ?? undefined} />
       <Testimonials />
       <CtaBand />
-      <Contact />
+      <Contact settings={contactSettings} />
     </>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, startTransition, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,6 +27,7 @@ export function ContactForm() {
   const {
     register,
     reset,
+    handleSubmit,
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
@@ -36,6 +37,14 @@ export function ContactForm() {
   );
 
   const formRef = useRef<HTMLFormElement>(null);
+
+  const onSubmit = handleSubmit((values) => {
+    const fd = new FormData();
+    fd.set("name", values.name);
+    fd.set("email", values.email);
+    fd.set("message", values.message);
+    startTransition(() => formAction(fd));
+  });
 
   useEffect(() => {
     if (state?.ok) {
@@ -83,7 +92,7 @@ export function ContactForm() {
           <motion.form
             key="form"
             ref={formRef}
-            action={formAction}
+            onSubmit={onSubmit}
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-10%" }}

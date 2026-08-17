@@ -5,7 +5,7 @@
 >
 > **Maintenance rule (mandatory):** update this file at the END of every work session to reflect anything
 > that changed (new components/files, renamed or removed sections, new conventions, verification results,
-> new placeholders). The file must never describe a stale state. Last updated: 2026-08-16.
+> new placeholders). The file must never describe a stale state. Last updated: 2026-08-17.
 
 ---
 
@@ -25,9 +25,9 @@
 | Animation | framer-motion 13, Lenis 1.3 (smooth scroll) |
 | 3D | three 0.185, @react-three/fiber 9, drei 10.7, @react-three/postprocessing 3.0.5 |
 | Forms | react-hook-form + zod |
-| Auth/data | Supabase (@supabase/supabase-js + @supabase/ssr) — admin login + message storage |
+| Auth/data | Supabase (@supabase/supabase-js + @supabase/ssr) — admin login + CMS storage (messages/blogs/projects/settings) |
 | Email | resend (admin notification) + Brevo REST API (user confirmation email) |
-| Analytics/ops | @upstash/redis (visitor counter), @vercel/og (devDep, OG image generator) |
+| Analytics/ops | @upstash/redis (visitor counter), @vercel/og (devDep, OG image generator), @vercel/analytics + @vercel/speed-insights (Vercel Web Analytics / Speed Insights — dashboard-enabled, rendered in `[locale]/layout.tsx`) |
 | Icons | lucide-react + custom `brand-icons.tsx` |
 
 **Commands:**
@@ -42,7 +42,7 @@ npm run generate:og  # regenerates public/opengraph.png via @vercel/og
 npm run generate:cv  # CV generator (scripts/generate-cv.mjs)
 ```
 
-**Environment (`.env.local` — copy from `.env.example`, NEVER commit):**
+**Environment (`.env` — copy from `.env.example`, NEVER commit):**
 
 ```bash
 RESEND_API_KEY=...        # contact form admin notification; without it form runs in demo mode
@@ -82,16 +82,19 @@ src/
     [locale]/
       layout.tsx      # fonts (Space Grotesk/Inter/JetBrains Mono via next/font), Providers, Navbar, Footer
       page.tsx        # HOME: Preloader(waitForScenes) + all 9 sections + generateMetadata (OG/Twitter images)
-      blog/page.tsx   # blog index
-      blog/[slug]/page.tsx  # blog post (generateStaticParams; posts from src/lib/posts.ts)
+      blog/page.tsx   # blog index (ISR, revalidate 60 — DB via content.ts, falls back to posts.ts)
+      blog/[slug]/page.tsx  # blog post (dynamic, revalidate 60 — DB via content.ts, falls back to posts.ts; no generateStaticParams)
     api/visitors/route.ts  # Upstash visitor counter (GET)
     admin/                # ADMIN PANEL — outside [locale], excluded from proxy/sitemap/robots (§5.8)
       page.tsx            # server: session ? <AdminDashboard/> : <LoginForm/> (dynamic, noindex)
       login-form.tsx      # client: supabase.auth.signInWithPassword
-      dashboard.tsx       # client: messages list + mark read/unread + delete + sign out
+      dashboard.tsx       # client: tabbed CMS (Messages / Blog / Projects / Settings) + sign out
+      blog-manager.tsx    # client: blog CRUD (list, JSON blocks editor, featured/published flags)
+      projects-manager.tsx# client: project CRUD + GitHub repo sync/import (§5.9)
+      settings-manager.tsx# client: contact settings (email/location/availability) editor
     actions/
       send-contact.ts     # server action: Supabase insert + Brevo confirm + Resend notify (§5.5)
-      admin.ts            # server actions: listMessages / markMessageRead / deleteMessage / signOut
+      admin.ts            # server actions: messages CRUD + blog/project/settings CRUD + GitHub fetch (§5.8/5.9)
   proxy.ts                # next-intl middleware (Next 16 renamed it) — admin excluded from matcher
   components/         # all client components (see §3 for the section list)
   i18n/
@@ -99,7 +102,8 @@ src/
     navigation.ts     # typed <Link>/useRouter wrappers (use for ALL navigation)
   lib/
     site.ts           # CENTRAL identity config (name, github, email, url…) — edit identity here
-    posts.ts          # blog posts data (4 posts; frontmatter-style objects)
+    posts.ts          # STATIC FALLBACK blog posts (4 posts; frontmatter-style objects)
+    content.ts        # SERVER-ONLY content layer: getBlogPosts/getBlogPost/getProjects/getSettings (service-role reads, null on missing tables/keys) — home + blog pages use it (§5.9)
     utils.ts          # cn() = clsx + tailwind-merge
     lenis-store.ts    # module-scope Lenis singleton + hardened scrollToId() (§5)
     render-store.ts   # scene-ready pub/sub used by the preloader (§5)
@@ -111,9 +115,9 @@ src/
   messages/en.json    # ALL user-facing copy, namespaced per section (§4)
 ```
 
-**Data flow (important):** user-facing strings live **only** in `src/messages/en.json` and are read with `useTranslations("namespace")` (client) or `getTranslations` (server, e.g. page metadata). `t.raw("items")` is used for arrays (e.g. projects, services, terminalLines). Never hardcode copy in components. Identity/link config lives in `src/lib/site.ts`.
+**Data flow (important):** user-facing strings live **only** in `src/messages/en.json` and are read with `useTranslations("namespace")` (client) or `getTranslations` (server, e.g. page metadata). `t.raw("items")` is used for arrays (e.g. projects, services, terminalLines). Never hardcode copy in components. Identity/link config lives in `src/lib/site.ts`. Editable content (blogs/projects/contact settings) is served by `src/lib/content.ts` with static fallbacks — never edit content inside admin-facing components directly.
 
-**Routes:** `/` (redirects to `/en`), `/en`, `/en/blog`, `/en/blog/[slug]` (4 posts), `/admin` (dynamic, noindex — outside the locale tree), `/api/visitors`, plus `robots.txt` (disallows `/admin`), `sitemap.xml`, `manifest.webmanifest` (auto-generated by Next).
+**Routes:** `/` (redirects to `/en`), `/en`, `/en/blog`, `/en/blog/[slug]` (dynamic — DB-first, static fallback), `/admin` (dynamic, noindex — outside the locale tree), `/api/visitors`, plus `robots.txt` (disallows `/admin`), `sitemap.xml`, `manifest.webmanifest` (auto-generated by Next).
 
 ---
 
@@ -167,9 +171,8 @@ Section order in `src/app/[locale]/page.tsx` (ids + heading numbers are coordina
 > Note: `#fuel` (movies) and `#lab` (creative posters) sections were **removed** deliberately — the site is strictly developer-focused. Do not re-add entertainment content.
 
 **Adding content (the common tasks):**
-- **Project card:** add object to `en.json → projects.items` (6 max before scroll-range math needs retuning — `Projects` computes its end transform from the measured track, so it adapts automatically).
+- **Project card / blog post / contact info:** editable at runtime from `/admin` (tabs: Projects / Blog / Settings) once the `blogs`, `projects`, `settings` tables exist (§5.8). Static fallbacks live in `en.json → projects.items` and `src/lib/posts.ts` — DB wins when present. Do NOT edit admin manager components to change content.
 - **Skill chip:** add to one of the 4 ring arrays in `skills.tsx` (FRONTEND/BACKEND/AI/PYTHON) — canvas textures regenerate automatically.
-- **Blog post:** add object to `src/lib/posts.ts` + a markdown-ish body in the same file + a page in `src/app/[locale]/blog/` if content differs; keep slugs unique.
 - **New section:** create component with `<section id="...">`, add `SectionHeading` with the next number, register in `page.tsx`, add en.json namespace, optionally add to navbar `LINKS` array (navbar only lists: about, projects, skills, experience, blog, contact).
 
 ---
@@ -200,21 +203,23 @@ Section order in `src/app/[locale]/page.tsx` (ids + heading numbers are coordina
 
 ### 5.5 Contact form
 - `react-hook-form` + zod (client) → `useActionState` server action `send-contact.ts` (3 steps, each optional): ① insert into Supabase `messages` via service-role client (bypasses RLS — inserts need no policy), ② Brevo confirmation email to the submitter (subject/body copy from `en.json → contact.confirm*`; sender = `CONTACT_EMAIL`, must be verified in Brevo), ③ Resend notification to `CONTACT_EMAIL`.
+- Client validation GATES submission: `handleSubmit` builds a `FormData` and calls `formAction(fd)` inside `startTransition` (the native `action` prop is NOT used). Invalid fields show per-field messages; the server action validates again. Verified headless: invalid submit blocked client-side, valid submit renders the success card.
 - `demo: true` is returned ONLY when none of the three ran (no keys) — UI shows a demo-mode notice. Success state resets the form.
 
 ### 5.6 Security & headers
 - `next.config.ts` adds: CSP (dev gets `'unsafe-eval'`, prod does NOT — never enable unsafe-eval in prod), X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, HSTS, DNS-prefetch, `poweredByHeader: false`.
-- CSP `connect-src` is env-aware: when `NEXT_PUBLIC_SUPABASE_URL` is set, its hostname is appended (required for the browser-side auth call from `/admin`).
+- CSP `connect-src` is env-aware: when `NEXT_PUBLIC_SUPABASE_URL` is set, its hostname is appended (required for the browser-side auth call from `/admin`). Vercel Analytics hosts (`va.vercel-scripts.com`, `vitals.vercel-insights.com`, `*.vercel-insights.com` img) are always allowed — needed by `<Analytics/>`/`<SpeedInsights/>` in `[locale]/layout.tsx` (note: `/admin` is outside `[locale]` and is therefore NOT tracked — by design).
 - `allowedDevOrigins: ["192.168.0.10"]` for LAN device testing on the dev server.
 - `themeColor` lives in the `viewport` export of the root layout (Next 16 requirement — metadata export would warn).
 
 ### 5.7 Static OG image
 - `public/opengraph.png` is generated by `scripts/generate-og.mjs` (`npm run generate:og`) using `@vercel/og` with `React.createElement` (no JSX in .mjs). Page metadata references it via `openGraph.images`/`twitter.images`. Do not recreate the dynamic `opengraph-image.tsx` route — it fails under Turbopack dev.
 
-### 5.8 Admin panel (`/admin`) + message storage
+### 5.8 Admin panel (`/admin`) + content storage
 - Route lives OUTSIDE `[locale]` (top-level, like `/api`): uses the ROOT layout only (no navbar/footer/fonts — plain system fonts there, by design). `export const dynamic = "force-dynamic"`, `robots: noindex`, and excluded from the next-intl proxy matcher (`src/proxy.ts` — keep `admin` in the negative lookahead), `robots.txt` (`Disallow: /admin`), and `sitemap.ts` (whitelist-based — never add it).
 - Auth = **Supabase Auth email+password** (single admin user created in the Supabase dashboard). `login-form.tsx` calls `signInWithPassword` → `router.refresh()`. Page checks `supabase.auth.getUser()` server-side via cookie session (`createServerClient`).
-- Messages table + RLS (run this in Supabase → SQL Editor once):
+- **Dashboard is a 4-tab CMS:** Messages (list/mark read/delete), Blog (`blog-manager.tsx` — CRUD + JSON blocks editor + featured/published flags + gradient picker), Projects (`projects-manager.tsx` — CRUD + GitHub repo sync/import), Settings (`settings-manager.tsx` — contact email/location/availability). Tab UI is hardcoded English (outside locale tree, by design).
+- **Tables** (consolidated one-shot SQL in `supabase/init.sql` — messages + blogs + projects + settings + RLS + seed settings row; run the whole file in SQL Editor, it is idempotent):
 
 ```sql
 create table if not exists messages (
@@ -225,13 +230,19 @@ create table if not exists messages (
   created_at timestamptz not null default now(),
   read boolean not null default false
 );
-alter table messages enable row level security;
-create policy "admins read messages" on messages for select using (auth.role() = 'authenticated');
-create policy "admins update messages" on messages for update using (auth.role() = 'authenticated');
-create policy "admins delete messages" on messages for delete using (auth.role() = 'authenticated');
+-- blogs: id uuid pk, slug text unique, title, description, date, read_time int,
+--        category, featured bool, gradient text, blocks jsonb, published bool default true
+-- projects: id uuid pk, title, desc, tags text[], category, link, github, featured bool, sort int
+-- settings: key text pk, value jsonb  (row: key='contact', value={"email":..,"location":..,"availability":..})
+-- all four: RLS enabled, every policy allows only auth.role() = 'authenticated'
 ```
 
-- Server actions in `actions/admin.ts` (list/mark-read/delete) run through the user-session client, so RLS applies (authenticated admin only). Contact-form inserts use the **service-role** client (`lib/supabase/admin.ts`, `persistSession: false`) which bypasses RLS — that module must NEVER be imported from client code. When the page loads without Supabase env keys it renders the login card with a "not configured" note instead of crashing.
+- Server actions in `actions/admin.ts` run through the user-session client, so RLS applies (authenticated admin only): messages CRUD + `listBlogs/saveBlog/deleteBlog`, `listProjects/saveProject/deleteProject`, `getSettingsMap/saveContactSettings`, `getGithubRepos` (fetches `https://api.github.com/users/MeTariqul/repos`). Contact-form inserts use the **service-role** client (`lib/supabase/admin.ts`, `persistSession: false`) which bypasses RLS — that module must NEVER be imported from client code. When the page loads without Supabase env keys it renders the login card with a "not configured" note instead of crashing.
+
+### 5.9 Content layer (DB-first with static fallback)
+- `src/lib/content.ts` (SERVER-ONLY, service-role reads): `getBlogPosts()`, `getBlogPost(slug)`, `getProjects()`, `getSettings()` — each returns `null` when tables/keys are missing (never throws), and callers fall back to `src/lib/posts.ts` / `en.json → projects.items` / `src/lib/site.ts`.
+- Home page (`[locale]/page.tsx`) + blog pages have `export const revalidate = 60` (ISR): DB content appears within 60s of admin edits. `blog/[slug]/page.tsx` is DYNAMIC (no `generateStaticParams` — slugs are DB-driven) and `notFound()`s on unknown slugs.
+- `getSettings()` maps the `settings.contact` row to email/location/availability; the Contact section renders those when present, else `site.ts`/en.json fallbacks. Do NOT revert blog pages to static-only — the fallback chain is the safety net.
 
 ---
 
@@ -251,10 +262,11 @@ create policy "admins delete messages" on messages for delete using (auth.role()
 ## 7. Known Placeholders / TODOs (outstanding work)
 
 - `src/lib/site.ts`: `url` is `https://metariqul.vercel.app` (TODO: real domain) and `email` is `hello@metariqul.dev` — verify before launch. CV is at `public/cv/Md-Tariqul-Islam-CV.pdf` (real PDF already in place).
-- **Admin panel setup (user-provided, pending):** create the Supabase project, run the §5.8 SQL, create the admin user in Authentication → Users, and add the 4 Supabase env keys + `BREVO_API_KEY` (and verify `CONTACT_EMAIL` as Brevo sender). Live end-to-end (login → read/mark/delete + Brevo confirmation email) is untested until the real keys are in `.env.local`. Without keys everything degrades gracefully (verified).
+- **Admin panel setup (user-provided, in progress):** Supabase URL + publishable/secret keys are configured in `.env` (new `sb_publishable_`/`sb_secret_` key format, supported by supabase-js 2.112). Verified: both keys authenticate from Node (PowerShell gets 401 — Supabase's browser-protection on secret keys; this is expected), auth API is live. Brevo key + sender (`CONTACT_EMAIL = print-edge@outlook.com`, verified Brevo sender) configured and WORKING (test emails sent). Admin user `gbtarif37@gmail.com` created via Admin API (`email_confirm: true`) and login verified through a real headless-Edge browser session on the prod build (dashboard renders with all 4 tabs, 3 real contact messages visible → the `messages` table EXISTS). STILL PENDING: run the FULL `supabase/init.sql` in SQL Editor — `blogs`, `projects`, `settings` tables do NOT exist yet (REST returns PGRST205; admin tabs degrade gracefully with error banners + empty states, and public pages fall back to static content — verified headless). Also still pending: Resend/Upstash keys. Contact-form → Brevo E2E verified working once messages insert succeeds.
+- CMS verification (headless Edge, prod build on 3100, Aug 2026): blog/projects/settings tabs show graceful empty states + "table not found" banner; GitHub sync fetches real repos (factory_erp, Pixels-on-Paper, Running-Project…); blog post pages serve static fallback with unknown slugs → 404; typecheck + lint + build all green.
 - `testimonials.sub` explicitly says "Placeholder reviews — replace with your real Fiverr feedback anytime."
-- `.env.example` values are examples — real keys go in `.env.local` (gitignored).
-- `dev-final.log/.pid`, `server.log`, `og3.log` etc. may reappear from test runs — they are safe to delete.
+- `.env.example` values are examples — real keys go in `.env` (gitignored).
+- **Vercel deployment (user-provided, pending):** repo is `MeTariqul/Portfolio` (main). Import in Vercel (framework auto-detects Next.js), copy ALL `.env` keys into Project → Settings → Environment Variables (`NEXT_PUBLIC_*` vars are inlined at build — required for the deployed site), then enable **Web Analytics** + **Speed Insights** in the project dashboard (components already render on all public pages; `/admin` is excluded by design).
 - The GitHub tile in Projects ("more" card) hardcodes count/stories text in en.json — update when real numbers change.
 
 ## 8. Quick Verification Checklist (run before finishing any task)

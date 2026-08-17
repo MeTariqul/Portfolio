@@ -39,7 +39,7 @@ npm run generate:cv  # regenerate public/cv PDF
 
 ## Environment
 
-Copy `.env.example` to `.env.local` and fill in the values. All services degrade gracefully when unset (contact form falls back to demo mode, visitor counter hides, `/admin` shows a "not configured" card).
+Copy `.env.example` to `.env` and fill in the values. All services degrade gracefully when unset (contact form falls back to demo mode, visitor counter hides, `/admin` shows a "not configured" card).
 
 | Variable | Purpose |
 |---|---|
@@ -54,7 +54,7 @@ Copy `.env.example` to `.env.local` and fill in the values. All services degrade
 1. Create a Supabase project, then run the `messages` table + RLS SQL in **SQL Editor** (see `AGENTS.md` §5.8)
 2. Create the admin user in **Authentication → Users** (email + password)
 3. Verify `CONTACT_EMAIL` as a sender in **Brevo**
-4. Add the keys to `.env.local` and visit `/admin`
+4. Add the keys to `.env` and visit `/admin`
 
 ## Documentation
 

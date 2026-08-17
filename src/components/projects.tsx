@@ -9,18 +9,11 @@ import { SectionHeading } from "./section-heading";
 import { TiltCard } from "./tilt-card";
 import { Magnetic } from "./magnetic";
 import { site } from "@/lib/site";
+import type { ProjectItem } from "@/lib/content";
 
-type ProjectItem = {
-  title: string;
-  desc: string;
-  tags: string[];
-  category: string;
-  featured?: boolean;
-};
-
-export function Projects() {
+export function Projects({ items: propItems }: { items?: ProjectItem[] }) {
   const t = useTranslations("projects");
-  const items = t.raw("items") as ProjectItem[];
+  const items = propItems ?? (t.raw("items") as ProjectItem[]);
 
   const sectionRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);

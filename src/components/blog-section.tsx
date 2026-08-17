@@ -5,11 +5,12 @@ import { useTranslations } from "next-intl";
 import { ArrowUpRight, Clock } from "lucide-react";
 import { SectionHeading } from "./section-heading";
 import { Link } from "@/i18n/navigation";
-import { posts } from "@/lib/posts";
+import { posts, type Post } from "@/lib/posts";
 
-export function BlogSection() {
+export function BlogSection({ posts: propPosts }: { posts?: Post[] }) {
   const t = useTranslations("blog");
-  const [featured, ...rest] = posts;
+  const all = propPosts ?? posts;
+  const [featured, ...rest] = all;
 
   return (
     <section id="blog" className="relative mx-auto max-w-7xl px-5 py-28 sm:px-8 lg:py-36">

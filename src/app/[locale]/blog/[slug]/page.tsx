@@ -3,10 +3,13 @@ import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { posts } from "@/lib/posts";
+import { getBlogPost } from "@/lib/content";
 import { site } from "@/lib/site";
 
-export function generateStaticParams() {
-  return posts.map((post) => ({ slug: post.slug }));
+export const revalidate = 60;
+
+async function findPost(slug: string) {
+  return (await getBlogPost(slug)) ?? posts.find((p) => p.slug === slug);
 }
 
 export async function generateMetadata({
@@ -15,7 +18,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = posts.find((p) => p.slug === slug);
+  const post = await findPost(slug);
   if (!post) return {};
   return {
     title: post.title,
@@ -38,7 +41,7 @@ export default async function BlogPostPage({
   setRequestLocale(locale);
   const t = await getTranslations("blog");
 
-  const post = posts.find((p) => p.slug === slug);
+  const post = await findPost(slug);
   if (!post) notFound();
 
   return (
