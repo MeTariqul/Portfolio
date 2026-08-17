@@ -21,6 +21,49 @@ export type SettingsMap = {
   contact?: SiteSettings;
 };
 
+export type ServiceItem = {
+  title: string;
+  desc: string;
+  tags: string[];
+};
+
+export type ProcessStep = {
+  title: string;
+  desc: string;
+};
+
+export type ExperienceItem = {
+  role: string;
+  org: string;
+  period: string;
+  desc: string;
+};
+
+export type Testimonial = {
+  quote: string;
+  name: string;
+  role: string;
+  rating: number;
+};
+
+export type Stat = {
+  value: number;
+  suffix: string;
+  label: string;
+};
+
+export type HeroContent = {
+  roles?: string[];
+  subtitle?: string;
+  status?: string;
+};
+
+export type AboutContent = {
+  stats?: Stat[];
+  badges?: string[];
+  terminalLines?: string[];
+};
+
 function mapBlogRow(row: Record<string, unknown>): Post {
   return {
     slug: String(row.slug),
@@ -110,6 +153,127 @@ export async function getSettings(): Promise<SettingsMap | null> {
   } catch {
     return null;
   }
+}
+
+function mapServiceRow(row: Record<string, unknown>): ServiceItem {
+  return {
+    title: String(row.title),
+    desc: String(row.desc ?? ""),
+    tags: Array.isArray(row.tags) ? row.tags.map(String) : [],
+  };
+}
+
+function mapProcessRow(row: Record<string, unknown>): ProcessStep {
+  return {
+    title: String(row.title),
+    desc: String(row.desc ?? ""),
+  };
+}
+
+function mapExperienceRow(row: Record<string, unknown>): ExperienceItem {
+  return {
+    role: String(row.role),
+    org: String(row.org ?? ""),
+    period: String(row.period ?? ""),
+    desc: String(row.desc ?? ""),
+  };
+}
+
+function mapTestimonialRow(row: Record<string, unknown>): Testimonial {
+  return {
+    quote: String(row.quote),
+    name: String(row.name ?? ""),
+    role: String(row.role ?? ""),
+    rating: Number(row.rating ?? 5),
+  };
+}
+
+export async function getServices(): Promise<ServiceItem[] | null> {
+  const supabase = createAdminClient();
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("services")
+      .select("*")
+      .order("sort", { ascending: true })
+      .order("created_at", { ascending: true });
+    if (error) return null;
+    return (data ?? []).map(mapServiceRow);
+  } catch {
+    return null;
+  }
+}
+
+export async function getProcessSteps(): Promise<ProcessStep[] | null> {
+  const supabase = createAdminClient();
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("process")
+      .select("*")
+      .order("sort", { ascending: true })
+      .order("created_at", { ascending: true });
+    if (error) return null;
+    return (data ?? []).map(mapProcessRow);
+  } catch {
+    return null;
+  }
+}
+
+export async function getExperience(): Promise<ExperienceItem[] | null> {
+  const supabase = createAdminClient();
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("experience")
+      .select("*")
+      .order("sort", { ascending: true })
+      .order("created_at", { ascending: true });
+    if (error) return null;
+    return (data ?? []).map(mapExperienceRow);
+  } catch {
+    return null;
+  }
+}
+
+export async function getTestimonials(): Promise<Testimonial[] | null> {
+  const supabase = createAdminClient();
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("testimonials")
+      .select("*")
+      .order("sort", { ascending: true })
+      .order("created_at", { ascending: true });
+    if (error) return null;
+    return (data ?? []).map(mapTestimonialRow);
+  } catch {
+    return null;
+  }
+}
+
+async function getSectionValue<T>(key: string): Promise<T | null> {
+  const supabase = createAdminClient();
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("sections")
+      .select("value")
+      .eq("key", key)
+      .maybeSingle();
+    if (error || !data) return null;
+    return data.value as T;
+  } catch {
+    return null;
+  }
+}
+
+export function getHero(): Promise<HeroContent | null> {
+  return getSectionValue<HeroContent>("hero");
+}
+
+export function getAbout(): Promise<AboutContent | null> {
+  return getSectionValue<AboutContent>("about");
 }
 
 export { posts as staticPosts };

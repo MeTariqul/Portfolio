@@ -4,12 +4,11 @@ import { useRef } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { SectionHeading } from "./section-heading";
+import type { ProcessStep } from "@/lib/content";
 
-type ProcessItem = { title: string; desc: string };
-
-export function Process() {
+export function Process({ items: propItems }: { items?: ProcessStep[] }) {
   const t = useTranslations("process");
-  const items = t.raw("items") as ProcessItem[];
+  const items = propItems ?? (t.raw("items") as ProcessStep[]);
 
   const trackRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({

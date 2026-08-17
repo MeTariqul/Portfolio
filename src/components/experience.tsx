@@ -5,12 +5,11 @@ import { motion, useScroll, useSpring } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { GraduationCap, Briefcase } from "lucide-react";
 import { SectionHeading } from "./section-heading";
+import type { ExperienceItem } from "@/lib/content";
 
-type ExpItem = { role: string; org: string; period: string; desc: string };
-
-export function Experience() {
+export function Experience({ items: propItems }: { items?: ExperienceItem[] }) {
   const t = useTranslations("experience");
-  const items = t.raw("items") as ExpItem[];
+  const items = propItems ?? (t.raw("items") as ExperienceItem[]);
 
   const trackRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({

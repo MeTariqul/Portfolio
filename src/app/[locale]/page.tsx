@@ -17,12 +17,22 @@ import { Contact } from "@/components/contact";
 import { WordDivider } from "@/components/word-divider";
 import { site } from "@/lib/site";
 import {
+  getAbout,
   getBlogPosts,
+  getExperience,
+  getHero,
+  getProcessSteps,
   getProjects,
+  getServices,
   getSettings,
+  getTestimonials,
 } from "@/lib/content";
 
 export const revalidate = 60;
+
+function withItems<T>(rows: T[] | null | undefined): T[] | undefined {
+  return rows && rows.length > 0 ? rows : undefined;
+}
 
 export async function generateMetadata({
   params,
@@ -77,29 +87,41 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const [dbPosts, dbProjects, dbSettings] = await Promise.all([
-    getBlogPosts(),
-    getProjects(),
-    getSettings(),
-  ]);
+  const [dbPosts, dbProjects, dbSettings, dbServices, dbProcess, dbExperience, dbTestimonials, dbHero, dbAbout] =
+    await Promise.all([
+      getBlogPosts(),
+      getProjects(),
+      getSettings(),
+      getServices(),
+      getProcessSteps(),
+      getExperience(),
+      getTestimonials(),
+      getHero(),
+      getAbout(),
+    ]);
   const contactSettings = dbSettings?.contact;
+  const heroRoles = dbHero?.roles?.length ? dbHero.roles : undefined;
 
   return (
     <>
       <Preloader waitForScenes />
-      <Hero />
+      <Hero roles={heroRoles} subtitle={dbHero?.subtitle} status={dbHero?.status} />
       <Marquee />
       <Statement />
-      <About />
-      <Services />
+      <About
+        stats={dbAbout?.stats}
+        badges={dbAbout?.badges}
+        terminalLines={dbAbout?.terminalLines}
+      />
+      <Services items={withItems(dbServices)} />
       <WordDivider words={["Build", "Create", "Ship"]} />
-      <Projects items={dbProjects ?? undefined} />
+      <Projects items={withItems(dbProjects)} />
       <Skills />
-      <Process />
-      <Experience />
+      <Process items={withItems(dbProcess)} />
+      <Experience items={withItems(dbExperience)} />
       <WordDivider words={["Design", "Code", "Repeat"]} />
-      <BlogSection posts={dbPosts ?? undefined} />
-      <Testimonials />
+      <BlogSection posts={withItems(dbPosts)} />
+      <Testimonials items={withItems(dbTestimonials)} />
       <CtaBand />
       <Contact settings={contactSettings} />
     </>

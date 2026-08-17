@@ -5,14 +5,13 @@ import { useTranslations } from "next-intl";
 import { BrainCircuit, Gauge, LayoutTemplate, Rocket } from "lucide-react";
 import { SectionHeading } from "./section-heading";
 import { TiltCard } from "./tilt-card";
-
-type ServiceItem = { title: string; desc: string; tags: string[] };
+import type { ServiceItem } from "@/lib/content";
 
 const ICONS = [LayoutTemplate, BrainCircuit, Rocket, Gauge];
 
-export function Services() {
+export function Services({ items: propItems }: { items?: ServiceItem[] }) {
   const t = useTranslations("services");
-  const items = t.raw("items") as ServiceItem[];
+  const items = propItems ?? (t.raw("items") as ServiceItem[]);
 
   return (
     <section id="services" className="relative mx-auto max-w-7xl px-5 py-28 sm:px-8 lg:py-36">

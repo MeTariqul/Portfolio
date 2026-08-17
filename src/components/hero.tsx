@@ -14,9 +14,17 @@ import { site } from "@/lib/site";
 
 const ROLE_INTERVAL = 2400;
 
-export function Hero() {
+export function Hero({
+  roles: propRoles,
+  subtitle: propSubtitle,
+  status: propStatus,
+}: {
+  roles?: string[];
+  subtitle?: string;
+  status?: string;
+}) {
   const t = useTranslations("hero");
-  const roles = t.raw("roles") as string[];
+  const roles = propRoles ?? (t.raw("roles") as string[]);
 
   const [roleIndex, setRoleIndex] = useState(0);
 
@@ -71,7 +79,7 @@ export function Hero() {
           </span>
           <span className="hidden h-3 w-px bg-line sm:block" />
           <span className="hidden font-mono text-[11px] uppercase tracking-[0.25em] text-soft sm:block">
-            {t("status")}
+            {propStatus ?? t("status")}
           </span>
           <span className="hidden h-3 w-px bg-line sm:block" />
           <VisitorCount
@@ -114,7 +122,7 @@ export function Hero() {
           transition={{ duration: 0.7, delay: 0.55 }}
           className="mt-6 max-w-2xl text-base leading-relaxed text-soft sm:text-lg"
         >
-          {t("subtitle")}
+          {propSubtitle ?? t("subtitle")}
         </motion.p>
 
         <motion.div

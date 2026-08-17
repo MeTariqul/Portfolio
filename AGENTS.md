@@ -91,10 +91,11 @@ src/
       dashboard.tsx       # client: tabbed CMS (Messages / Blog / Projects / Settings) + sign out
       blog-manager.tsx    # client: blog CRUD (list, JSON blocks editor, featured/published flags)
       projects-manager.tsx# client: project CRUD + GitHub repo sync/import (§5.9)
+      sections-manager.tsx# client: Sections CMS — Services/Process/Experience/Testimonials CRUD + Hero/About editors (§5.8)
       settings-manager.tsx# client: contact settings (email/location/availability) editor
     actions/
       send-contact.ts     # server action: Supabase insert + Brevo confirm + Resend notify (§5.5)
-      admin.ts            # server actions: messages CRUD + blog/project/settings CRUD + GitHub fetch (§5.8/5.9)
+      admin.ts            # server actions: messages CRUD + blog/project/section/settings CRUD + GitHub fetch (§5.8/5.9)
   proxy.ts                # next-intl middleware (Next 16 renamed it) — admin excluded from matcher
   components/         # all client components (see §3 for the section list)
   i18n/
@@ -103,7 +104,7 @@ src/
   lib/
     site.ts           # CENTRAL identity config (name, github, email, url…) — edit identity here
     posts.ts          # STATIC FALLBACK blog posts (4 posts; frontmatter-style objects)
-    content.ts        # SERVER-ONLY content layer: getBlogPosts/getBlogPost/getProjects/getSettings (service-role reads, null on missing tables/keys) — home + blog pages use it (§5.9)
+    content.ts        # SERVER-ONLY content layer: getBlogPosts/getBlogPost/getProjects/getSettings + getServices/getProcessSteps/getExperience/getTestimonials/getHero/getAbout (service-role reads, null on missing tables/keys) — home + blog pages use it (§5.9)
     utils.ts          # cn() = clsx + tailwind-merge
     lenis-store.ts    # module-scope Lenis singleton + hardened scrollToId() (§5)
     render-store.ts   # scene-ready pub/sub used by the preloader (§5)
@@ -171,7 +172,7 @@ Section order in `src/app/[locale]/page.tsx` (ids + heading numbers are coordina
 > Note: `#fuel` (movies) and `#lab` (creative posters) sections were **removed** deliberately — the site is strictly developer-focused. Do not re-add entertainment content.
 
 **Adding content (the common tasks):**
-- **Project card / blog post / contact info:** editable at runtime from `/admin` (tabs: Projects / Blog / Settings) once the `blogs`, `projects`, `settings` tables exist (§5.8). Static fallbacks live in `en.json → projects.items` and `src/lib/posts.ts` — DB wins when present. Do NOT edit admin manager components to change content.
+- **Project card / blog post / contact info / section content (services, process, experience, testimonials, hero, about):** editable at runtime from `/admin` (tabs: Projects / Blog / Sections / Settings) once the tables exist (§5.8). Static fallbacks live in `en.json` (per-section namespaces) — DB wins when it has content (empty tables/lists fall back to en.json). Do NOT edit admin manager components to change content.
 - **Skill chip:** add to one of the 4 ring arrays in `skills.tsx` (FRONTEND/BACKEND/AI/PYTHON) — canvas textures regenerate automatically.
 - **New section:** create component with `<section id="...">`, add `SectionHeading` with the next number, register in `page.tsx`, add en.json namespace, optionally add to navbar `LINKS` array (navbar only lists: about, projects, skills, experience, blog, contact).
 
@@ -218,8 +219,8 @@ Section order in `src/app/[locale]/page.tsx` (ids + heading numbers are coordina
 ### 5.8 Admin panel (`/admin`) + content storage
 - Route lives OUTSIDE `[locale]` (top-level, like `/api`): uses the ROOT layout only (no navbar/footer/fonts — plain system fonts there, by design). `export const dynamic = "force-dynamic"`, `robots: noindex`, and excluded from the next-intl proxy matcher (`src/proxy.ts` — keep `admin` in the negative lookahead), `robots.txt` (`Disallow: /admin`), and `sitemap.ts` (whitelist-based — never add it).
 - Auth = **Supabase Auth email+password** (single admin user created in the Supabase dashboard). `login-form.tsx` calls `signInWithPassword` → `router.refresh()`. Page checks `supabase.auth.getUser()` server-side via cookie session (`createServerClient`).
-- **Dashboard is a 4-tab CMS:** Messages (list/mark read/delete), Blog (`blog-manager.tsx` — CRUD + JSON blocks editor + featured/published flags + gradient picker), Projects (`projects-manager.tsx` — CRUD + GitHub repo sync/import), Settings (`settings-manager.tsx` — contact email/location/availability). Tab UI is hardcoded English (outside locale tree, by design).
-- **Tables** (consolidated one-shot SQL in `supabase/init.sql` — messages + blogs + projects + settings + RLS + seed settings row; run the whole file in SQL Editor, it is idempotent):
+- **Dashboard is a 5-tab CMS:** Messages (list/mark read/delete), Blog (`blog-manager.tsx` — CRUD + JSON blocks editor + featured/published flags + gradient picker), Projects (`projects-manager.tsx` — CRUD + GitHub repo sync/import), Sections (`sections-manager.tsx` — Services/Process/Experience/Testimonials CRUD + Hero/About forms), Settings (`settings-manager.tsx` — contact email/location/availability). Tab UI is hardcoded English (outside locale tree, by design).
+- **Tables** (consolidated one-shot SQL in `supabase/init.sql` — messages + blogs + projects + settings + services + process + experience + testimonials + sections + RLS + seed settings row; run the whole file in SQL Editor, it is idempotent incl. policies via drop-if-exists):
 
 ```sql
 create table if not exists messages (
@@ -233,15 +234,20 @@ create table if not exists messages (
 -- blogs: id uuid pk, slug text unique, title, description, date, read_time int,
 --        category, featured bool, gradient text, blocks jsonb, published bool default true
 -- projects: id uuid pk, title, desc, tags text[], category, link, github, featured bool, sort int
+-- services: id uuid pk, title, desc, tags text[], sort int
+-- process: id uuid pk, title, desc, sort int
+-- experience: id uuid pk, role, org, period, desc, sort int
+-- testimonials: id uuid pk, quote, name, role, rating int, sort int
 -- settings: key text pk, value jsonb  (row: key='contact', value={"email":..,"location":..,"availability":..})
--- all four: RLS enabled, every policy allows only auth.role() = 'authenticated'
+-- sections: key text pk, value jsonb  (rows: key='hero' value={roles[],subtitle,status}; key='about' value={stats[],badges[],terminalLines[]})
+-- all: RLS enabled, every policy allows only auth.role() = 'authenticated'
 ```
 
-- Server actions in `actions/admin.ts` run through the user-session client, so RLS applies (authenticated admin only): messages CRUD + `listBlogs/saveBlog/deleteBlog`, `listProjects/saveProject/deleteProject`, `getSettingsMap/saveContactSettings`, `getGithubRepos` (fetches `https://api.github.com/users/MeTariqul/repos`). Contact-form inserts use the **service-role** client (`lib/supabase/admin.ts`, `persistSession: false`) which bypasses RLS — that module must NEVER be imported from client code. When the page loads without Supabase env keys it renders the login card with a "not configured" note instead of crashing.
+- Server actions in `actions/admin.ts` run through the user-session client, so RLS applies (authenticated admin only): messages CRUD + `listBlogs/saveBlog/deleteBlog`, `listProjects/saveProject/deleteProject`, `getSettingsMap/saveContactSettings`, section CRUD (`listServices/saveService/deleteService` + process/experience/testimonials equivalents, `getSection/saveSection` for hero/about), `getGithubRepos` (fetches `https://api.github.com/users/MeTariqul/repos`). All section actions are `async` — Next 16 requires server actions to be async functions (non-async wrappers break the build). Contact-form inserts use the **service-role** client (`lib/supabase/admin.ts`, `persistSession: false`) which bypasses RLS — that module must NEVER be imported from client code. When the page loads without Supabase env keys it renders the login card with a "not configured" note instead of crashing.
 
 ### 5.9 Content layer (DB-first with static fallback)
-- `src/lib/content.ts` (SERVER-ONLY, service-role reads): `getBlogPosts()`, `getBlogPost(slug)`, `getProjects()`, `getSettings()` — each returns `null` when tables/keys are missing (never throws), and callers fall back to `src/lib/posts.ts` / `en.json → projects.items` / `src/lib/site.ts`.
-- Home page (`[locale]/page.tsx`) + blog pages have `export const revalidate = 60` (ISR): DB content appears within 60s of admin edits. `blog/[slug]/page.tsx` is DYNAMIC (no `generateStaticParams` — slugs are DB-driven) and `notFound()`s on unknown slugs.
+- `src/lib/content.ts` (SERVER-ONLY, service-role reads): `getBlogPosts()`, `getBlogPost(slug)`, `getProjects()`, `getSettings()`, `getServices()`, `getProcessSteps()`, `getExperience()`, `getTestimonials()`, `getHero()`, `getAbout()` — each returns `null` when tables/keys are missing (never throws), and callers fall back to `src/lib/posts.ts` / `en.json` per-section namespaces / `src/lib/site.ts`.
+- Home page (`[locale]/page.tsx`) + blog pages have `export const revalidate = 60` (ISR): DB content appears within 60s of admin edits. `blog/[slug]/page.tsx` is DYNAMIC (no `generateStaticParams` — slugs are DB-driven) and `notFound()`s on unknown slugs. Home passes props via `withItems()` (empty DB lists fall back to en.json) and destructured `dbHero`/`dbAbout` fields.
 - `getSettings()` maps the `settings.contact` row to email/location/availability; the Contact section renders those when present, else `site.ts`/en.json fallbacks. Do NOT revert blog pages to static-only — the fallback chain is the safety net.
 
 ---
@@ -262,8 +268,8 @@ create table if not exists messages (
 ## 7. Known Placeholders / TODOs (outstanding work)
 
 - `src/lib/site.ts`: `url` is `https://metariqul.vercel.app` (TODO: real domain) and `email` is `hello@metariqul.dev` — verify before launch. CV is at `public/cv/Md-Tariqul-Islam-CV.pdf` (real PDF already in place).
-- **Admin panel setup (user-provided, in progress):** Supabase URL + publishable/secret keys are configured in `.env` (new `sb_publishable_`/`sb_secret_` key format, supported by supabase-js 2.112). Verified: both keys authenticate from Node (PowerShell gets 401 — Supabase's browser-protection on secret keys; this is expected), auth API is live. Brevo key + sender (`CONTACT_EMAIL = print-edge@outlook.com`, verified Brevo sender) configured and WORKING (test emails sent). Admin user `gbtarif37@gmail.com` created via Admin API (`email_confirm: true`) and login verified through a real headless-Edge browser session on the prod build (dashboard renders with all 4 tabs, 3 real contact messages visible → the `messages` table EXISTS). STILL PENDING: run the FULL `supabase/init.sql` in SQL Editor — `blogs`, `projects`, `settings` tables do NOT exist yet (REST returns PGRST205; admin tabs degrade gracefully with error banners + empty states, and public pages fall back to static content — verified headless). Also still pending: Resend/Upstash keys. Contact-form → Brevo E2E verified working once messages insert succeeds.
-- CMS verification (headless Edge, prod build on 3100, Aug 2026): blog/projects/settings tabs show graceful empty states + "table not found" banner; GitHub sync fetches real repos (factory_erp, Pixels-on-Paper, Running-Project…); blog post pages serve static fallback with unknown slugs → 404; typecheck + lint + build all green.
+- **Admin panel setup (user-provided, in progress):** Supabase URL + publishable/secret keys are configured in `.env` (new `sb_publishable_`/`sb_secret_` key format, supported by supabase-js 2.112). Verified: both keys authenticate from Node (PowerShell gets 401 — Supabase's browser-protection on secret keys; this is expected), auth API is live. Brevo key + sender (`CONTACT_EMAIL = print-edge@outlook.com`, verified Brevo sender) configured and WORKING (test emails sent). Admin user `gbtarif37@gmail.com` created via Admin API (`email_confirm: true`) and login verified through a real headless-Edge browser session on the prod build (dashboard renders with all 5 tabs, real contact messages visible → the `messages` table EXISTS). STILL PENDING: run the FULL `supabase/init.sql` in SQL Editor — `blogs`, `projects`, `settings`, `services`, `process`, `experience`, `testimonials`, `sections` tables do NOT exist yet (REST returns PGRST205; admin tabs degrade gracefully with error banners + empty states, and public pages fall back to static content — verified headless). Also still pending: Resend/Upstash keys. Contact-form → Brevo E2E verified working once messages insert succeeds.
+- CMS verification (headless Edge, prod build on 3100, Aug 2026): blog/projects/sections/settings tabs show graceful empty states + "table not found" banner; all 6 Sections sub-tabs (Services/Process/Experience/Testimonials/Hero/About) render + edit forms open; GitHub sync fetches real repos (factory_erp, Pixels-on-Paper, Running-Project…); blog post pages serve static fallback with unknown slugs → 404; typecheck + lint + build all green.
 - `testimonials.sub` explicitly says "Placeholder reviews — replace with your real Fiverr feedback anytime."
 - `.env.example` values are examples — real keys go in `.env` (gitignored).
 - **Vercel deployment (user-provided, pending):** repo is `MeTariqul/Portfolio` (main). Import in Vercel (framework auto-detects Next.js), copy ALL `.env` keys into Project → Settings → Environment Variables (`NEXT_PUBLIC_*` vars are inlined at build — required for the deployed site), then enable **Web Analytics** + **Speed Insights** in the project dashboard (components already render on all public pages; `/admin` is excluded by design).

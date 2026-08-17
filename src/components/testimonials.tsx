@@ -5,19 +5,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Quote, Star } from "lucide-react";
 import { SectionHeading } from "./section-heading";
-
-type Testimonial = {
-  quote: string;
-  name: string;
-  role: string;
-  rating: number;
-};
+import type { Testimonial } from "@/lib/content";
 
 const INTERVAL = 5200;
 
-export function Testimonials() {
+export function Testimonials({ items: propItems }: { items?: Testimonial[] }) {
   const t = useTranslations("testimonials");
-  const items = t.raw("items") as Testimonial[];
+  const items = propItems ?? (t.raw("items") as Testimonial[]);
   const [index, setIndex] = useState(0);
 
   useEffect(() => {

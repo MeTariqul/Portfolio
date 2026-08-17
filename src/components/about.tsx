@@ -6,12 +6,21 @@ import { SectionHeading } from "./section-heading";
 import { Terminal } from "./terminal";
 import { Counter, type Stat } from "./counters";
 import { site } from "@/lib/site";
+import type { AboutContent } from "@/lib/content";
 
-export function About() {
+export function About({
+  stats: propStats,
+  badges: propBadges,
+  terminalLines: propLines,
+}: {
+  stats?: AboutContent["stats"];
+  badges?: AboutContent["badges"];
+  terminalLines?: AboutContent["terminalLines"];
+}) {
   const t = useTranslations("about");
-  const lines = t.raw("terminalLines") as string[];
-  const stats = t.raw("stats") as Stat[];
-  const badges = t.raw("badges") as string[];
+  const lines = propLines ?? (t.raw("terminalLines") as string[]);
+  const stats = propStats ?? (t.raw("stats") as Stat[]);
+  const badges = propBadges ?? (t.raw("badges") as string[]);
 
   return (
     <section id="about" className="relative mx-auto max-w-7xl px-5 py-28 sm:px-8 lg:py-36">

@@ -13,13 +13,15 @@ import {
 import { BlogManager } from "./blog-manager";
 import { ProjectsManager } from "./projects-manager";
 import { SettingsManager } from "./settings-manager";
+import { SectionsManager } from "./sections-manager";
 
-type Tab = "messages" | "blog" | "projects" | "settings";
+type Tab = "messages" | "blog" | "projects" | "sections" | "settings";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "messages", label: "Messages" },
   { id: "blog", label: "Blog" },
   { id: "projects", label: "Projects" },
+  { id: "sections", label: "Sections" },
   { id: "settings", label: "Settings" },
 ];
 
@@ -120,6 +122,7 @@ export function AdminDashboard({ email }: { email: string }) {
 
       {tab === "blog" && <BlogManager />}
       {tab === "projects" && <ProjectsManager />}
+      {tab === "sections" && <SectionsManager />}
       {tab === "settings" && <SettingsManager />}
 
       {tab === "messages" &&

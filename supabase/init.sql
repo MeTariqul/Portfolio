@@ -1,4 +1,4 @@
--- Portfolio CMS schema — run ONCE in Supabase → SQL Editor.
+-- Portfolio CMS schema — run in Supabase → SQL Editor (idempotent, safe to re-run).
 -- Public pages read via the service-role key (bypasses RLS);
 -- admin CRUD runs through the signed-in session (authenticated role).
 
@@ -47,29 +47,140 @@ create table if not exists settings (
   updated_at timestamptz not null default now()
 );
 
+-- Section content — mirrors the home page sections (DB wins over en.json when non-empty)
+
+create table if not exists services (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  desc text not null default '',
+  tags text[] not null default '{}',
+  sort int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists process (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  desc text not null default '',
+  sort int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists experience (
+  id uuid primary key default gen_random_uuid(),
+  role text not null,
+  org text not null default '',
+  period text not null default '',
+  desc text not null default '',
+  sort int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists testimonials (
+  id uuid primary key default gen_random_uuid(),
+  quote text not null,
+  name text not null default '',
+  role text not null default '',
+  rating int not null default 5,
+  sort int not null default 0,
+  created_at timestamptz not null default now()
+);
+
+-- Singleton sections (hero / about) stored as jsonb keyed rows
+create table if not exists sections (
+  key text primary key,
+  value jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
 alter table messages enable row level security;
 alter table blogs enable row level security;
 alter table projects enable row level security;
 alter table settings enable row level security;
+alter table services enable row level security;
+alter table process enable row level security;
+alter table experience enable row level security;
+alter table testimonials enable row level security;
+alter table sections enable row level security;
 
+drop policy if exists "admins read messages" on messages;
+drop policy if exists "admins update messages" on messages;
+drop policy if exists "admins delete messages" on messages;
 create policy "admins read messages" on messages for select using (auth.role() = 'authenticated');
 create policy "admins update messages" on messages for update using (auth.role() = 'authenticated');
 create policy "admins delete messages" on messages for delete using (auth.role() = 'authenticated');
 
+drop policy if exists "admins read blogs" on blogs;
+drop policy if exists "admins insert blogs" on blogs;
+drop policy if exists "admins update blogs" on blogs;
+drop policy if exists "admins delete blogs" on blogs;
 create policy "admins read blogs" on blogs for select using (auth.role() = 'authenticated');
 create policy "admins insert blogs" on blogs for insert with check (auth.role() = 'authenticated');
 create policy "admins update blogs" on blogs for update using (auth.role() = 'authenticated');
 create policy "admins delete blogs" on blogs for delete using (auth.role() = 'authenticated');
 
+drop policy if exists "admins read projects" on projects;
+drop policy if exists "admins insert projects" on projects;
+drop policy if exists "admins update projects" on projects;
+drop policy if exists "admins delete projects" on projects;
 create policy "admins read projects" on projects for select using (auth.role() = 'authenticated');
 create policy "admins insert projects" on projects for insert with check (auth.role() = 'authenticated');
 create policy "admins update projects" on projects for update using (auth.role() = 'authenticated');
 create policy "admins delete projects" on projects for delete using (auth.role() = 'authenticated');
 
+drop policy if exists "admins read settings" on settings;
+drop policy if exists "admins insert settings" on settings;
+drop policy if exists "admins update settings" on settings;
+drop policy if exists "admins delete settings" on settings;
 create policy "admins read settings" on settings for select using (auth.role() = 'authenticated');
 create policy "admins insert settings" on settings for insert with check (auth.role() = 'authenticated');
 create policy "admins update settings" on settings for update using (auth.role() = 'authenticated');
 create policy "admins delete settings" on settings for delete using (auth.role() = 'authenticated');
+
+drop policy if exists "admins read services" on services;
+drop policy if exists "admins insert services" on services;
+drop policy if exists "admins update services" on services;
+drop policy if exists "admins delete services" on services;
+create policy "admins read services" on services for select using (auth.role() = 'authenticated');
+create policy "admins insert services" on services for insert with check (auth.role() = 'authenticated');
+create policy "admins update services" on services for update using (auth.role() = 'authenticated');
+create policy "admins delete services" on services for delete using (auth.role() = 'authenticated');
+
+drop policy if exists "admins read process" on process;
+drop policy if exists "admins insert process" on process;
+drop policy if exists "admins update process" on process;
+drop policy if exists "admins delete process" on process;
+create policy "admins read process" on process for select using (auth.role() = 'authenticated');
+create policy "admins insert process" on process for insert with check (auth.role() = 'authenticated');
+create policy "admins update process" on process for update using (auth.role() = 'authenticated');
+create policy "admins delete process" on process for delete using (auth.role() = 'authenticated');
+
+drop policy if exists "admins read experience" on experience;
+drop policy if exists "admins insert experience" on experience;
+drop policy if exists "admins update experience" on experience;
+drop policy if exists "admins delete experience" on experience;
+create policy "admins read experience" on experience for select using (auth.role() = 'authenticated');
+create policy "admins insert experience" on experience for insert with check (auth.role() = 'authenticated');
+create policy "admins update experience" on experience for update using (auth.role() = 'authenticated');
+create policy "admins delete experience" on experience for delete using (auth.role() = 'authenticated');
+
+drop policy if exists "admins read testimonials" on testimonials;
+drop policy if exists "admins insert testimonials" on testimonials;
+drop policy if exists "admins update testimonials" on testimonials;
+drop policy if exists "admins delete testimonials" on testimonials;
+create policy "admins read testimonials" on testimonials for select using (auth.role() = 'authenticated');
+create policy "admins insert testimonials" on testimonials for insert with check (auth.role() = 'authenticated');
+create policy "admins update testimonials" on testimonials for update using (auth.role() = 'authenticated');
+create policy "admins delete testimonials" on testimonials for delete using (auth.role() = 'authenticated');
+
+drop policy if exists "admins read sections" on sections;
+drop policy if exists "admins insert sections" on sections;
+drop policy if exists "admins update sections" on sections;
+drop policy if exists "admins delete sections" on sections;
+create policy "admins read sections" on sections for select using (auth.role() = 'authenticated');
+create policy "admins insert sections" on sections for insert with check (auth.role() = 'authenticated');
+create policy "admins update sections" on sections for update using (auth.role() = 'authenticated');
+create policy "admins delete sections" on sections for delete using (auth.role() = 'authenticated');
 
 -- Seed default settings (contact info shown on the site — editable in /admin)
 insert into settings (key, value) values
