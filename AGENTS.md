@@ -73,6 +73,8 @@ scripts/
   generate-og.mjs     # renders public/opengraph.png (React.createElement, no JSX — do NOT add JSX)
   generate-cv.mjs     # CV generator
   seed-content.mjs    # (re)seeds settings.site_content + sections.hero/about into the live DB (npm run seed)
+docs/
+  user-manual.md      # END-USER manual for all pages + admin panel (how to edit every piece of content)
 public/
   opengraph.png       # STATIC OG image (no dynamic /opengraph-image route — Turbopack can't run it)
   cv/Md-Tariqul-Islam-CV.pdf
