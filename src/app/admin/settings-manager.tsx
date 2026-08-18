@@ -144,7 +144,15 @@ const CARDS: CardDef[] = [
   {
     ns: "preloader",
     title: "Preloader",
-    fields: [{ path: "loading", label: "Loading text" }],
+    fields: [
+      { path: "loading", label: "Loading text" },
+      { path: "loadingFonts", label: "Loading fonts status" },
+      { path: "fontsOk", label: "Fonts done status" },
+      { path: "renderingData", label: "Rendering data status" },
+      { path: "dataOk", label: "Data done status" },
+      { path: "renderingScenes", label: "Rendering scenes status" },
+      { path: "scenesOk", label: "Scenes done status" },
+    ],
   },
   {
     ns: "services",

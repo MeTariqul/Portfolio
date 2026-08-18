@@ -15,7 +15,13 @@
     "hire": "Hire Me"
   },
   "preloader": {
-    "loading": "LOADING"
+    "loading": "LOADING",
+    "loadingFonts": "loading fonts",
+    "fontsOk": "fonts ✓",
+    "renderingData": "rendering data",
+    "dataOk": "data ✓",
+    "renderingScenes": "rendering scenes",
+    "scenesOk": "scenes ✓"
   },
   "hero": {
     "greet": "Hello, I'm",

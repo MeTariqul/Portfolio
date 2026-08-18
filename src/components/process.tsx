@@ -20,7 +20,7 @@ export function Process({ items: propItems }: { items?: ProcessStep[] }) {
   const pinRef = useRef<HTMLDivElement>(null);
 
   return (
-    <section id="process" className="relative">
+    <section id="process" className="relative overflow-x-clip">
       <div ref={pinRef} className="relative">
         <div className="sticky top-0 flex min-h-dvh items-center">
           <div className="mx-auto grid w-full max-w-7xl gap-12 px-5 py-24 sm:px-8 lg:grid-cols-2 lg:gap-20">

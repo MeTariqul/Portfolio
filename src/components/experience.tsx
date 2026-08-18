@@ -21,7 +21,7 @@ export function Experience({ items: propItems }: { items?: ExperienceItem[] }) {
   return (
     <section
       id="experience"
-      className="relative mx-auto max-w-5xl px-5 py-28 sm:px-8 lg:py-36"
+      className="relative mx-auto max-w-5xl overflow-x-clip px-5 py-28 sm:px-8 lg:py-36"
     >
       <SectionHeading number="06" label={t("label")} title={t("heading")} />
 

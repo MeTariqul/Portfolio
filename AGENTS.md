@@ -75,6 +75,7 @@ scripts/
   seed-content.mjs    # (re)seeds settings.site_content + sections.hero/about into the live DB (npm run seed)
 docs/
   user-manual.md      # END-USER manual for all pages + admin panel (how to edit every piece of content)
+  quality-report.md   # Quality assessment report (2026-08-18, 30/30 checks passed) — see §8
 public/
   opengraph.png       # STATIC OG image (no dynamic /opengraph-image route — Turbopack can't run it)
   cv/Md-Tariqul-Islam-CV.pdf
@@ -292,4 +293,6 @@ create table if not exists messages (
 npm run typecheck && npm run lint && npm run build
 ```
 
-Then, for UI/UX changes, verify with a headless browser (puppeteer-core + Edge, temp install) at 375px / 768px / 1440px: no horizontal overflow (`scrollWidth <= innerWidth`), no console errors, sections reachable, nav scrollspy + hash navigation working. The last full regression pass (Aug 2026) was 13/13 device checks + 9/9 content checks.
+Then, for UI/UX changes, verify with a headless browser (puppeteer-core + Edge, temp install) at 375px / 768px / 1440px: no horizontal overflow (`scrollWidth <= innerWidth`), no console errors, sections reachable, nav scrollspy + hash navigation working. The last full regression pass (Aug 2026) was 13/13 device checks + 9/9 content checks; the 2026-08-18 quality assessment passed 30/30 (see `docs/quality-report.md`).
+
+**Known layout trap:** `process.tsx` and `experience.tsx` slide cards in from `x: 48` (framer-motion `initial`), which pokes 28px past the viewport at 375px until scrolled into view. Both `<section>`s carry `overflow-x-clip` — do not remove it.

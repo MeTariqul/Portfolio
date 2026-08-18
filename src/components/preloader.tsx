@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { areScenesReady, subscribeScenesReady } from "@/lib/render-store";
 import { scrollToId } from "@/lib/lenis-store";
 
 export function Preloader({ waitForScenes = false }: { waitForScenes?: boolean }) {
+  const t = useTranslations("preloader");
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
   const [fontsOk, setFontsOk] = useState(false);
+  const [dataOk, setDataOk] = useState(false);
   const [scenesOk, setScenesOk] = useState(false);
 
   useEffect(() => {
@@ -18,6 +21,16 @@ export function Preloader({ waitForScenes = false }: { waitForScenes?: boolean }
     const minDuration = 1600;
     let raf: number;
     let finished = false;
+
+    const dataReady = () => {
+      const h1 = document.querySelector("h1")?.textContent?.trim() ?? "";
+      return (
+        h1.length > 3 &&
+        document.querySelectorAll("#services h3").length >= 1 &&
+        document.querySelectorAll("#projects a[href]").length >= 1 &&
+        document.querySelectorAll("#blog a[href]").length >= 1
+      );
+    };
 
     const finish = () => {
       if (finished) return;
@@ -34,15 +47,17 @@ export function Preloader({ waitForScenes = false }: { waitForScenes?: boolean }
     };
 
     const tick = (now: number) => {
-      const t = Math.min((now - start) / minDuration, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
+      const ratio = Math.min((now - start) / minDuration, 1);
+      const eased = 1 - Math.pow(1 - ratio, 3);
       setProgress(Math.round(eased * 100));
       const assetsLoaded = document.readyState === "complete";
       const fonts = document.fonts.status === "loaded";
       setFontsOk(fonts);
+      const data = dataReady();
+      setDataOk(data);
       const scenes = waitForScenes && areScenesReady();
       setScenesOk(waitForScenes ? scenes : true);
-      if (t >= 1 && assetsLoaded && fonts && scenes) {
+      if (ratio >= 1 && assetsLoaded && fonts && data && scenes) {
         finish();
         return;
       }
@@ -130,10 +145,13 @@ export function Preloader({ waitForScenes = false }: { waitForScenes?: boolean }
 
           <div className="mt-4 flex flex-col items-center gap-1 font-mono text-[10px] uppercase tracking-[0.3em]">
             <span className={fontsOk ? "text-neon" : "text-soft"}>
-              {fontsOk ? "▸ fonts ✓" : "▸ loading fonts"}
+              {fontsOk ? t("fontsOk") : t("loadingFonts")}
+            </span>
+            <span className={dataOk ? "text-neon" : "text-soft"}>
+              {dataOk ? t("dataOk") : t("renderingData")}
             </span>
             <span className={scenesOk ? "text-neon" : "text-soft"}>
-              {scenesOk ? "▸ scenes ✓" : "▸ rendering scenes"}
+              {scenesOk ? t("scenesOk") : t("renderingScenes")}
             </span>
           </div>
         </motion.div>
