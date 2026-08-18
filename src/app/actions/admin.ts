@@ -109,6 +109,7 @@ export type GithubRepo = {
   description: string | null;
   language: string | null;
   html_url: string;
+  homepage: string | null;
   stars: number;
 };
 
@@ -303,6 +304,7 @@ export async function getGithubRepos(): Promise<
       description: string | null;
       language: string | null;
       html_url: string;
+      homepage: string | null;
       stargazers_count: number;
     }[];
     return {
@@ -313,6 +315,7 @@ export async function getGithubRepos(): Promise<
         description: r.description,
         language: r.language,
         html_url: r.html_url,
+        homepage: r.homepage,
         stars: r.stargazers_count,
       })),
     };

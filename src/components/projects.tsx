@@ -129,7 +129,7 @@ export function Projects({
                         </div>
                         <div className="mt-6 flex items-center gap-4 border-t border-line pt-5">
                           <a
-                            href={gh}
+                            href={item.github || gh}
                             target="_blank"
                             rel="noreferrer"
                             className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-soft transition-colors hover:text-neon"
@@ -137,10 +137,22 @@ export function Projects({
                             <GitHubIcon width={13} height={13} />
                             {t("code")}
                           </a>
-                          <span className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-soft transition-all duration-300 group-hover:translate-x-1 group-hover:text-neon">
-                            {t("live")}
-                            <ArrowUpRight size={13} />
-                          </span>
+                          {item.link ? (
+                            <a
+                              href={item.link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-soft transition-all duration-300 group-hover:translate-x-1 group-hover:text-neon"
+                            >
+                              {t("live")}
+                              <ArrowUpRight size={13} />
+                            </a>
+                          ) : (
+                            <span className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-soft/50">
+                              {t("live")}
+                              <ArrowUpRight size={13} />
+                            </span>
+                          )}
                         </div>
                       </div>
 

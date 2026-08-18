@@ -84,7 +84,7 @@ export function ProjectsManager() {
       title: repo.name,
       desc: repo.description ?? "",
       tags: repo.language ? [repo.language] : [],
-      link: repo.html_url,
+      link: repo.homepage ?? "",
       github: repo.html_url,
       sort: projects?.length ?? 0,
     });
