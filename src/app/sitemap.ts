@@ -1,14 +1,16 @@
 import type { MetadataRoute } from "next";
-import { site } from "@/lib/site";
-import { posts } from "@/lib/posts";
+import { getSite, getBlogPosts } from "@/lib/content";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  const s = await getSite();
+  const dbPosts = await getBlogPosts();
+  const slugs = dbPosts?.map((p) => `/blog/${p.slug}`) ?? [];
 
-  const pagePaths = ["", "/blog", ...posts.map((p) => `/blog/${p.slug}`)];
+  const pagePaths = ["", "/blog", ...slugs];
 
   return pagePaths.map((page) => ({
-    url: `${site.url}${page}`,
+    url: `${s.url}${page}`,
     lastModified: now,
     changeFrequency: (page === "" ? "monthly" : "weekly") as
       | "monthly"

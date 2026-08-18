@@ -1,6 +1,11 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+
+function revalidate() {
+  revalidatePath("/", "layout");
+}
 
 export type AdminMessage = {
   id: string;
@@ -151,6 +156,7 @@ export async function saveBlog(blog: AdminBlog): Promise<ActionResult> {
     : await supabase.from("blogs").insert(payload);
 
   if (error) return { ok: false, error: error.message };
+  revalidate();
   return { ok: true };
 }
 
@@ -160,6 +166,7 @@ export async function deleteBlog(id: string): Promise<ActionResult> {
 
   const { error } = await supabase.from("blogs").delete().eq("id", id);
   if (error) return { ok: false, error: error.message };
+  revalidate();
   return { ok: true };
 }
 
@@ -172,7 +179,10 @@ export async function listProjects(): Promise<ActionResult & { projects?: AdminP
     .select("*")
     .order("sort", { ascending: true });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    console.error("[admin/listProjects] Supabase error:", error.message);
+    return { ok: false, error: error.message };
+  }
   return { ok: true, projects: (data ?? []) as AdminProject[] };
 }
 
@@ -196,7 +206,11 @@ export async function saveProject(project: AdminProject): Promise<ActionResult> 
     ? await supabase.from("projects").update(payload).eq("id", project.id)
     : await supabase.from("projects").insert(payload);
 
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    console.error("[admin/saveProject] Supabase error:", error.message);
+    return { ok: false, error: error.message };
+  }
+  revalidate();
   return { ok: true };
 }
 
@@ -205,7 +219,11 @@ export async function deleteProject(id: string): Promise<ActionResult> {
   if (!supabase) return { ok: false, error: "Unauthorized" };
 
   const { error } = await supabase.from("projects").delete().eq("id", id);
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    console.error("[admin/deleteProject] Supabase error:", error.message);
+    return { ok: false, error: error.message };
+  }
+  revalidate();
   return { ok: true };
 }
 
@@ -234,6 +252,38 @@ export async function saveContactSettings(
   );
 
   if (error) return { ok: false, error: error.message };
+  revalidate();
+  return { ok: true };
+}
+
+export async function getSetting(
+  key: string
+): Promise<ActionResult & { value?: Record<string, unknown> }> {
+  const supabase = await requireClient();
+  if (!supabase) return { ok: false, error: "Unauthorized" };
+
+  const { data, error } = await supabase
+    .from("settings")
+    .select("value")
+    .eq("key", key)
+    .maybeSingle();
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, value: (data?.value ?? {}) as Record<string, unknown> };
+}
+
+export async function saveSetting(
+  key: string,
+  value: Record<string, unknown>
+): Promise<ActionResult> {
+  const supabase = await requireClient();
+  if (!supabase) return { ok: false, error: "Unauthorized" };
+
+  const { error } = await supabase
+    .from("settings")
+    .upsert({ key, value }, { onConflict: "key" });
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -334,6 +384,7 @@ async function upsertRow(
     ? await supabase.from(table).update(row).eq("id", id)
     : await supabase.from(table).insert(row);
   if (error) return { ok: false, error: error.message };
+  revalidate();
   return { ok: true };
 }
 
@@ -343,6 +394,7 @@ async function removeRow(table: string, id: string): Promise<ActionResult> {
 
   const { error } = await supabase.from(table).delete().eq("id", id);
   if (error) return { ok: false, error: error.message };
+  revalidate();
   return { ok: true };
 }
 
@@ -451,5 +503,6 @@ export async function saveSection(
     .from("sections")
     .upsert({ key, value }, { onConflict: "key" });
   if (error) return { ok: false, error: error.message };
+  revalidate();
   return { ok: true };
 }

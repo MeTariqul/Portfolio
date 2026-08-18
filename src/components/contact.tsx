@@ -9,11 +9,19 @@ import { ContactForm } from "./contact-form";
 import { Magnetic } from "./magnetic";
 import { site } from "@/lib/site";
 import type { SiteSettings } from "@/lib/content";
+import type { SiteProfile } from "@/lib/content";
 
-export function Contact({ settings }: { settings?: SiteSettings }) {
+export function Contact({
+  settings,
+  siteProfile,
+}: {
+  settings?: SiteSettings;
+  siteProfile?: SiteProfile;
+}) {
   const t = useTranslations("contact");
-  const email = settings?.email || site.email;
-  const location = settings?.location || site.location;
+  const s = siteProfile ?? site;
+  const email = settings?.email || s.email;
+  const location = settings?.location || s.location;
 
   return (
     <section id="contact" className="relative mx-auto max-w-7xl px-5 py-28 sm:px-8 lg:py-36">
@@ -78,8 +86,8 @@ export function Contact({ settings }: { settings?: SiteSettings }) {
                 {t("followLabel")}
               </span>
               {[
-                { href: site.github, icon: GitHubIcon, label: "GitHub" },
-                { href: site.linkedin, icon: LinkedInIcon, label: "LinkedIn" },
+                { href: s.github, icon: GitHubIcon, label: "GitHub" },
+                { href: s.linkedin, icon: LinkedInIcon, label: "LinkedIn" },
               ].map(({ href, icon: Icon, label }) => (
                 <Magnetic key={label} strength={0.45}>
                   <a

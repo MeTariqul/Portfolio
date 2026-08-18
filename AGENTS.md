@@ -5,7 +5,7 @@
 >
 > **Maintenance rule (mandatory):** update this file at the END of every work session to reflect anything
 > that changed (new components/files, renamed or removed sections, new conventions, verification results,
-> new placeholders). The file must never describe a stale state. Last updated: 2026-08-17.
+> new placeholders). The file must never describe a stale state. Last updated: 2026-08-18 (full-site content store: every site string is DB-driven via `settings.site_content`).
 
 ---
 
@@ -25,7 +25,7 @@
 | Animation | framer-motion 13, Lenis 1.3 (smooth scroll) |
 | 3D | three 0.185, @react-three/fiber 9, drei 10.7, @react-three/postprocessing 3.0.5 |
 | Forms | react-hook-form + zod |
-| Auth/data | Supabase (@supabase/supabase-js + @supabase/ssr) — admin login + CMS storage (messages/blogs/projects/settings) |
+| Auth/data | Supabase (@supabase/supabase-js + @supabase/ssr) — admin login + CMS storage (9 tables: messages/blogs/projects/settings/services/process/experience/testimonials/sections) |
 | Email | resend (admin notification) + Brevo REST API (user confirmation email) |
 | Analytics/ops | @upstash/redis (visitor counter), @vercel/og (devDep, OG image generator), @vercel/analytics + @vercel/speed-insights (Vercel Web Analytics / Speed Insights — dashboard-enabled, rendered in `[locale]/layout.tsx`) |
 | Icons | lucide-react + custom `brand-icons.tsx` |
@@ -38,6 +38,7 @@ npm run build        # production build (SSG; /api/visitors is dynamic)
 npm run start        # serve production build
 npm run typecheck    # tsc --noEmit
 npm run lint         # eslint (flat config, next core-web-vitals + typescript)
+npm run seed         # scripts/seed-content.mjs — (re)seeds settings.site_content + sections.hero/about from en.json + code constants (idempotent upserts)
 npm run generate:og  # regenerates public/opengraph.png via @vercel/og
 npm run generate:cv  # CV generator (scripts/generate-cv.mjs)
 ```
@@ -71,6 +72,7 @@ postcss.config.mjs    # tailwindcss v4 postcss plugin
 scripts/
   generate-og.mjs     # renders public/opengraph.png (React.createElement, no JSX — do NOT add JSX)
   generate-cv.mjs     # CV generator
+  seed-content.mjs    # (re)seeds settings.site_content + sections.hero/about into the live DB (npm run seed)
 public/
   opengraph.png       # STATIC OG image (no dynamic /opengraph-image route — Turbopack can't run it)
   cv/Md-Tariqul-Islam-CV.pdf
@@ -80,9 +82,9 @@ src/
     layout.tsx        # ROOT layout: metadata + viewport(themeColor) ONLY; renders children (locale layout)
     globals.css       # Tailwind v4 import + @theme tokens + keyframes + noise overlay
     [locale]/
-      layout.tsx      # fonts (Space Grotesk/Inter/JetBrains Mono via next/font), Providers, Navbar, Footer
-      page.tsx        # HOME: Preloader(waitForScenes) + all 9 sections + generateMetadata (OG/Twitter images)
-      blog/page.tsx   # blog index (ISR, revalidate 60 — DB via content.ts, falls back to posts.ts)
+      layout.tsx      # fonts (Space Grotesk/Inter/JetBrains Mono via next/font), Providers, Navbar, Footer — passes DB-merged messages (getMergedMessages) to NextIntlClientProvider
+      page.tsx        # HOME: Preloader(waitForScenes) + all 9 sections + generateMetadata (DB-merged meta, OG/Twitter images)
+      blog/page.tsx   # blog index (ISR, revalidate 60 — DB via content.ts, falls back to posts.ts; metadata from merged messages)
       blog/[slug]/page.tsx  # blog post (dynamic, revalidate 60 — DB via content.ts, falls back to posts.ts; no generateStaticParams)
     api/visitors/route.ts  # Upstash visitor counter (GET)
     admin/                # ADMIN PANEL — outside [locale], excluded from proxy/sitemap/robots (§5.8)
@@ -92,19 +94,20 @@ src/
       blog-manager.tsx    # client: blog CRUD (list, JSON blocks editor, featured/published flags)
       projects-manager.tsx# client: project CRUD + GitHub repo sync/import (§5.9)
       sections-manager.tsx# client: Sections CMS — Services/Process/Experience/Testimonials CRUD + Hero/About editors (§5.8)
-      settings-manager.tsx# client: contact settings (email/location/availability) editor
+      settings-manager.tsx# client: Settings CMS — contact editor + FULL site-content editor (every en.json namespace + marquee items, word dividers, skills rings; deep-merges DB over en.json defaults, saves the whole snapshot) (§5.8)
     actions/
-      send-contact.ts     # server action: Supabase insert + Brevo confirm + Resend notify (§5.5)
-      admin.ts            # server actions: messages CRUD + blog/project/section/settings CRUD + GitHub fetch (§5.8/5.9)
+      send-contact.ts     # server action: Supabase insert + Brevo confirm + Resend notify — email copy from MERGED messages (§5.5)
+      admin.ts            # server actions: messages CRUD + blog/project/section/settings CRUD + getSetting/saveSetting + GitHub fetch (§5.8/5.9)
   proxy.ts                # next-intl middleware (Next 16 renamed it) — admin excluded from matcher
   components/         # all client components (see §3 for the section list)
   i18n/
     routing.ts        # locales: ["en"], defaultLocale "en", prefix "as-needed"
     navigation.ts     # typed <Link>/useRouter wrappers (use for ALL navigation)
   lib/
-    site.ts           # CENTRAL identity config (name, github, email, url…) — edit identity here
+    site.ts           # CENTRAL identity config (name, github, email, url…) — defaults overridden by DB `settings.site` row via getSite()
     posts.ts          # STATIC FALLBACK blog posts (4 posts; frontmatter-style objects)
-    content.ts        # SERVER-ONLY content layer: getBlogPosts/getBlogPost/getProjects/getSettings + getServices/getProcessSteps/getExperience/getTestimonials/getHero/getAbout (service-role reads, null on missing tables/keys) — home + blog pages use it (§5.9)
+    content.ts        # SERVER-ONLY content layer: getBlogPosts/getBlogPost/getProjects/getSettings + getServices/getProcessSteps/getExperience/getTestimonials/getHero/getAbout/getSite/getSiteContent (service-role reads, null on missing tables/keys) — home + blog pages use it (§5.9)
+    messages.ts       # SERVER-ONLY: imports en.json, mergeDeep + getMergedMessages() (DB site_content deep-merged over en.json — the messages handed to the provider) + getMetaContent() (§5.9)
     utils.ts          # cn() = clsx + tailwind-merge
     lenis-store.ts    # module-scope Lenis singleton + hardened scrollToId() (§5)
     render-store.ts   # scene-ready pub/sub used by the preloader (§5)
@@ -116,7 +119,7 @@ src/
   messages/en.json    # ALL user-facing copy, namespaced per section (§4)
 ```
 
-**Data flow (important):** user-facing strings live **only** in `src/messages/en.json` and are read with `useTranslations("namespace")` (client) or `getTranslations` (server, e.g. page metadata). `t.raw("items")` is used for arrays (e.g. projects, services, terminalLines). Never hardcode copy in components. Identity/link config lives in `src/lib/site.ts`. Editable content (blogs/projects/contact settings) is served by `src/lib/content.ts` with static fallbacks — never edit content inside admin-facing components directly.
+**Data flow (important):** user-facing strings live **only** in `src/messages/en.json` and are read with `useTranslations("namespace")` (client) or `getTranslations` (server). Since the full-site content store, the messages handed to the NextIntlClientProvider are `getMergedMessages()` — the DB row `settings.site_content` (a full en.json snapshot + `marquee.items`, `wordDividers.build/design`, `skills.rings`) deep-merged over `src/messages/en.json` — so every `useTranslations` call is DB-aware. Components never hardcode copy; identity/link config lives in `src/lib/site.ts`. Editable content (blogs/projects/services/process/experience/testimonials/hero/about/sections + ALL site copy) is served by `src/lib/content.ts` with static fallbacks — never edit content inside admin-facing components directly. Run `npm run seed` to re-sync the DB snapshot from en.json + code constants (after en.json edits).
 
 **Routes:** `/` (redirects to `/en`), `/en`, `/en/blog`, `/en/blog/[slug]` (dynamic — DB-first, static fallback), `/admin` (dynamic, noindex — outside the locale tree), `/api/visitors`, plus `robots.txt` (disallows `/admin`), `sitemap.xml`, `manifest.webmanifest` (auto-generated by Next).
 
@@ -153,27 +156,30 @@ Section order in `src/app/[locale]/page.tsx` (ids + heading numbers are coordina
 |---|---|---|---|
 | — | — | `Preloader` (waitForScenes) | — |
 | — | — | `Hero` (+ `HeroScene` 3D canvas) | `hero` |
-| — | — | `Marquee` (tech ticker) | hardcoded ITEMS |
+| — | — | `Marquee` (tech ticker — items from `site_content.marquee.items`) | `marquee`* |
 | — | — | `Statement` | `statement` |
 | 01 | `about` | `About` (photo card + `Terminal` + counters + badges) | `about` |
 | 02 | `services` | `Services` (5 cards) | `services` |
-| — | — | `WordDivider ["Build","Create","Ship"]` | — |
+| — | — | `WordDivider` (`site_content.wordDividers.build` → ["Build","Create","Ship"]) | `wordDividers`* |
 | 03 | `projects` | `Projects` (sticky pinned horizontal scroll, 6 cards + GitHub tile) | `projects` |
-| 04 | `skills` | `Skills` (3D orbit rings + canvas-texture labels) | `skills` |
+| 04 | `skills` | `Skills` (3D orbit rings — `site_content.skills.rings` + labels) | `skills` |
 | 05 | `process` | `Process` (sticky pin, 4 steps) | `process` |
 | 06 | `experience` | `Experience` (timeline) | `experience` |
-| — | — | `WordDivider ["Design","Code","Repeat"]` | — |
+| — | — | `WordDivider` (`site_content.wordDividers.design` → ["Design","Code","Repeat"]) | `wordDividers`* |
 | 07 | `blog` | `BlogSection` (featured + 2 more, "View all" → /blog) | `blog` |
 | 08 | `testimonials` | `Testimonials` (auto-rotating) | `testimonials` |
 | — | — | `CtaBand` | `cta` |
 | 09 | `contact` | `Contact` (+ `ContactForm`) | `contact` |
 | — | — | `Footer` (visitor count) | `footer` |
 
+> `*` = namespaces that exist ONLY in `settings.site_content` (added by `mergeDeep` in `messages.ts`); they are NOT in `src/messages/en.json` (marquee items, word dividers, skills rings are code constants seeded by `scripts/seed-content.mjs`).
+
 > Note: `#fuel` (movies) and `#lab` (creative posters) sections were **removed** deliberately — the site is strictly developer-focused. Do not re-add entertainment content.
 
 **Adding content (the common tasks):**
-- **Project card / blog post / contact info / section content (services, process, experience, testimonials, hero, about):** editable at runtime from `/admin` (tabs: Projects / Blog / Sections / Settings) once the tables exist (§5.8). Static fallbacks live in `en.json` (per-section namespaces) — DB wins when it has content (empty tables/lists fall back to en.json). Do NOT edit admin manager components to change content.
-- **Skill chip:** add to one of the 4 ring arrays in `skills.tsx` (FRONTEND/BACKEND/AI/PYTHON) — canvas textures regenerate automatically.
+- **Any user-facing string (meta, nav, hero, about, statement, sections' labels/headings, projects/blog section copy, cta, contact incl. confirmation email copy + error messages, footer, 404, marquee items, word dividers, skills rings):** edit at runtime from `/admin` → Settings tab → "Site content" editor (every namespace + marquee/wordDividers/skills rings; DB deep-merges over en.json, saves the whole snapshot). Sections-tab data (services/process/experience/testimonials cards, hero roles/subtitle/status, about stats/badges/terminal lines) is separate (§5.8).
+- **After editing `en.json`:** run `npm run seed` to re-sync the DB snapshot (idempotent upserts of `settings.site_content` + `sections.hero/about`). The settings-manager "Reset to defaults" button re-applies the en.json snapshot client-side.
+- **Project card / blog post / contact info / section content (services, process, experience, testimonials, hero, about):** editable at runtime from `/admin` (tabs: Projects / Blog / Sections / Settings). Static fallbacks live in `en.json` — DB wins when it has content. Do NOT edit admin manager components to change content.
 - **New section:** create component with `<section id="...">`, add `SectionHeading` with the next number, register in `page.tsx`, add en.json namespace, optionally add to navbar `LINKS` array (navbar only lists: about, projects, skills, experience, blog, contact).
 
 ---
@@ -203,7 +209,7 @@ Section order in `src/app/[locale]/page.tsx` (ids + heading numbers are coordina
 - `VisitorCount` (client) polls every 30s, renders nothing when data is null. Used in hero pill (live) + footer (total).
 
 ### 5.5 Contact form
-- `react-hook-form` + zod (client) → `useActionState` server action `send-contact.ts` (3 steps, each optional): ① insert into Supabase `messages` via service-role client (bypasses RLS — inserts need no policy), ② Brevo confirmation email to the submitter (subject/body copy from `en.json → contact.confirm*`; sender = `CONTACT_EMAIL`, must be verified in Brevo), ③ Resend notification to `CONTACT_EMAIL`.
+- `react-hook-form` + zod (client) → `useActionState` server action `send-contact.ts` (3 steps, each optional): ① insert into Supabase `messages` via service-role client (bypasses RLS — inserts need no policy), ② Brevo confirmation email to the submitter (subject/body copy from MERGED `contact` messages — DB-aware via `getMergedMessages()`; `{name}` interpolation is a manual `.replace`), ③ Resend notification to `CONTACT_EMAIL`.
 - Client validation GATES submission: `handleSubmit` builds a `FormData` and calls `formAction(fd)` inside `startTransition` (the native `action` prop is NOT used). Invalid fields show per-field messages; the server action validates again. Verified headless: invalid submit blocked client-side, valid submit renders the success card.
 - `demo: true` is returned ONLY when none of the three ran (no keys) — UI shows a demo-mode notice. Success state resets the form.
 
@@ -219,7 +225,7 @@ Section order in `src/app/[locale]/page.tsx` (ids + heading numbers are coordina
 ### 5.8 Admin panel (`/admin`) + content storage
 - Route lives OUTSIDE `[locale]` (top-level, like `/api`): uses the ROOT layout only (no navbar/footer/fonts — plain system fonts there, by design). `export const dynamic = "force-dynamic"`, `robots: noindex`, and excluded from the next-intl proxy matcher (`src/proxy.ts` — keep `admin` in the negative lookahead), `robots.txt` (`Disallow: /admin`), and `sitemap.ts` (whitelist-based — never add it).
 - Auth = **Supabase Auth email+password** (single admin user created in the Supabase dashboard). `login-form.tsx` calls `signInWithPassword` → `router.refresh()`. Page checks `supabase.auth.getUser()` server-side via cookie session (`createServerClient`).
-- **Dashboard is a 5-tab CMS:** Messages (list/mark read/delete), Blog (`blog-manager.tsx` — CRUD + JSON blocks editor + featured/published flags + gradient picker), Projects (`projects-manager.tsx` — CRUD + GitHub repo sync/import), Sections (`sections-manager.tsx` — Services/Process/Experience/Testimonials CRUD + Hero/About forms), Settings (`settings-manager.tsx` — contact email/location/availability). Tab UI is hardcoded English (outside locale tree, by design).
+- **Dashboard is a 5-tab CMS:** Messages (list/mark read/delete), Blog (`blog-manager.tsx` — CRUD + JSON blocks editor + featured/published flags + gradient picker), Projects (`projects-manager.tsx` — CRUD + GitHub repo sync/import), Sections (`sections-manager.tsx` — Services/Process/Experience/Testimonials CRUD + Hero/About forms), Settings (`settings-manager.tsx` — contact email/location/availability + **full "Site content" editor**: every en.json namespace + marquee items + word dividers + skills rings, config-driven via `CARDS`; loads the DB row via `getSetting("site_content")`, deep-merges it over en.json defaults, saves the whole snapshot via `saveSetting("site_content", …)`; lines fields are newline-joined arrays; "Reset to defaults" re-applies the en.json snapshot client-side). Tab UI is hardcoded English (outside locale tree, by design). All mutations call `revalidatePath("/", "layout")` for instant propagation.
 - **Tables** (consolidated one-shot SQL in `supabase/init.sql` — messages + blogs + projects + settings + services + process + experience + testimonials + sections + RLS + seed settings row; run the whole file in SQL Editor, it is idempotent incl. policies via drop-if-exists):
 
 ```sql
@@ -238,16 +244,18 @@ create table if not exists messages (
 -- process: id uuid pk, title, desc, sort int
 -- experience: id uuid pk, role, org, period, desc, sort int
 -- testimonials: id uuid pk, quote, name, role, rating int, sort int
--- settings: key text pk, value jsonb  (row: key='contact', value={"email":..,"location":..,"availability":..})
+-- settings: key text pk, value jsonb  (rows: key='contact' {email,location,availability}; key='site_content' = FULL en.json snapshot + marquee.items + wordDividers.{build,design} + skills.rings — seeded by scripts/seed-content.mjs)
 -- sections: key text pk, value jsonb  (rows: key='hero' value={roles[],subtitle,status}; key='about' value={stats[],badges[],terminalLines[]})
--- all: RLS enabled, every policy allows only auth.role() = 'authenticated'
+-- all: RLS enabled; public read via `using (true)`; write via `auth.uid() is not null`
 ```
 
-- Server actions in `actions/admin.ts` run through the user-session client, so RLS applies (authenticated admin only): messages CRUD + `listBlogs/saveBlog/deleteBlog`, `listProjects/saveProject/deleteProject`, `getSettingsMap/saveContactSettings`, section CRUD (`listServices/saveService/deleteService` + process/experience/testimonials equivalents, `getSection/saveSection` for hero/about), `getGithubRepos` (fetches `https://api.github.com/users/MeTariqul/repos`). All section actions are `async` — Next 16 requires server actions to be async functions (non-async wrappers break the build). Contact-form inserts use the **service-role** client (`lib/supabase/admin.ts`, `persistSession: false`) which bypasses RLS — that module must NEVER be imported from client code. When the page loads without Supabase env keys it renders the login card with a "not configured" note instead of crashing.
+- Server actions in `actions/admin.ts` run through the user-session client, so RLS applies (authenticated admin only): messages CRUD + `listBlogs/saveBlog/deleteBlog`, `listProjects/saveProject/deleteProject`, `getSettingsMap/saveContactSettings`, `getSetting(key)/saveSetting(key, value)` (generic settings — used by the site-content editor), section CRUD (`listServices/saveService/deleteService` + process/experience/testimonials equivalents, `getSection/saveSection` for hero/about), `getGithubRepos` (fetches `https://api.github.com/users/MeTariqul/repos`). All section actions are `async` — Next 16 requires server actions to be async functions (non-async wrappers break the build). Contact-form inserts use the **service-role** client (`lib/supabase/admin.ts`, `persistSession: false`) which bypasses RLS — that module must NEVER be imported from client code. When the page loads without Supabase env keys it renders the login card with a "not configured" note instead of crashing.
 
 ### 5.9 Content layer (DB-first with static fallback)
-- `src/lib/content.ts` (SERVER-ONLY, service-role reads): `getBlogPosts()`, `getBlogPost(slug)`, `getProjects()`, `getSettings()`, `getServices()`, `getProcessSteps()`, `getExperience()`, `getTestimonials()`, `getHero()`, `getAbout()` — each returns `null` when tables/keys are missing (never throws), and callers fall back to `src/lib/posts.ts` / `en.json` per-section namespaces / `src/lib/site.ts`.
-- Home page (`[locale]/page.tsx`) + blog pages have `export const revalidate = 60` (ISR): DB content appears within 60s of admin edits. `blog/[slug]/page.tsx` is DYNAMIC (no `generateStaticParams` — slugs are DB-driven) and `notFound()`s on unknown slugs. Home passes props via `withItems()` (empty DB lists fall back to en.json) and destructured `dbHero`/`dbAbout` fields.
+- `src/lib/content.ts` (SERVER-ONLY, service-role reads): `getBlogPosts()`, `getBlogPost(slug)`, `getProjects()`, `getSettings()`, `getServices()`, `getProcessSteps()`, `getExperience()`, `getTestimonials()`, `getHero()`, `getAbout()`, **`getSite()`**, **`getSiteContent()`** — each returns `null` when tables/keys are missing (never throws), and callers fall back to `src/lib/posts.ts` / `en.json` per-section namespaces / `src/lib/site.ts`. `getSite()` reads the `settings.site` row and merges with `site.ts` defaults. `getSiteContent()` reads the `settings.site_content` row.
+- `src/lib/messages.ts` (SERVER-ONLY): imports `src/messages/en.json` (tsconfig has `resolveJsonModule: true`), `mergeDeep(base, override)`, `getMergedMessages()` = DB `site_content` deep-merged over en.json (used by `[locale]/layout.tsx` for the provider + `send-contact.ts` for email copy), `getMetaContent()` = merged `meta` namespace (used by `generateMetadata` on home + blog index).
+- Home page (`[locale]/page.tsx`) + blog pages have `export const revalidate = 60` (ISR): DB content appears within 60s of admin edits. Home passes `Marquee items` / `WordDivider words` / `Skills rings` props from `getSiteContent()` (with code fallbacks). `blog/[slug]/page.tsx` is DYNAMIC (no `generateStaticParams` — slugs are DB-driven) and `notFound()`s on unknown slugs. Home passes props via `withItems()` (returns array as-is, `null`/`undefined` → fallback to en.json) and destructured `dbHero`/`dbAbout` fields. `sitemap.ts`, `robots.ts`, `manifest.ts` are now async and read `getSite()` for dynamic profile.
+- **Instant admin revalidation:** every mutating server action in `actions/admin.ts` (incl. `saveSetting`) calls `revalidatePath("/", "layout")` after a successful DB write, so admin edits appear on the site without waiting for the 60s ISR interval.
 - `getSettings()` maps the `settings.contact` row to email/location/availability; the Contact section renders those when present, else `site.ts`/en.json fallbacks. Do NOT revert blog pages to static-only — the fallback chain is the safety net.
 
 ---
@@ -268,11 +276,12 @@ create table if not exists messages (
 ## 7. Known Placeholders / TODOs (outstanding work)
 
 - `src/lib/site.ts`: `url` is `https://metariqul.vercel.app` (TODO: real domain) and `email` is `hello@metariqul.dev` — verify before launch. CV is at `public/cv/Md-Tariqul-Islam-CV.pdf` (real PDF already in place).
-- **Admin panel setup (user-provided, in progress):** Supabase URL + publishable/secret keys are configured in `.env` (new `sb_publishable_`/`sb_secret_` key format, supported by supabase-js 2.112). Verified: both keys authenticate from Node (PowerShell gets 401 — Supabase's browser-protection on secret keys; this is expected), auth API is live. Brevo key + sender (`CONTACT_EMAIL = print-edge@outlook.com`, verified Brevo sender) configured and WORKING (test emails sent). Admin user `gbtarif37@gmail.com` created via Admin API (`email_confirm: true`) and login verified through a real headless-Edge browser session on the prod build (dashboard renders with all 5 tabs, real contact messages visible → the `messages` table EXISTS). STILL PENDING: run the FULL `supabase/init.sql` in SQL Editor — `blogs`, `projects`, `settings`, `services`, `process`, `experience`, `testimonials`, `sections` tables do NOT exist yet (REST returns PGRST205; admin tabs degrade gracefully with error banners + empty states, and public pages fall back to static content — verified headless). Also still pending: Resend/Upstash keys. Contact-form → Brevo E2E verified working once messages insert succeeds.
+- **Admin panel setup (user-provided, in progress):** Supabase URL + publishable/secret keys are configured in `.env` (new `sb_publishable_`/`sb_secret_` key format, supported by supabase-js 2.112). Verified: both keys authenticate from Node (PowerShell gets 401 — Supabase's browser-protection on secret keys; this is expected), auth API is live. Brevo key + sender (`CONTACT_EMAIL = print-edge@outlook.com`, verified Brevo sender) configured and WORKING (test emails sent). Admin user `gbtarif37@gmail.com` created via Admin API (`email_confirm: true`) and login verified through a real headless-Edge browser session on the prod build (dashboard renders with all 5 tabs, real contact messages visible → the `messages` table EXISTS). **All 9 tables were created via the Management API** (project URL `https://zxumxmmoymxupfqxwvmd.supabase.co`, PAT `sbp_ebc35794...` — user was advised to REVOKE it after use) and verified; `settings` contains the seeded `contact` + `site_content` rows, `sections` has `hero` + `about`. `npm run seed` re-syncs `site_content` + hero/about from en.json + code constants (idempotent). The full-site content store E2E was verified headless (Aug 2026): editor loads DB values → save through the UI → `revalidatePath` + double-fetch serves the edit on `/en` → revert also propagates (4/4 checks; only expected localhost 404s for Vercel analytics scripts). STILL PENDING: Resend/Upstash keys; the deployed Vercel build is STALE (see below) so admin saves fail there until redeployed.
 - CMS verification (headless Edge, prod build on 3100, Aug 2026): blog/projects/sections/settings tabs show graceful empty states + "table not found" banner; all 6 Sections sub-tabs (Services/Process/Experience/Testimonials/Hero/About) render + edit forms open; GitHub sync fetches real repos (factory_erp, Pixels-on-Paper, Running-Project…); blog post pages serve static fallback with unknown slugs → 404; typecheck + lint + build all green.
 - `testimonials.sub` explicitly says "Placeholder reviews — replace with your real Fiverr feedback anytime."
 - `.env.example` values are examples — real keys go in `.env` (gitignored).
-- **Vercel deployment (user-provided, pending):** repo is `MeTariqul/Portfolio` (main). Import in Vercel (framework auto-detects Next.js), copy ALL `.env` keys into Project → Settings → Environment Variables (`NEXT_PUBLIC_*` vars are inlined at build — required for the deployed site), then enable **Web Analytics** + **Speed Insights** in the project dashboard (components already render on all public pages; `/admin` is excluded by design).
+- **Vercel deployment (user-provided, pending):** repo is `MeTariqul/Portfolio` (main). Import in Vercel (framework auto-detects Next.js), copy ALL `.env` keys into Project → Settings → Environment Variables (`NEXT_PUBLIC_*` vars are inlined at build — required for the deployed site), then enable **Web Analytics** + **Speed Insights** in the project dashboard (components already render on all public pages; `/admin` is excluded by design). The current live deployment `portfolio-mauve-psi-hzxxy2n3ei.vercel.app` is STALE (no analytics script in HTML, old admin build — probably missing env vars); `metariqul.vercel.app` returns DEPLOYMENT_NOT_FOUND. Redeploy required before the deployed admin/analytics work.
+- **Git safety rule (user directive):** do NOT commit/push to GitHub until the user explicitly says so. Local worktree may hold uncommitted changes (e.g. init.sql `"desc"` column quoting fix for the reserved word + full-site content store) until then.
 - The GitHub tile in Projects ("more" card) hardcodes count/stories text in en.json — update when real numbers change.
 
 ## 8. Quick Verification Checklist (run before finishing any task)

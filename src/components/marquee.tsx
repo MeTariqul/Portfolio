@@ -14,8 +14,15 @@ const ITEMS = [
   "Cloudflare",
 ];
 
-export function Marquee({ slow = false }: { slow?: boolean }) {
-  const row = [...ITEMS, ...ITEMS, ...ITEMS];
+export function Marquee({
+  items: propItems,
+  slow = false,
+}: {
+  items?: string[];
+  slow?: boolean;
+}) {
+  const items = propItems && propItems.length > 0 ? propItems : ITEMS;
+  const row = [...items, ...items, ...items];
   return (
     <div className="relative overflow-hidden border-y border-line py-6">
       <div

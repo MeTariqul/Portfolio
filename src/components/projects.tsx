@@ -11,9 +11,16 @@ import { Magnetic } from "./magnetic";
 import { site } from "@/lib/site";
 import type { ProjectItem } from "@/lib/content";
 
-export function Projects({ items: propItems }: { items?: ProjectItem[] }) {
+export function Projects({
+  items: propItems,
+  githubUrl,
+}: {
+  items?: ProjectItem[];
+  githubUrl?: string;
+}) {
   const t = useTranslations("projects");
   const items = propItems ?? (t.raw("items") as ProjectItem[]);
+  const gh = githubUrl ?? site.github;
 
   const sectionRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -122,7 +129,7 @@ export function Projects({ items: propItems }: { items?: ProjectItem[] }) {
                         </div>
                         <div className="mt-6 flex items-center gap-4 border-t border-line pt-5">
                           <a
-                            href={site.github}
+                            href={gh}
                             target="_blank"
                             rel="noreferrer"
                             className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-soft transition-colors hover:text-neon"

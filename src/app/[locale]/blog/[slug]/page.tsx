@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { posts } from "@/lib/posts";
-import { getBlogPost } from "@/lib/content";
-import { site } from "@/lib/site";
+import { getBlogPost, getSite } from "@/lib/content";
 
 export const revalidate = 60;
 
@@ -43,6 +42,8 @@ export default async function BlogPostPage({
 
   const post = await findPost(slug);
   if (!post) notFound();
+
+  const s = await getSite();
 
   return (
     <article className="mx-auto max-w-3xl px-5 pb-32 pt-36 sm:px-8">
@@ -116,7 +117,7 @@ export default async function BlogPostPage({
 
       <div className="mt-16 flex items-center justify-between border-t border-line pt-8">
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-soft">
-          {site.name}
+          {s.name}
         </p>
         <Link
           href="/blog"

@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "seed": "node scripts/seed-content.mjs",
     "generate:cv": "node scripts/generate-cv.mjs",
     "generate:og": "node scripts/generate-og.mjs"
   },

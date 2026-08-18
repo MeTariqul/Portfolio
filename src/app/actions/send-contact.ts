@@ -1,9 +1,9 @@
 "use server";
 
 import { z } from "zod";
-import { getTranslations } from "next-intl/server";
 import { site } from "@/lib/site";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getMergedMessages } from "@/lib/messages";
 
 const schema = z.object({
   name: z.string().min(2),
@@ -44,7 +44,8 @@ export async function sendContact(
     }
   }
 
-  const t = await getTranslations({ locale: "en", namespace: "contact" });
+  const { contact: t } = await getMergedMessages();
+  const greeting = t.confirmGreeting.replace(/\{name\}/g, name);
 
   let confirmed = false;
   const brevoKey = process.env.BREVO_API_KEY;
@@ -61,10 +62,10 @@ export async function sendContact(
         body: JSON.stringify({
           sender: { email: sender, name: site.name },
           to: [{ email }],
-          subject: t("confirmSubject"),
-          htmlContent: `<p>${t("confirmGreeting", { name })}</p>
-<p>${t("confirmBody")}</p>
-<p>${t("confirmSignature")}</p>`,
+          subject: t.confirmSubject,
+          htmlContent: `<p>${greeting}</p>
+<p>${t.confirmBody}</p>
+<p>${t.confirmSignature}</p>`,
         }),
       });
       confirmed = res.ok;

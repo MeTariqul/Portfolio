@@ -11,6 +11,7 @@ import { VisitorCount } from "./visitor-count";
 import { WordReveal } from "./word-reveal";
 import { scrollToId } from "@/lib/lenis-store";
 import { site } from "@/lib/site";
+import type { SiteProfile } from "@/lib/content";
 
 const ROLE_INTERVAL = 2400;
 
@@ -18,13 +19,16 @@ export function Hero({
   roles: propRoles,
   subtitle: propSubtitle,
   status: propStatus,
+  siteProfile,
 }: {
   roles?: string[];
   subtitle?: string;
   status?: string;
+  siteProfile?: SiteProfile;
 }) {
   const t = useTranslations("hero");
-  const roles = propRoles ?? (t.raw("roles") as string[]);
+  const roles = propRoles?.length ? propRoles : (t.raw("roles") as string[]);
+  const s = siteProfile ?? site;
 
   const [roleIndex, setRoleIndex] = useState(0);
 
@@ -150,7 +154,7 @@ export function Hero({
 
           <Magnetic>
             <a
-              href={site.cvPath}
+              href={s.cvPath}
               data-cursor="link"
               className="group glass flex items-center gap-2 rounded-full px-8 py-4 font-mono text-xs font-semibold uppercase tracking-widest transition-colors hover:border-neon/40"
             >
@@ -170,9 +174,9 @@ export function Hero({
           className="mt-10 flex items-center gap-4"
         >
           {[
-            { href: site.github, icon: GitHubIcon, label: "GitHub" },
-            { href: site.linkedin, icon: LinkedInIcon, label: "LinkedIn" },
-            { href: `mailto:${site.email}`, icon: Mail, label: "Email" },
+            { href: s.github, icon: GitHubIcon, label: "GitHub" },
+            { href: s.linkedin, icon: LinkedInIcon, label: "LinkedIn" },
+            { href: `mailto:${s.email}`, icon: Mail, label: "Email" },
           ].map(({ href, icon: Icon, label }) => (
             <Magnetic key={label} strength={0.5}>
               <a

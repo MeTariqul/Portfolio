@@ -7,9 +7,11 @@ import { Magnetic } from "./magnetic";
 import { VisitorCount } from "./visitor-count";
 import { scrollToId } from "@/lib/lenis-store";
 import { site } from "@/lib/site";
+import type { SiteProfile } from "@/lib/content";
 
-export function Footer() {
+export function Footer({ siteProfile }: { siteProfile?: SiteProfile }) {
   const t = useTranslations("footer");
+  const s = siteProfile ?? site;
   const year = new Date().getFullYear();
 
   return (
@@ -21,7 +23,7 @@ export function Footer() {
               key={n}
               className="font-display text-[11vw] font-bold uppercase leading-none tracking-tight text-ink"
             >
-              {site.shortName} ✦ {site.shortName} ✦ {site.shortName} ✦ {site.shortName} ✦{" "}
+              {s.shortName} ✦ {s.shortName} ✦ {s.shortName} ✦ {s.shortName} ✦{" "}
             </span>
           ))}
         </div>
@@ -30,10 +32,10 @@ export function Footer() {
       <div className="relative mx-auto flex max-w-7xl flex-col items-center gap-8 px-5 pt-10 pb-[max(env(safe-area-inset-bottom),2.5rem)] sm:flex-row sm:justify-between sm:px-8">
         <div className="text-center sm:text-left">
           <p className="font-display text-lg font-bold">
-            <span className="gradient-text">MT</span> — {site.name}
+            <span className="gradient-text">MT</span> — {s.name}
           </p>
           <p className="mt-1 font-mono text-[11px] text-soft">
-            © {year} {site.name}. {t("rights")}
+            © {year} {s.name}. {t("rights")}
           </p>
           <p className="mt-2 flex items-center justify-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-soft sm:justify-start">
             <span className="relative flex h-1.5 w-1.5">
@@ -46,9 +48,9 @@ export function Footer() {
 
         <div className="flex items-center gap-3">
           {[
-            { href: site.github, icon: GitHubIcon, label: "GitHub" },
-            { href: site.linkedin, icon: LinkedInIcon, label: "LinkedIn" },
-            { href: `mailto:${site.email}`, icon: Mail, label: "Email" },
+            { href: s.github, icon: GitHubIcon, label: "GitHub" },
+            { href: s.linkedin, icon: LinkedInIcon, label: "LinkedIn" },
+            { href: `mailto:${s.email}`, icon: Mail, label: "Email" },
           ].map(({ href, icon: Icon, label }) => (
             <a
               key={label}

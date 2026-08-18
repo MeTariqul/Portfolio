@@ -10,6 +10,9 @@ import { posts, type Post } from "@/lib/posts";
 export function BlogSection({ posts: propPosts }: { posts?: Post[] }) {
   const t = useTranslations("blog");
   const all = propPosts ?? posts;
+
+  if (!all.length) return null;
+
   const [featured, ...rest] = all;
 
   return (

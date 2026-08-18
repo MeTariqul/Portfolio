@@ -1,5 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { posts, type Post, type BlogBlock } from "@/lib/posts";
+import { site } from "@/lib/site";
+
+export type SiteProfile = typeof site;
 
 export type ProjectItem = {
   title: string;
@@ -132,9 +135,13 @@ export async function getProjects(): Promise<ProjectItem[] | null> {
       .select("*")
       .order("sort", { ascending: true })
       .order("created_at", { ascending: true });
-    if (error) return null;
+    if (error) {
+      console.error("[content/getProjects] Supabase error:", error.message);
+      return null;
+    }
     return (data ?? []).map(mapProjectRow);
-  } catch {
+  } catch (e) {
+    console.error("[content/getProjects] Exception:", e);
     return null;
   }
 }
@@ -276,4 +283,42 @@ export function getAbout(): Promise<AboutContent | null> {
   return getSectionValue<AboutContent>("about");
 }
 
+export type SiteContentMap = Record<string, Record<string, unknown>>;
+
+export async function getSiteContent(): Promise<SiteContentMap | null> {
+  const supabase = createAdminClient();
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "site_content")
+      .maybeSingle();
+    if (error || !data) return null;
+    const value = data.value as SiteContentMap;
+    if (!value || typeof value !== "object") return null;
+    return value;
+  } catch {
+    return null;
+  }
+}
+
 export { posts as staticPosts };
+
+export async function getSite(): Promise<SiteProfile> {
+  const supabase = createAdminClient();
+  if (!supabase) return site;
+  try {
+    const { data, error } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "site")
+      .maybeSingle();
+    if (error || !data) return site;
+    const dbProfile = data.value as Record<string, unknown> | null;
+    if (!dbProfile || typeof dbProfile !== "object") return site;
+    return { ...site, ...dbProfile } as SiteProfile;
+  } catch {
+    return site;
+  }
+}

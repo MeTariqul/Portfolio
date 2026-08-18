@@ -12,12 +12,15 @@ export function About({
   stats: propStats,
   badges: propBadges,
   terminalLines: propLines,
+  location: propLocation,
 }: {
   stats?: AboutContent["stats"];
   badges?: AboutContent["badges"];
   terminalLines?: AboutContent["terminalLines"];
+  location?: string;
 }) {
   const t = useTranslations("about");
+  const location = propLocation ?? site.location;
   const lines = propLines ?? (t.raw("terminalLines") as string[]);
   const stats = propStats ?? (t.raw("stats") as Stat[]);
   const badges = propBadges ?? (t.raw("badges") as string[]);
@@ -79,7 +82,7 @@ export function About({
               <span className="absolute h-full w-full animate-pulse-dot rounded-full bg-emerald-400" />
             </span>
             <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-soft">
-              {site.location}
+              {location}
             </span>
           </div>
         </motion.div>

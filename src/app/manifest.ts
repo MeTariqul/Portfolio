@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
+import { getSite } from "@/lib/content";
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const s = await getSite();
   return {
-    name: "Md. Tariqul Islam — Full-Stack Web Developer",
-    short_name: "MT Portfolio",
-    description:
-      "Portfolio of Md. Tariqul Islam — full-stack web developer building AI-powered web experiences.",
+    name: `${s.name} — ${s.role}`,
+    short_name: s.shortName,
+    description: `Portfolio of ${s.name} — ${s.role}.`,
     start_url: "/",
     display: "standalone",
     background_color: "#05060a",

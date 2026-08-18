@@ -3,14 +3,17 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { posts } from "@/lib/posts";
 import { getBlogPosts } from "@/lib/content";
-
-export const metadata: Metadata = {
-  title: "Blog",
-  description:
-    "Case studies, engineering notes and lessons from shipping AI-powered web apps.",
-};
+import { getMergedMessages } from "@/lib/messages";
 
 export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const messages = await getMergedMessages();
+  return {
+    title: messages.blog.heading,
+    description: messages.blog.sub,
+  };
+}
 
 export default async function BlogPage({
   params,

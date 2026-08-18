@@ -6,6 +6,8 @@ import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { routing } from "@/i18n/routing";
+import { getMergedMessages } from "@/lib/messages";
+import { getSite } from "@/lib/content";
 import { Providers } from "@/components/providers";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { Navbar } from "@/components/navbar";
@@ -45,17 +47,18 @@ export default async function LocaleLayout({
     notFound();
   }
   setRequestLocale(locale);
+  const [messages, s] = await Promise.all([getMergedMessages(), getSite()]);
 
   return (
 <html lang={locale} className={`${space.variable} ${inter.variable} ${mono.variable}`}>
         <body className="bg-bg text-ink antialiased">
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
           <Providers>
             <div className="noise-overlay" aria-hidden />
             <ScrollProgress />
             <Navbar />
             <main>{children}</main>
-            <Footer />
+            <Footer siteProfile={s} />
             <Analytics />
             <SpeedInsights />
           </Providers>

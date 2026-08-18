@@ -16,6 +16,15 @@ const BACKEND = ["Node.js", "PostgreSQL", "Prisma", "Redis", "REST", "JWT", "Ver
 const AI = ["OpenAI", "Gemini", "LangChain", "OCR", "PDF", "RAG", "Pipelines", "Prompt Eng"];
 const PYTHON = ["Python", "FastAPI", "Django", "pandas", "NumPy", "Selenium", "BeautifulSoup", "Scikit-learn"];
 
+export type SkillsRings = {
+  frontend: string[];
+  backend: string[];
+  ai: string[];
+  python: string[];
+};
+
+const DEFAULT_RINGS: SkillsRings = { frontend: FRONTEND, backend: BACKEND, ai: AI, python: PYTHON };
+
 function TextSprite({ text, color }: { text: string; color: string }) {
   const { texture, aspect } = useMemo(() => {
     const canvas = document.createElement("canvas");
@@ -101,7 +110,7 @@ function Core() {
   );
 }
 
-function SkillScene() {
+function SkillScene({ rings }: { rings: SkillsRings }) {
   return (
     <>
       <ambientLight intensity={0.5} />
@@ -109,7 +118,7 @@ function SkillScene() {
       <pointLight position={[-5, -3, 4]} intensity={30} color="#22d3ee" />
       <Core />
       <Ring
-        items={FRONTEND}
+        items={rings.frontend}
         radius={2.4}
         speed={0.24}
         color="#c4b5fd"
@@ -117,7 +126,7 @@ function SkillScene() {
         y={0}
       />
       <Ring
-        items={BACKEND}
+        items={rings.backend}
         radius={3.5}
         speed={-0.17}
         color="#67e8f9"
@@ -125,7 +134,7 @@ function SkillScene() {
         y={0.1}
       />
       <Ring
-        items={AI}
+        items={rings.ai}
         radius={4.6}
         speed={0.11}
         color="#f9a8d4"
@@ -133,7 +142,7 @@ function SkillScene() {
         y={-0.2}
       />
       <Ring
-        items={PYTHON}
+        items={rings.python}
         radius={5.6}
         speed={-0.08}
         color="#86efac"
@@ -152,10 +161,16 @@ function SkillScene() {
   );
 }
 
-export function Skills() {
+export function Skills({ rings: propRings }: { rings?: SkillsRings }) {
   const t = useTranslations("skills");
   const sceneRef = useRef<HTMLDivElement>(null);
   const inView = useFrameloopOnView(sceneRef);
+  const rings: SkillsRings = {
+    frontend: propRings?.frontend?.length ? propRings.frontend : DEFAULT_RINGS.frontend,
+    backend: propRings?.backend?.length ? propRings.backend : DEFAULT_RINGS.backend,
+    ai: propRings?.ai?.length ? propRings.ai : DEFAULT_RINGS.ai,
+    python: propRings?.python?.length ? propRings.python : DEFAULT_RINGS.python,
+  };
 
   return (
     <section id="skills" className="relative mx-auto max-w-7xl px-5 py-28 sm:px-8 lg:py-36">
@@ -185,7 +200,7 @@ export function Skills() {
         >
           <Suspense fallback={null}>
             <SceneBoundary onFallback={() => setSceneReady("skills")}>
-              <SkillScene />
+              <SkillScene rings={rings} />
             </SceneBoundary>
           </Suspense>
         </Canvas>

@@ -15,6 +15,7 @@ import { Testimonials } from "@/components/testimonials";
 import { CtaBand } from "@/components/cta-band";
 import { Contact } from "@/components/contact";
 import { WordDivider } from "@/components/word-divider";
+import type { SkillsRings } from "@/components/skills";
 import { site } from "@/lib/site";
 import {
   getAbout,
@@ -25,13 +26,17 @@ import {
   getProjects,
   getServices,
   getSettings,
+  getSite,
+  getSiteContent,
   getTestimonials,
 } from "@/lib/content";
+import { getMetaContent } from "@/lib/messages";
 
 export const revalidate = 60;
 
 function withItems<T>(rows: T[] | null | undefined): T[] | undefined {
-  return rows && rows.length > 0 ? rows : undefined;
+  if (rows === null || rows === undefined) return undefined;
+  return rows;
 }
 
 export async function generateMetadata({
@@ -41,19 +46,24 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "meta" });
+  const meta = await getMetaContent();
+
+  const title = meta.title ?? t("title");
+  const description = meta.description ?? t("description");
+  const ogDescription = meta.ogDescription ?? t("ogDescription");
 
   return {
     title: {
-      default: t("title"),
+      default: title,
       template: "%s | Md. Tariqul Islam",
     },
-    description: t("description"),
+    description,
     alternates: {
       canonical: `${site.url}/${locale}`,
     },
     openGraph: {
-      title: t("title"),
-      description: t("ogDescription"),
+      title,
+      description: ogDescription,
       url: `${site.url}/${locale}`,
       siteName: site.name,
       type: "website",
@@ -69,8 +79,8 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: t("title"),
-      description: t("ogDescription"),
+      title,
+      description: ogDescription,
       images: ["/opengraph.png"],
     },
     icons: {
@@ -87,7 +97,7 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const [dbPosts, dbProjects, dbSettings, dbServices, dbProcess, dbExperience, dbTestimonials, dbHero, dbAbout] =
+  const [dbPosts, dbProjects, dbSettings, dbServices, dbProcess, dbExperience, dbTestimonials, dbHero, dbAbout, dbContent, dbSite] =
     await Promise.all([
       getBlogPosts(),
       getProjects(),
@@ -98,32 +108,41 @@ export default async function HomePage({
       getTestimonials(),
       getHero(),
       getAbout(),
+      getSiteContent(),
+      getSite(),
     ]);
   const contactSettings = dbSettings?.contact;
   const heroRoles = dbHero?.roles?.length ? dbHero.roles : undefined;
+  const marqueeItems = (dbContent?.marquee?.items as string[] | undefined)?.filter(
+    (i) => i.trim()
+  );
+  const wordBuild = dbContent?.wordDividers?.build as string[] | undefined;
+  const wordDesign = dbContent?.wordDividers?.design as string[] | undefined;
+  const rings = dbContent?.skills?.rings as SkillsRings | undefined;
 
   return (
     <>
       <Preloader waitForScenes />
-      <Hero roles={heroRoles} subtitle={dbHero?.subtitle} status={dbHero?.status} />
-      <Marquee />
+      <Hero roles={heroRoles} subtitle={dbHero?.subtitle} status={dbHero?.status} siteProfile={dbSite} />
+      <Marquee items={marqueeItems} />
       <Statement />
       <About
         stats={dbAbout?.stats}
         badges={dbAbout?.badges}
         terminalLines={dbAbout?.terminalLines}
+        location={dbSite.location}
       />
       <Services items={withItems(dbServices)} />
-      <WordDivider words={["Build", "Create", "Ship"]} />
-      <Projects items={withItems(dbProjects)} />
-      <Skills />
+      <WordDivider words={wordBuild?.length ? wordBuild : ["Build", "Create", "Ship"]} />
+      <Projects items={withItems(dbProjects)} githubUrl={dbSite.github} />
+      <Skills rings={rings} />
       <Process items={withItems(dbProcess)} />
       <Experience items={withItems(dbExperience)} />
-      <WordDivider words={["Design", "Code", "Repeat"]} />
+      <WordDivider words={wordDesign?.length ? wordDesign : ["Design", "Code", "Repeat"]} />
       <BlogSection posts={withItems(dbPosts)} />
       <Testimonials items={withItems(dbTestimonials)} />
       <CtaBand />
-      <Contact settings={contactSettings} />
+      <Contact settings={contactSettings} siteProfile={dbSite} />
     </>
   );
 }
