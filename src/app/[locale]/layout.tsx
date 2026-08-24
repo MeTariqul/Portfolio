@@ -50,8 +50,8 @@ export default async function LocaleLayout({
   const [messages, s] = await Promise.all([getMergedMessages(), getSite()]);
 
   return (
-<html lang={locale} className={`${space.variable} ${inter.variable} ${mono.variable}`}>
-        <body className="bg-bg text-ink antialiased">
+    <div className={`${space.variable} ${inter.variable} ${mono.variable}`}>
+      <body className="bg-bg text-ink antialiased">
         <NextIntlClientProvider messages={messages}>
           <Providers>
             <div className="noise-overlay" aria-hidden />
@@ -64,6 +64,6 @@ export default async function LocaleLayout({
           </Providers>
         </NextIntlClientProvider>
       </body>
-    </html>
+    </div>
   );
 }
