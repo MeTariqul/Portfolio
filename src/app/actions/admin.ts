@@ -513,11 +513,6 @@ export async function saveSection(
 // ─── Password Recovery ───────────────────────────────────────────────────────
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import crypto from "crypto";
-
-function generateToken(): string {
-  return crypto.randomBytes(32).toString("hex");
-}
 
 export async function getRecoveryEmails(): Promise<
   ActionResult & { emails?: string[] }
@@ -565,7 +560,7 @@ export async function requestPasswordReset(
   const supabaseAdmin = createAdminClient();
   if (!supabaseAdmin) return { ok: false, error: "Admin client not configured" };
 
-  // Check if email is in recovery list OR is the primary admin
+  // Check if email is in recovery list
   const { data: recoveryData } = await supabaseAdmin
     .from("settings")
     .select("value")
@@ -574,77 +569,45 @@ export async function requestPasswordReset(
 
   const recoveryEmails =
     (recoveryData?.value?.emails as string[]) ?? [];
-  const isAdmin = recoveryEmails.includes(email.toLowerCase());
+  let isAuthorized = recoveryEmails.includes(email.toLowerCase());
 
-  if (!isAdmin) {
+  // Also check if email is an existing admin user
+  if (!isAuthorized) {
+    const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+    const matchingUser = usersData?.users?.find(
+      (u) => u.email?.toLowerCase() === email.toLowerCase()
+    );
+    if (matchingUser) {
+      isAuthorized = true;
+    }
+  }
+
+  if (!isAuthorized) {
     // Still return success to prevent email enumeration
     return { ok: true };
   }
 
-  // Generate token
-  const token = generateToken();
-  const { error: insertError } = await supabaseAdmin
-    .from("password_reset_tokens")
-    .insert({
-      email: email.toLowerCase(),
-      token,
-      expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-    });
+  // Use Supabase's resetPasswordForEmail which sends an actual email
+  // Create a client with the user's session to trigger the reset
+  const { createClient } = await import("@supabase/supabase-js");
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (insertError) {
-    console.error("[requestPasswordReset] insert error:", insertError.message);
-    return { ok: true }; // Don't leak errors
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return { ok: false, error: "Supabase not configured" };
   }
 
-  // Send reset email via Brevo
-  const brevoKey = process.env.BREVO_API_KEY;
-  const contactEmail = process.env.CONTACT_EMAIL;
-  if (!brevoKey || !contactEmail) {
-    console.error("[requestPasswordReset] BREVO_API_KEY not set");
-    return { ok: true };
-  }
+  // Create a client to call resetPasswordForEmail
+  const client = createClient(supabaseUrl, supabaseAnonKey);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://metariqul.vercel.app";
 
-  const resetUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(
-    ".supabase.co",
-    ""
-  )}.vercel.app/admin/reset-password?token=${token}`;
+  const { error } = await client.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteUrl}/admin/reset-password`,
+  });
 
-  try {
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "api-key": brevoKey,
-      },
-      body: JSON.stringify({
-        sender: { email: contactEmail, name: "Portfolio Admin" },
-        to: [{ email }],
-        subject: "Password Reset Request — Portfolio Admin",
-        htmlContent: `
-          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-            <h2 style="color: #1a1a1a;">Password Reset Request</h2>
-            <p style="color: #555; line-height: 1.6;">
-              You requested a password reset for your admin account.
-            </p>
-            <p style="color: #555; line-height: 1.6;">
-              Click the button below to reset your password. This link expires in 1 hour.
-            </p>
-            <a href="${resetUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 16px 0;">
-              Reset Password
-            </a>
-            <p style="color: #999; font-size: 12px; margin-top: 24px;">
-              If you didn't request this, ignore this email. The link will expire automatically.
-            </p>
-          </div>
-        `,
-      }),
-    });
-
-    if (!res.ok) {
-      console.error("[requestPasswordReset] Brevo error:", res.status);
-    }
-  } catch (err) {
-    console.error("[requestPasswordReset] email send failed:", err);
+  if (error) {
+    console.error("[requestPasswordReset] error:", error.message);
+    // Still return success to prevent email enumeration
   }
 
   return { ok: true };
