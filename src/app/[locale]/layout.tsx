@@ -50,20 +50,18 @@ export default async function LocaleLayout({
   const [messages, s] = await Promise.all([getMergedMessages(), getSite()]);
 
   return (
-    <div className={`${space.variable} ${inter.variable} ${mono.variable}`}>
-      <body className="bg-bg text-ink antialiased">
-        <NextIntlClientProvider messages={messages}>
-          <Providers>
-            <div className="noise-overlay" aria-hidden />
-            <ScrollProgress />
-            <Navbar />
-            <main>{children}</main>
-            <Footer siteProfile={s} />
-            <Analytics />
-            <SpeedInsights />
-          </Providers>
-        </NextIntlClientProvider>
-      </body>
+    <div className={`${space.variable} ${inter.variable} ${mono.variable} bg-bg text-ink antialiased`}>
+      <NextIntlClientProvider messages={messages}>
+        <Providers>
+          <div className="noise-overlay" aria-hidden />
+          <ScrollProgress />
+          <Navbar />
+          <main>{children}</main>
+          <Footer siteProfile={s} />
+          <Analytics />
+          <SpeedInsights />
+        </Providers>
+      </NextIntlClientProvider>
     </div>
   );
 }
