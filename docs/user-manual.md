@@ -35,7 +35,7 @@ The page loads a preloader (progress bar: `fonts ✓` / `scenes ✓`), then scro
 - **Edit:** Settings → Site content → "Statement".
 
 ### 2.4 About (01)
-- Photo card, terminal window (`> whoami` … lines), animated counters (projects shipped, technologies, coffee, lines of code), skill badges, availability pill.
+- Photo card, terminal window (`> whoami` … lines), animated counters (public projects, technologies, years freelancing — set real numbers via Sections → About), skill badges, availability pill.
 - **Edit:** stats, badges, terminal lines → Sections → About. Section label/heading/terminal title → Settings → Site content → "About copy".
 
 ### 2.5 Services (02)

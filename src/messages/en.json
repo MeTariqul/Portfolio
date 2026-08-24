@@ -60,10 +60,9 @@
       "Currently open to freelance & full-time opportunities ✓"
     ],
     "stats": [
-      { "value": 12, "suffix": "+", "label": "Projects shipped" },
-      { "value": 25, "suffix": "+", "label": "Technologies" },
-      { "value": 5000, "suffix": "+", "label": "Cups of coffee" },
-      { "value": 120, "suffix": "K+", "label": "Lines of code" }
+      { "value": 15, "suffix": "+", "label": "Public projects" },
+      { "value": 32, "suffix": "+", "label": "Technologies" },
+      { "value": 2, "suffix": "+", "label": "Years freelancing" }
     ],
     "badges": ["Next.js 15", "React 19", "TypeScript", "Tailwind v4", "Three.js", "Python", "FastAPI", "Django", "PostgreSQL", "Prisma", "Redis", "AI / LLM", "Node.js", "Framer Motion", "Vercel", "Cloudflare"]
   },
@@ -75,7 +74,7 @@
     "code": "Code",
     "live": "Live",
     "more": "And more on GitHub",
-    "moreDesc": "20+ experiments, tools and repos — from AI study platforms to IPTV stream checkers.",
+    "moreDesc": "Experiments, tools and open-source projects — the full archive lives on GitHub.",
     "visitGitHub": "Visit GitHub",
     "items": [
       {
@@ -127,7 +126,7 @@
   },
   "skills": {
     "label": "Skills",
-    "heading": "My orbital arsenal",
+    "heading": "Tools I actually use",
     "sub": "Drag to rotate. Every chip is a tool I've shipped with.",
     "frontend": "Frontend",
     "backend": "Backend & DevOps",
@@ -175,8 +174,8 @@
   },
   "contact": {
     "label": "Contact",
-    "heading": "Let's build something intergalactic",
-    "sub": "Have a project, a role, or just want to talk code (or movies)? My inbox is a wormhole — drop a message.",
+    "heading": "Get in touch",
+    "sub": "Have a project, a role, or just want to talk code? Drop a message — I reply within 24 hours.",
     "name": "Your name",
     "email": "Your email",
     "message": "Your message",
@@ -222,7 +221,7 @@
     "items": [
       {
         "title": "Web Development",
-        "desc": "Blazing-fast, SEO-ready websites and apps with Next.js, React and TypeScript — shipped to production.",
+        "desc": "Fast, SEO-ready websites and apps with Next.js, React and TypeScript — deployed to production, not just pushed to GitHub.",
         "tags": ["Next.js", "React", "TypeScript", "Tailwind"]
       },
       {
@@ -232,7 +231,7 @@
       },
       {
         "title": "UI & Motion Design",
-        "desc": "Cinematic interfaces with 3D WebGL scenes, micro-interactions and design systems people remember.",
+        "desc": "Interfaces with 3D WebGL scenes, micro-interactions and design systems that feel cohesive — not just a collection of components.",
         "tags": ["Three.js", "Framer Motion", "shadcn/ui"]
       },
       {
@@ -242,7 +241,7 @@
       },
       {
         "title": "DevOps & Performance",
-        "desc": "Free-tier-optimized hosting, CI/CD, monitoring and speed audits — Lighthouse 95+ as the baseline.",
+        "desc": "Free-tier hosting, CI/CD pipelines, monitoring and speed audits — I care about performance because users leave when pages are slow.",
         "tags": ["Vercel", "Cloudflare", "Redis", "GitHub Actions"]
       }
     ]
@@ -273,32 +272,12 @@
   "testimonials": {
     "label": "Testimonials",
     "heading": "What clients say",
-    "sub": "Placeholder reviews — replace with your real Fiverr feedback anytime.",
-    "items": [
-      {
-        "quote": "Delivered ahead of schedule with a design that exceeded the brief. Communication was flawless throughout.",
-        "name": "Daniel R.",
-        "role": "E-commerce founder, USA",
-        "rating": 5
-      },
-      {
-        "quote": "The AI integration felt like magic. Our document workflow went from hours to seconds.",
-        "name": "Sarah M.",
-        "role": "Startup CEO, UK",
-        "rating": 5
-      },
-      {
-        "quote": "Fast, detail-obsessed and genuinely invested in the product. Best dev experience I've had on Fiverr.",
-        "name": "Ahmed K.",
-        "role": "Agency owner, UAE",
-        "rating": 5
-      }
-    ]
+    "sub": "Real feedback from clients I've worked with."
   },
   "cta": {
     "title": "Have an idea?",
     "title2": "Let's build it.",
-    "sub": "One message away from liftoff.",
+    "sub": "Send a message and I'll get back to you.",
     "button": "Start a project"
   }
 }

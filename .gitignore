@@ -12,6 +12,12 @@
 
 # testing
 /coverage
+/playwright-report/
+/test-results/
+
+# installed skills
+/.claude/
+/.opencode/
 
 # next.js
 /.next/

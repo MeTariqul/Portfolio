@@ -15,9 +15,12 @@ export function Testimonials({ items: propItems }: { items?: Testimonial[] }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    if (!items?.length) return;
     const id = setInterval(() => setIndex((i) => (i + 1) % items.length), INTERVAL);
     return () => clearInterval(id);
   }, [items.length]);
+
+  if (!items?.length) return null;
 
   const current = items[index];
 
