@@ -8,7 +8,7 @@ export const site = {
   linkedin: "https://www.linkedin.com/in/metariqul",
   email: "hello@metariqul.dev",
   // TODO: replace with your real domain once deployed
-  url: "https://metariqul.vercel.app",
+  url: "https://portfolio-metariquls-projects.vercel.app",
   // TODO: drop your real CV PDF into public/cv/ and keep this path
   cvPath: "/cv/Md-Tariqul-Islam-CV.pdf",
 };

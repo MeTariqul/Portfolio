@@ -15,6 +15,7 @@ import { Testimonials } from "@/components/testimonials";
 import { CtaBand } from "@/components/cta-band";
 import { Contact } from "@/components/contact";
 import { WordDivider } from "@/components/word-divider";
+import { PersonJsonLd } from "@/components/person-json-ld";
 import type { SkillsRings } from "@/components/skills";
 import { site } from "@/lib/site";
 import {
@@ -122,6 +123,7 @@ export default async function HomePage({
 
   return (
     <>
+      <PersonJsonLd />
       <Preloader waitForScenes />
       <Hero roles={heroRoles} subtitle={dbHero?.subtitle} status={dbHero?.status} siteProfile={dbSite} />
       <Marquee items={marqueeItems} />
