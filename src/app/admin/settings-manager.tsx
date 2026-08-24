@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSetting, getSettingsMap, saveContactSettings, saveSetting } from "@/app/actions/admin";
+import { getSetting, getSettingsMap, saveContactSettings, saveSetting, getRecoveryEmails, saveRecoveryEmails } from "@/app/actions/admin";
+import { Plus, X } from "lucide-react";
 import en from "@/messages/en.json";
 
 const inputClass =
@@ -523,6 +524,134 @@ function ProfileEditor() {
   );
 }
 
+function RecoveryEmailsEditor() {
+  const [emails, setEmails] = useState<string[]>([]);
+  const [newEmail, setNewEmail] = useState("");
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    getRecoveryEmails().then((res) => {
+      if (res.ok && res.emails) {
+        setEmails(res.emails);
+      }
+      setLoaded(true);
+    });
+  }, []);
+
+  function addEmail() {
+    const trimmed = newEmail.trim().toLowerCase();
+    if (!trimmed || !trimmed.includes("@")) {
+      setError("Enter a valid email address");
+      return;
+    }
+    if (emails.includes(trimmed)) {
+      setError("Email already added");
+      return;
+    }
+    if (emails.length >= 3) {
+      setError("Maximum 3 recovery emails allowed");
+      return;
+    }
+    setEmails([...emails, trimmed]);
+    setNewEmail("");
+    setError("");
+  }
+
+  function removeEmail(index: number) {
+    setEmails(emails.filter((_, i) => i !== index));
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setError("");
+    const res = await saveRecoveryEmails(emails);
+    setSaving(false);
+    if (res.ok) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } else {
+      setError(res.error);
+    }
+  }
+
+  return (
+    <div className="rounded-3xl border border-line bg-surface p-6">
+      <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-nebula">
+        Recovery Emails — password reset access
+      </p>
+      <p className="mb-5 text-sm text-soft">
+        Up to 3 emails can receive password reset links. If your main account is
+        compromised, other recovery email holders can reset the password.
+      </p>
+
+      {error && (
+        <p className="mb-4 rounded-2xl border border-red-400/30 bg-red-400/10 px-5 py-3 text-sm text-red-400">
+          {error}
+        </p>
+      )}
+
+      <div className="space-y-3">
+        {emails.map((email, i) => (
+          <div
+            key={email}
+            className="flex items-center justify-between rounded-2xl border border-line bg-bg px-4 py-3"
+          >
+            <span className="font-mono text-sm text-ink">{email}</span>
+            <button
+              type="button"
+              onClick={() => removeEmail(i)}
+              className="text-soft transition-colors hover:text-red-400"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {emails.length < 3 && (
+        <div className="mt-4 flex gap-2">
+          <input
+            type="email"
+            className={`${inputClass} flex-1`}
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addEmail();
+              }
+            }}
+            placeholder="recovery@example.com"
+          />
+          <button
+            type="button"
+            onClick={addEmail}
+            className="flex items-center gap-2 rounded-2xl border border-line bg-surface px-4 py-3 font-mono text-xs uppercase tracking-widest text-soft transition-colors hover:text-ink"
+          >
+            <Plus size={14} />
+            Add
+          </button>
+        </div>
+      )}
+
+      <div className="mt-6 flex items-center gap-4">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving || !loaded}
+          className="rounded-2xl bg-ink px-6 py-3 font-mono text-xs font-semibold uppercase tracking-widest text-bg transition-opacity hover:opacity-85 disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Save recovery emails"}
+        </button>
+        {saved && <p className="text-sm text-emerald-400">Saved</p>}
+      </div>
+    </div>
+  );
+}
+
 export function SettingsManager() {
   const [email, setEmail] = useState("");
   const [location, setLocation] = useState("");
@@ -617,6 +746,8 @@ export function SettingsManager() {
           </div>
         </div>
       </form>
+
+      <RecoveryEmailsEditor />
 
       <SiteContentEditor />
 

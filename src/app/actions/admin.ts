@@ -509,3 +509,232 @@ export async function saveSection(
   revalidate();
   return { ok: true };
 }
+
+// ─── Password Recovery ───────────────────────────────────────────────────────
+
+import { createAdminClient } from "@/lib/supabase/admin";
+import crypto from "crypto";
+
+function generateToken(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+export async function getRecoveryEmails(): Promise<
+  ActionResult & { emails?: string[] }
+> {
+  const supabase = await requireClient();
+  if (!supabase) return { ok: false, error: "Unauthorized" };
+
+  const { data, error } = await supabase
+    .from("settings")
+    .select("value")
+    .eq("key", "recovery_emails")
+    .maybeSingle();
+  if (error) return { ok: false, error: error.message };
+
+  const emails = (data?.value?.emails as string[]) ?? [];
+  return { ok: true, emails };
+}
+
+export async function saveRecoveryEmails(
+  emails: string[]
+): Promise<ActionResult> {
+  const supabase = await requireClient();
+  if (!supabase) return { ok: false, error: "Unauthorized" };
+
+  if (emails.length > 3) {
+    return { ok: false, error: "Maximum 3 recovery emails allowed" };
+  }
+
+  const sanitized = emails
+    .map((e) => e.trim().toLowerCase())
+    .filter((e) => e.includes("@"));
+  const { error } = await supabase
+    .from("settings")
+    .upsert(
+      { key: "recovery_emails", value: { emails: sanitized } },
+      { onConflict: "key" }
+    );
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+export async function requestPasswordReset(
+  email: string
+): Promise<ActionResult> {
+  const supabaseAdmin = createAdminClient();
+  if (!supabaseAdmin) return { ok: false, error: "Admin client not configured" };
+
+  // Check if email is in recovery list OR is the primary admin
+  const { data: recoveryData } = await supabaseAdmin
+    .from("settings")
+    .select("value")
+    .eq("key", "recovery_emails")
+    .maybeSingle();
+
+  const recoveryEmails =
+    (recoveryData?.value?.emails as string[]) ?? [];
+  const isAdmin = recoveryEmails.includes(email.toLowerCase());
+
+  if (!isAdmin) {
+    // Still return success to prevent email enumeration
+    return { ok: true };
+  }
+
+  // Generate token
+  const token = generateToken();
+  const { error: insertError } = await supabaseAdmin
+    .from("password_reset_tokens")
+    .insert({
+      email: email.toLowerCase(),
+      token,
+      expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    });
+
+  if (insertError) {
+    console.error("[requestPasswordReset] insert error:", insertError.message);
+    return { ok: true }; // Don't leak errors
+  }
+
+  // Send reset email via Brevo
+  const brevoKey = process.env.BREVO_API_KEY;
+  const contactEmail = process.env.CONTACT_EMAIL;
+  if (!brevoKey || !contactEmail) {
+    console.error("[requestPasswordReset] BREVO_API_KEY not set");
+    return { ok: true };
+  }
+
+  const resetUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(
+    ".supabase.co",
+    ""
+  )}.vercel.app/admin/reset-password?token=${token}`;
+
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": brevoKey,
+      },
+      body: JSON.stringify({
+        sender: { email: contactEmail, name: "Portfolio Admin" },
+        to: [{ email }],
+        subject: "Password Reset Request — Portfolio Admin",
+        htmlContent: `
+          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+            <h2 style="color: #1a1a1a;">Password Reset Request</h2>
+            <p style="color: #555; line-height: 1.6;">
+              You requested a password reset for your admin account.
+            </p>
+            <p style="color: #555; line-height: 1.6;">
+              Click the button below to reset your password. This link expires in 1 hour.
+            </p>
+            <a href="${resetUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 16px 0;">
+              Reset Password
+            </a>
+            <p style="color: #999; font-size: 12px; margin-top: 24px;">
+              If you didn't request this, ignore this email. The link will expire automatically.
+            </p>
+          </div>
+        `,
+      }),
+    });
+
+    if (!res.ok) {
+      console.error("[requestPasswordReset] Brevo error:", res.status);
+    }
+  } catch (err) {
+    console.error("[requestPasswordReset] email send failed:", err);
+  }
+
+  return { ok: true };
+}
+
+export async function verifyResetToken(
+  token: string
+): Promise<ActionResult & { email?: string }> {
+  const supabaseAdmin = createAdminClient();
+  if (!supabaseAdmin) return { ok: false, error: "Admin client not configured" };
+
+  const { data, error } = await supabaseAdmin
+    .from("password_reset_tokens")
+    .select("email, expires_at, used")
+    .eq("token", token)
+    .maybeSingle();
+
+  if (error || !data) {
+    return { ok: false, error: "Invalid or expired reset link" };
+  }
+
+  if (data.used) {
+    return { ok: false, error: "This reset link has already been used" };
+  }
+
+  if (new Date(data.expires_at) < new Date()) {
+    return { ok: false, error: "This reset link has expired" };
+  }
+
+  return { ok: true, email: data.email };
+}
+
+export async function resetPassword(
+  token: string,
+  newPassword: string
+): Promise<ActionResult> {
+  const supabaseAdmin = createAdminClient();
+  if (!supabaseAdmin) return { ok: false, error: "Admin client not configured" };
+
+  // Verify token
+  const { data: tokenData, error: tokenError } = await supabaseAdmin
+    .from("password_reset_tokens")
+    .select("email, expires_at, used")
+    .eq("token", token)
+    .maybeSingle();
+
+  if (tokenError || !tokenData) {
+    return { ok: false, error: "Invalid reset link" };
+  }
+
+  if (tokenData.used) {
+    return { ok: false, error: "Reset link already used" };
+  }
+
+  if (new Date(tokenData.expires_at) < new Date()) {
+    return { ok: false, error: "Reset link expired" };
+  }
+
+  if (newPassword.length < 6) {
+    return { ok: false, error: "Password must be at least 6 characters" };
+  }
+
+  // Find user by email and update password
+  const { data: usersData, error: listError } =
+    await supabaseAdmin.auth.admin.listUsers();
+  if (listError) {
+    return { ok: false, error: "Failed to verify user" };
+  }
+
+  const user = usersData.users.find(
+    (u) => u.email?.toLowerCase() === tokenData.email.toLowerCase()
+  );
+  if (!user) {
+    return { ok: false, error: "User not found" };
+  }
+
+  const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+    user.id,
+    { password: newPassword }
+  );
+
+  if (updateError) {
+    return { ok: false, error: updateError.message };
+  }
+
+  // Mark token as used
+  await supabaseAdmin
+    .from("password_reset_tokens")
+    .update({ used: true })
+    .eq("token", token);
+
+  return { ok: true };
+}
