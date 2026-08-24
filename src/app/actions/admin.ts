@@ -513,6 +513,11 @@ export async function saveSection(
 // ─── Password Recovery ───────────────────────────────────────────────────────
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import crypto from "crypto";
+
+function generateToken(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
 
 export async function getRecoveryEmails(): Promise<
   ActionResult & { emails?: string[] }
@@ -583,34 +588,76 @@ export async function requestPasswordReset(
   }
 
   if (!isAuthorized) {
-    // Still return success to prevent email enumeration
     return { ok: true };
   }
 
-  // Use Supabase's resetPasswordForEmail which sends an actual email
-  // Create a client with the user's session to trigger the reset
-  const { createClient } = await import("@supabase/supabase-js");
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Generate token
+  const token = generateToken();
+  const { error: insertError } = await supabaseAdmin
+    .from("password_reset_tokens")
+    .insert({
+      email: email.toLowerCase(),
+      token,
+      expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    });
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return { ok: false, error: "Supabase not configured" };
+  if (insertError) {
+    console.error("[requestPasswordReset] insert error:", insertError.message);
+    return { ok: false, error: "Password reset not configured. Run recovery.sql in Supabase SQL Editor." };
   }
 
-  // Create a client to call resetPasswordForEmail
-  const client = createClient(supabaseUrl, supabaseAnonKey);
+  // Send reset email via Brevo
+  const brevoKey = process.env.BREVO_API_KEY;
+  const contactEmail = process.env.CONTACT_EMAIL;
+  if (!brevoKey || !contactEmail) {
+    return { ok: false, error: "Email service not configured" };
+  }
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://metariqul.vercel.app";
+  const resetUrl = `${siteUrl}/admin/reset-password?token=${token}`;
 
-  const { error } = await client.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl}/admin/reset-password`,
-  });
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": brevoKey,
+      },
+      body: JSON.stringify({
+        sender: { email: contactEmail, name: "Portfolio Admin" },
+        to: [{ email }],
+        subject: "Password Reset Request — Portfolio Admin",
+        htmlContent: `
+          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+            <h2 style="color: #1a1a1a;">Password Reset Request</h2>
+            <p style="color: #555; line-height: 1.6;">
+              You requested a password reset for your admin account.
+            </p>
+            <p style="color: #555; line-height: 1.6;">
+              Click the button below to reset your password. This link expires in 1 hour.
+            </p>
+            <a href="${resetUrl}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 16px 0;">
+              Reset Password
+            </a>
+            <p style="color: #999; font-size: 12px; margin-top: 24px;">
+              If you didn't request this, ignore this email. The link will expire automatically.
+            </p>
+          </div>
+        `,
+      }),
+    });
 
-  if (error) {
-    console.error("[requestPasswordReset] error:", error.message);
-    // Still return success to prevent email enumeration
+    if (!res.ok) {
+      const errBody = await res.text();
+      console.error("[requestPasswordReset] Brevo error:", res.status, errBody);
+      return { ok: false, error: "Failed to send email" };
+    }
+
+    return { ok: true };
+  } catch (err) {
+    console.error("[requestPasswordReset] email send failed:", err);
+    return { ok: false, error: "Failed to send email" };
   }
-
-  return { ok: true };
 }
 
 export async function verifyResetToken(
