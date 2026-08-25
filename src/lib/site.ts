@@ -6,8 +6,7 @@ export const site = {
   education: "B.Sc. in CSE @ Gono Bishwabidyalay (2023 — 2027)",
   github: "https://github.com/MeTariqul",
   linkedin: "https://www.linkedin.com/in/metariqul",
-  email: "hello@metariqul.dev",
+  email: "gbtarif37@gmail.com",
   url: "https://metariqul.vercel.app",
-  // TODO: drop your real CV PDF into public/cv/ and keep this path
   cvPath: "/cv/Md-Tariqul-Islam-CV.pdf",
 };

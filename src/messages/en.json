@@ -1,8 +1,8 @@
 {
   "meta": {
-    "title": "Md. Tariqul Islam — Full-Stack Web Developer",
-    "description": "Full-stack web developer from Savar, Dhaka, Bangladesh. I build fast, cinematic, AI-powered web experiences with Next.js, React, TypeScript, Python and Three.js.",
-    "ogDescription": "Full-stack developer crafting AI-powered, cinematic web experiences with Next.js & Python."
+    "title": "Md. Tariqul Islam | Full-Stack Web Developer in Bangladesh",
+    "description": "Md. Tariqul Islam is a Full-Stack Web Developer in Bangladesh specializing in Next.js, React, TypeScript, Python, Django, AI integration and SEO-friendly web applications.",
+    "ogDescription": "Full-Stack Web Developer specializing in Next.js, React, TypeScript, Python, Django, AI integration and SEO-friendly web applications."
   },
   "nav": {
     "home": "Home",
@@ -26,8 +26,8 @@
   "hero": {
     "greet": "Hello, I'm",
     "name": "Md. Tariqul Islam",
-    "roles": ["Full-Stack Developer", "Next.js & React", "Python & AI", "SaaS Builder"],
-    "subtitle": "I build fast, cinematic and AI-powered web experiences — real products, not tutorials. Currently crafting a universe of apps from Savar, Dhaka.",
+    "roles": ["Full-Stack Developer", "Next.js & React", "Python & Django", "AI Integration"],
+    "subtitle": "I build fast, SEO-friendly and scalable web applications using Next.js, React, TypeScript, Python and Django. Based in Savar, Dhaka, Bangladesh, I focus on building practical digital products with modern interfaces, reliable backends and performance in mind.",
     "ctaWork": "Explore My Work",
     "ctaCv": "Download CV",
     "openToWork": "Open to work",
@@ -51,17 +51,15 @@
       "> stack",
       "Next.js · React · TypeScript · Node.js · PostgreSQL · Prisma · Redis",
       "> python",
-      "FastAPI · Django · pandas · NumPy · Selenium · BeautifulSoup · scikit-learn",
-      "> philosophy",
-      "I build real products that ship — not tutorial demos. If it doesn't work, it doesn't exist.",
+      "FastAPI · Django · pandas · NumPy · Selenium · BeautifulSoup",
       "> focus",
-      "Web engineering, AI workflows and performance — shipped, measured, iterated.",
+      "Full-stack web development, SEO-friendly applications and performance optimization",
       "> status",
-      "Currently open to freelance & full-time opportunities ✓"
+      "Currently open to freelance & full-time opportunities"
     ],
     "stats": [
-      { "value": 15, "suffix": "+", "label": "Public projects" },
-      { "value": 32, "suffix": "+", "label": "Technologies" },
+      { "value": 4, "suffix": "+", "label": "Public projects" },
+      { "value": 15, "suffix": "+", "label": "Technologies" },
       { "value": 2, "suffix": "+", "label": "Years freelancing" }
     ],
     "badges": ["Next.js 15", "React 19", "TypeScript", "Tailwind v4", "Three.js", "Python", "FastAPI", "Django", "PostgreSQL", "Prisma", "Redis", "AI / LLM", "Node.js", "Framer Motion", "Vercel", "Cloudflare"]
@@ -69,7 +67,7 @@
   "projects": {
     "label": "Projects",
     "heading": "Things I've actually built",
-    "sub": "Real products, real problems, real code. Scroll horizontally — every card has a story.",
+    "sub": "A selection of web applications, tools and experiments I've built to solve practical problems and explore modern web technologies.",
     "featured": "Featured",
     "code": "Code",
     "live": "Live",
@@ -86,7 +84,7 @@
       },
       {
         "title": "MeTariqul Tec Shop",
-        "desc": "Full-featured e-commerce platform with a custom cart, checkout flow and admin inventory management.",
+        "desc": "E-commerce web application featuring a custom shopping cart, checkout workflow and inventory management functionality. Built to explore modern full-stack commerce architecture.",
         "tags": ["Next.js", "PostgreSQL", "Prisma"],
         "category": "E-commerce",
         "featured": true
@@ -106,19 +104,19 @@
       },
       {
         "title": "Cloudflare Tunnel Monitor",
-        "desc": "Real-time dashboard that health-checks Cloudflare tunnels, tracks uptime and alerts on failures.",
+        "desc": "Monitoring dashboard for checking Cloudflare Tunnel health, tracking tunnel status and detecting connection failures in real time.",
         "tags": ["Cloudflare", "Node.js", "WebSockets"],
         "category": "DevOps"
       },
       {
         "title": "IPTV Stream Checker",
-        "desc": "Watch IPTV from M3U playlists — auto health-checks channels every minute, hides broken ones, shows live viewer counts.",
+        "desc": "Web-based IPTV playlist viewer that processes M3U playlists, periodically checks stream availability and helps filter unavailable channels.",
         "tags": ["Next.js", "M3U", "Vercel"],
         "category": "Streaming"
       },
       {
         "title": "PrintEdge",
-        "desc": "Printing shop platform with ordering, branding and daily-print-meme engine to keep the page alive.",
+        "desc": "Printing shop web platform designed to support online print orders, business branding and customer engagement features.",
         "tags": ["React", "Node.js", "MongoDB"],
         "category": "Web App"
       }
@@ -126,8 +124,8 @@
   },
   "skills": {
     "label": "Skills",
-    "heading": "Tools I actually use",
-    "sub": "Drag to rotate. Every chip is a tool I've shipped with.",
+    "heading": "Technologies I work with",
+    "sub": "Drag to rotate. Technologies I work with across frontend development, backend engineering, databases, AI integration and deployment.",
     "frontend": "Frontend",
     "backend": "Backend & DevOps",
     "ai": "AI & Tooling",
@@ -138,35 +136,35 @@
     "heading": "The journey so far",
     "items": [
       {
-        "role": "Freelance Full-Stack Developer",
+        "role": "Freelance Full-Stack Web Developer",
         "org": "Fiverr",
         "period": "2024 — Present",
-        "desc": "Designing and shipping production-grade websites, email campaigns and AI-assisted web apps for international clients."
+        "desc": "Building websites, web applications, email templates and AI-assisted digital solutions for clients through freelance projects. Working across frontend development, backend integration, responsive UI implementation and deployment."
       },
       {
         "role": "B.Sc. in Computer Science & Engineering",
         "org": "Gono Bishwabidyalay",
         "period": "2023 — 2027",
-        "desc": "Focusing on web engineering, databases, operating systems and computer networks. Building real products alongside coursework."
+        "desc": "Studying computer science with a focus on software development, web technologies, databases, operating systems and computer networks while building practical web applications alongside coursework."
       },
       {
         "role": "Higher Secondary Certificate (HSC)",
         "org": "Mirza Golam Hafiz College",
         "period": "Completed",
-        "desc": "Science group — where the debugging habit first took root."
+        "desc": "Science background with an early interest in technology, programming and problem solving."
       },
       {
         "role": "Secondary School Certificate (SSC)",
         "org": "Adarsha High School",
         "period": "Completed",
-        "desc": "First line of code, first broken build, first fix. Everything after was history."
+        "desc": "Completed secondary education with an early foundation in science, mathematics and problem solving."
       }
     ]
   },
   "blog": {
     "label": "Blog",
     "heading": "Notes from the lab",
-    "sub": "Case studies, experiments and hard-won lessons from shipping.",
+    "sub": "Technical articles, experiments and lessons from building web applications.",
     "read": "Read article",
     "readTime": "min read",
     "all": "All posts",
@@ -175,14 +173,14 @@
   "contact": {
     "label": "Contact",
     "heading": "Get in touch",
-    "sub": "Have a project, a role, or just want to talk code? Drop a message — I reply within 24 hours.",
+    "sub": "Have a project, a role, or an idea? Let's build it. I usually respond within 24-48 hours.",
     "name": "Your name",
     "email": "Your email",
     "message": "Your message",
     "send": "Send Message",
     "sending": "Transmitting…",
     "successTitle": "Message received!",
-    "successDesc": "Thanks for reaching out. I'll get back to you within 24 hours — Earth time.",
+    "successDesc": "Thanks for reaching out. I'll get back to you within 24-48 hours.",
     "sendAnother": "Send another",
     "emailLabel": "Email",
     "locationLabel": "Location",
@@ -194,7 +192,7 @@
     },
     "confirmSubject": "Thanks for reaching out — I'll reply soon",
     "confirmGreeting": "Hi {name},",
-    "confirmBody": "I received your message. Thank you for taking the time — I usually reply within 24 hours, Earth time.",
+    "confirmBody": "I received your message. Thank you for taking the time — I usually reply within 24-48 hours.",
     "confirmSignature": "— Md. Tariqul Islam"
   },
   "footer": {
@@ -209,7 +207,7 @@
     "back": "Return home"
   },
   "statement": {
-    "line1": "I don't build websites.",
+    "line1": "Web Development That Goes Beyond Templates",
     "line2": "I build",
     "line3": "experiences.",
     "ghost": "BUILD"
@@ -217,31 +215,31 @@
   "services": {
     "label": "Services",
     "heading": "What I can do for you",
-    "sub": "From idea to production — I handle the whole orbit.",
+    "sub": "From idea to deployment — I handle the full development cycle.",
     "items": [
       {
         "title": "Web Development",
-        "desc": "Fast, SEO-ready websites and apps with Next.js, React and TypeScript — deployed to production, not just pushed to GitHub.",
-        "tags": ["Next.js", "React", "TypeScript", "Tailwind"]
+        "desc": "Modern, responsive and SEO-friendly websites and web applications built with Next.js, React and TypeScript. I focus on performance, accessibility, maintainability and clean user experiences.",
+        "tags": ["Next.js", "React", "TypeScript", "Tailwind CSS"]
       },
       {
         "title": "AI Integration",
-        "desc": "LLM-powered features: chatbots, OCR pipelines, document analysis, smart search and AI tutoring.",
+        "desc": "AI-powered features including chatbots, document analysis, OCR workflows, intelligent search, RAG-based applications and AI-assisted learning tools.",
         "tags": ["OpenAI", "Gemini", "LangChain", "RAG"]
       },
       {
-        "title": "UI & Motion Design",
-        "desc": "Interfaces with 3D WebGL scenes, micro-interactions and design systems that feel cohesive — not just a collection of components.",
-        "tags": ["Three.js", "Framer Motion", "shadcn/ui"]
+        "title": "UI/UX & Interactive Web Design",
+        "desc": "Responsive interfaces, interactive animations, micro-interactions and 3D web experiences designed to make modern web applications engaging and easy to use.",
+        "tags": ["Three.js", "React Three Fiber", "Framer Motion", "shadcn/ui"]
       },
       {
-        "title": "Python & Automation",
-        "desc": "Scrapers, data pipelines, OCR workflows and ML tooling — plus FastAPI/Django backends that power the web apps.",
-        "tags": ["Python", "FastAPI", "Django", "Selenium", "pandas"]
+        "title": "Python & Backend Development",
+        "desc": "Python-based backend development, REST APIs, automation tools, OCR workflows and data-processing applications using Django and FastAPI.",
+        "tags": ["Python", "Django", "FastAPI", "Selenium", "pandas"]
       },
       {
-        "title": "DevOps & Performance",
-        "desc": "Free-tier hosting, CI/CD pipelines, monitoring and speed audits — I care about performance because users leave when pages are slow.",
+        "title": "Performance & Deployment",
+        "desc": "Performance-focused deployment, hosting optimization, monitoring and CI/CD using modern cloud and developer tools. I focus on fast loading times, efficient resource usage and good Core Web Vitals.",
         "tags": ["Vercel", "Cloudflare", "Redis", "GitHub Actions"]
       }
     ]
@@ -249,23 +247,23 @@
   "process": {
     "label": "Process",
     "heading": "How I work",
-    "sub": "A launch sequence, not a guessing game.",
+    "sub": "A structured approach to building web applications.",
     "items": [
       {
         "title": "Discover",
-        "desc": "Goals, users, constraints. I dig until the problem is sharp enough to cut with."
+        "desc": "Define project goals, target users, requirements, technical constraints and success criteria."
       },
       {
         "title": "Design",
-        "desc": "Wireframes → cinematic UI. Motion, hierarchy and micro-interactions planned from day one."
+        "desc": "Plan the information architecture, user flows, responsive layouts, visual hierarchy and interaction patterns."
       },
       {
         "title": "Build",
-        "desc": "Clean TypeScript, tested flows, fast APIs. I ship working software, not demos."
+        "desc": "Develop the frontend, backend and integrations using maintainable code, reusable components and tested workflows."
       },
       {
         "title": "Ship & Iterate",
-        "desc": "Deploy, measure, refine. Performance budgets, analytics and continuous improvements."
+        "desc": "Deploy the application, monitor performance, fix issues and continuously improve the product based on real usage."
       }
     ]
   },

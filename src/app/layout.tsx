@@ -5,11 +5,11 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "Md. Tariqul Islam — Full-Stack Web Developer",
+    default: "Md. Tariqul Islam | Full-Stack Web Developer in Bangladesh",
     template: "%s | Md. Tariqul Islam",
   },
   description:
-    "Full-stack web developer from Savar, Dhaka, Bangladesh. I build fast, cinematic, AI-powered web experiences with Next.js, React, TypeScript and Three.js.",
+    "Md. Tariqul Islam is a Full-Stack Web Developer in Bangladesh specializing in Next.js, React, TypeScript, Python, Django, AI integration and SEO-friendly web applications.",
   keywords: [
     "Md. Tariqul Islam",
     "Tariqul Islam",
@@ -18,9 +18,14 @@ export const metadata: Metadata = {
     "React Developer",
     "TypeScript Developer",
     "Python Developer",
+    "Django Developer",
     "AI Web Developer",
     "Web Developer Bangladesh",
+    "Dhaka Developer",
+    "Savar Developer",
     "Portfolio",
+    "Node.js Developer",
+    "SEO-friendly Web Developer",
   ],
   authors: [{ name: site.name, url: site.url }],
   creator: site.name,

@@ -8,7 +8,7 @@ export function PersonJsonLd() {
     url: site.url,
     jobTitle: site.role,
     description:
-      "Full-stack web developer from Savar, Dhaka, Bangladesh. I build fast, cinematic, AI-powered web experiences with Next.js, React, TypeScript, Python and Three.js.",
+      "Md. Tariqul Islam is a Full-Stack Web Developer in Bangladesh specializing in Next.js, React, TypeScript, Python, Django, AI integration and SEO-friendly web applications.",
     address: {
       "@type": "PostalAddress",
       addressLocality: "Savar",
@@ -23,19 +23,22 @@ export function PersonJsonLd() {
       "React",
       "TypeScript",
       "Python",
-      "AI",
+      "Django",
+      "FastAPI",
+      "AI Integration",
       "Full-Stack Development",
-      "Three.js",
       "Node.js",
       "PostgreSQL",
-      "Supabase",
+      "Prisma",
+      "Redis",
       "Tailwind CSS",
+      "Three.js",
       "Framer Motion",
     ],
     hasOccupation: {
       "@type": "Occupation",
       name: "Full-Stack Web Developer",
-      skills: "Next.js, React, TypeScript, Python, Three.js, Node.js, PostgreSQL, Supabase",
+      skills: "Next.js, React, TypeScript, Python, Django, FastAPI, Node.js, PostgreSQL, Prisma, Redis, AI Integration, Three.js",
     },
   };
 
@@ -45,7 +48,7 @@ export function PersonJsonLd() {
     name: `${site.name} — Portfolio`,
     url: site.url,
     description:
-      "Portfolio of Md. Tariqul Islam — Full-stack web developer specializing in Next.js, React, TypeScript, Python and AI-powered web experiences.",
+      "Portfolio of Md. Tariqul Islam — Full-Stack Web Developer in Bangladesh specializing in Next.js, React, TypeScript, Python, Django and AI-powered web applications.",
     author: {
       "@type": "Person",
       name: site.name,
@@ -67,7 +70,7 @@ export function PersonJsonLd() {
       url: site.url,
       jobTitle: site.role,
       description:
-        "Full-stack web developer from Savar, Dhaka, Bangladesh. I build fast, cinematic, AI-powered web experiences with Next.js, React, TypeScript, Python and Three.js.",
+        "Md. Tariqul Islam is a Full-Stack Web Developer in Bangladesh specializing in Next.js, React, TypeScript, Python, Django, AI integration and SEO-friendly web applications.",
       sameAs: [site.github, site.linkedin],
     },
   };
