@@ -14,6 +14,7 @@ export type AdminMessage = {
   message: string;
   created_at: string;
   read: boolean;
+  replied?: boolean;
 };
 
 type ActionResult =
@@ -35,7 +36,7 @@ export async function listMessages(): Promise<ActionResult> {
 
   const { data, error } = await supabase
     .from("messages")
-    .select("id, name, email, message, created_at, read")
+    .select("id, name, email, message, created_at, read, replied")
     .order("created_at", { ascending: false });
 
   if (error) return { ok: false, error: error.message };
@@ -480,6 +481,144 @@ export async function deleteTestimonial(id: string): Promise<ActionResult> {
   return removeRow("testimonials", id);
 }
 
+// ─── Reply System ────────────────────────────────────────────────────────────
+
+export type AutoReplySettings = {
+  enabled: boolean;
+};
+
+export async function generateReply(
+  userName: string,
+  userMessage: string
+): Promise<ActionResult & { reply?: string }> {
+  const supabase = await requireClient();
+  if (!supabase) return { ok: false, error: "Unauthorized" };
+
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) return { ok: false, error: "AI service not configured" };
+
+  try {
+    const reply = await generateAdminReply(userName, userMessage);
+    if (!reply) return { ok: false, error: "AI generated empty response" };
+    return { ok: true, reply };
+  } catch (err) {
+    console.error("[admin/generateReply] error:", err);
+    return { ok: false, error: "AI generation failed" };
+  }
+}
+
+export async function sendReply(
+  messageId: string,
+  replyText: string
+): Promise<ActionResult> {
+  const supabase = await requireClient();
+  if (!supabase) return { ok: false, error: "Unauthorized" };
+
+  if (!replyText.trim()) return { ok: false, error: "Reply text is required" };
+
+  const { data: msg, error: fetchError } = await supabase
+    .from("messages")
+    .select("name, email, message")
+    .eq("id", messageId)
+    .maybeSingle();
+
+  if (fetchError || !msg) return { ok: false, error: "Message not found" };
+
+  const brevoKey = process.env.BREVO_API_KEY;
+  const sender = process.env.CONTACT_EMAIL;
+  if (!brevoKey || !sender) {
+    return { ok: false, error: "Email service not configured" };
+  }
+
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": brevoKey,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: { email: sender, name: "Samba (Manager)" },
+        to: [{ email: msg.email, name: msg.name }],
+        subject: "Re: Thanks for reaching out — Md. Tariqul Islam",
+        htmlContent: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
+            <p style="color: #333; line-height: 1.7;">Hi ${msg.name},</p>
+            <div style="color: #333; line-height: 1.7; white-space: pre-wrap;">${replyText.replace(/\n/g, "<br/>")}</div>
+            <p style="margin-top: 24px; color: #333; line-height: 1.7;">Best regards,<br/><strong>Samba</strong><br/>Manager, Md. Tariqul Islam</p>
+            <p style="margin-top: 16px; color: #999; font-size: 12px;">Full-Stack Web Developer — Next.js / React / TypeScript / Python / AI</p>
+          </div>
+        `,
+        replyTo: { email: sender, name: "Md. Tariqul Islam" },
+      }),
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      console.error("[admin/sendReply] Brevo error:", res.status, errBody);
+      return { ok: false, error: "Failed to send email" };
+    }
+
+    await supabase
+      .from("messages")
+      .update({ replied: true, read: true })
+      .eq("id", messageId);
+
+    return { ok: true };
+  } catch (err) {
+    console.error("[admin/sendReply] error:", err);
+    return { ok: false, error: "Failed to send email" };
+  }
+}
+
+export async function getAutoReplySetting(): Promise<
+  ActionResult & { enabled?: boolean }
+> {
+  const supabase = await requireClient();
+  if (!supabase) return { ok: false, error: "Unauthorized" };
+
+  const { data, error } = await supabase
+    .from("settings")
+    .select("value")
+    .eq("key", "auto_reply")
+    .maybeSingle();
+
+  if (error) return { ok: false, error: error.message };
+  const enabled = (data?.value?.enabled as boolean) ?? true;
+  return { ok: true, enabled };
+}
+
+export async function saveAutoReplySetting(
+  enabled: boolean
+): Promise<ActionResult> {
+  const supabase = await requireClient();
+  if (!supabase) return { ok: false, error: "Unauthorized" };
+
+  const { error } = await supabase
+    .from("settings")
+    .upsert(
+      { key: "auto_reply", value: { enabled } },
+      { onConflict: "key" }
+    );
+
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+export async function getAutoReplyEnabled(): Promise<boolean> {
+  const supabaseAdmin = createAdminClient();
+  if (!supabaseAdmin) return true;
+
+  const { data } = await supabaseAdmin
+    .from("settings")
+    .select("value")
+    .eq("key", "auto_reply")
+    .maybeSingle();
+
+  return (data?.value?.enabled as boolean) ?? true;
+}
+
 export async function getSection(
   key: SectionKey
 ): Promise<ActionResult & { value?: SectionValue }> {
@@ -514,6 +653,7 @@ export async function saveSection(
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import crypto from "crypto";
+import { generateAdminReply } from "@/lib/ai";
 
 function generateToken(): string {
   return crypto.randomBytes(32).toString("hex");

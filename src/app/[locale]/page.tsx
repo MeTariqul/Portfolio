@@ -59,6 +59,23 @@ export async function generateMetadata({
       template: "%s | Md. Tariqul Islam",
     },
     description,
+    keywords: [
+      "Md. Tariqul Islam",
+      "Tariqul Islam",
+      "Full-Stack Developer",
+      "Next.js Developer",
+      "React Developer",
+      "TypeScript Developer",
+      "Python Developer",
+      "AI Web Developer",
+      "Web Developer Bangladesh",
+      "Dhaka Developer",
+      "Savar Developer",
+      "Portfolio",
+      "Three.js Developer",
+      "Node.js Developer",
+      "Supabase Developer",
+    ],
     alternates: {
       canonical: `${site.url}/${locale}`,
     },
@@ -86,6 +103,17 @@ export async function generateMetadata({
     },
     icons: {
       icon: "/icon.svg",
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
   };
 }

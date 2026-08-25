@@ -17,14 +17,14 @@ export function WordReveal({
   const words = text.split(" ");
 
   return (
-    <Tag className={cn("inline", className)}>
+    <Tag className="inline">
       {words.map((word, i) => (
         <span
           key={i}
           className="inline-block overflow-hidden pb-[0.12em] align-bottom"
         >
           <motion.span
-            className="inline-block will-change-transform"
+            className={cn("inline-block will-change-transform", className)}
             initial={{ y: "115%", rotate: 4, opacity: 0 }}
             whileInView={{ y: 0, rotate: 0, opacity: 1 }}
             viewport={{ once: true, margin: "-10%" }}

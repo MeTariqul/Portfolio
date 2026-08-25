@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSetting, getSettingsMap, saveContactSettings, saveSetting, getRecoveryEmails, saveRecoveryEmails } from "@/app/actions/admin";
+import { getSetting, getSettingsMap, saveContactSettings, saveSetting, getRecoveryEmails, saveRecoveryEmails, getAutoReplySetting, saveAutoReplySetting } from "@/app/actions/admin";
 import { Plus, X } from "lucide-react";
 import en from "@/messages/en.json";
 
@@ -524,6 +524,91 @@ function ProfileEditor() {
   );
 }
 
+function AutoReplyToggle() {
+  const [enabled, setEnabled] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    getAutoReplySetting().then((res) => {
+      if (res.ok && res.enabled !== undefined) {
+        setEnabled(res.enabled);
+      }
+      setLoaded(true);
+    });
+  }, []);
+
+  async function handleToggle() {
+    const next = !enabled;
+    setEnabled(next);
+    setSaving(true);
+    const res = await saveAutoReplySetting(next);
+    setSaving(false);
+    if (res.ok) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } else {
+      setError(res.error);
+      setEnabled(!next);
+    }
+  }
+
+  return (
+    <div className="rounded-3xl border border-line bg-surface p-6">
+      <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-nebula">
+        Auto-Reply — AI-powered email responses
+      </p>
+      <p className="mb-5 text-sm text-soft">
+        When enabled, the AI automatically sends a personalized reply to every new
+        contact form submission. The reply is contextualized with your skills and
+        services.
+      </p>
+
+      {error && (
+        <p className="mb-4 rounded-2xl border border-red-400/30 bg-red-400/10 px-5 py-3 text-sm text-red-400">
+          {error}
+        </p>
+      )}
+
+      <div className="flex items-center gap-4">
+        <button
+          onClick={handleToggle}
+          disabled={saving || !loaded}
+          className={`relative h-7 w-12 rounded-full transition-colors ${
+            enabled ? "bg-nebula" : "bg-line"
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ${
+              enabled ? "translate-x-5" : "translate-x-0.5"
+            }`}
+          />
+        </button>
+        <span className="font-mono text-sm text-ink">
+          {enabled ? "Auto-reply ON" : "Auto-reply OFF"}
+        </span>
+        {saved && (
+          <span className="ml-2 rounded-full bg-emerald-400/10 px-3 py-1 font-mono text-xs text-emerald-400">
+            Saved
+          </span>
+        )}
+        {saving && (
+          <span className="ml-2 rounded-full bg-soft/10 px-3 py-1 font-mono text-xs text-soft">
+            Saving…
+          </span>
+        )}
+      </div>
+
+      <p className="mt-3 text-xs text-soft/60">
+        Requires GROQ_API_KEY in environment. Without it, falls back to static
+        confirmation email.
+      </p>
+    </div>
+  );
+}
+
 function RecoveryEmailsEditor() {
   const [emails, setEmails] = useState<string[]>([]);
   const [newEmail, setNewEmail] = useState("");
@@ -690,6 +775,8 @@ export function SettingsManager() {
 
   return (
     <div className="space-y-10">
+      <AutoReplyToggle />
+
       <form onSubmit={handleSave} className="space-y-4">
         <div className="rounded-3xl border border-line bg-surface p-6">
           <p className="mb-6 font-mono text-xs uppercase tracking-[0.2em] text-soft">
