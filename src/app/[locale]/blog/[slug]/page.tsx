@@ -47,6 +47,31 @@ export default async function BlogPostPage({
 
   return (
     <article className="mx-auto max-w-3xl px-5 pb-32 pt-36 sm:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: post.title,
+            description: post.description,
+            datePublished: post.date,
+            author: {
+              "@type": "Person",
+              name: s.name,
+              url: s.url,
+            },
+            publisher: {
+              "@type": "Person",
+              name: s.name,
+            },
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": `${s.url}/blog/${slug}`,
+            },
+          }),
+        }}
+      />
       <Link
         href="/blog"
         data-cursor="link"

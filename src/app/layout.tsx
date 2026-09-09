@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: "%s | Md. Tariqul Islam",
   },
   description:
-    "Md. Tariqul Islam is a Full-Stack Web Developer in Bangladesh specializing in Next.js, React, TypeScript, Python, Django, AI integration and SEO-friendly web applications.",
+    "Md. Tariqul Islam is one of the best full-stack web developers in Bangladesh. Hire a top Next.js, React, TypeScript, Python and Django developer for SEO-friendly, high-performance web applications.",
   keywords: [
     "Md. Tariqul Islam",
     "Tariqul Islam",
@@ -26,6 +26,9 @@ export const metadata: Metadata = {
     "Portfolio",
     "Node.js Developer",
     "SEO-friendly Web Developer",
+    "Best Web Developer Bangladesh",
+    "Hire Web Developer",
+    "Freelance Developer Bangladesh",
   ],
   authors: [{ name: site.name, url: site.url }],
   creator: site.name,
@@ -34,6 +37,9 @@ export const metadata: Metadata = {
     email: false,
     address: false,
     telephone: false,
+  },
+  verification: {
+    google: "google683f017a47c16045",
   },
 };
 

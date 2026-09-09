@@ -54,11 +54,7 @@ export function PersonJsonLd() {
       name: site.name,
       url: site.url,
     },
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `${site.url}/en/blog?q={search_term_string}`,
-      "query-input": "required name=search_term_string",
-    },
+
   };
 
   const profilePage = {
