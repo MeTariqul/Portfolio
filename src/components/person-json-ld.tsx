@@ -8,7 +8,7 @@ export function PersonJsonLd() {
     url: site.url,
     jobTitle: site.role,
     description:
-      "Md. Tariqul Islam is a Full-Stack Web Developer in Bangladesh specializing in Next.js, React, TypeScript, Python, Django, AI integration and SEO-friendly web applications.",
+      "Md. Tariqul Islam is one of the best full-stack web developers in Bangladesh. Hire a top Next.js, React, TypeScript, Python and Django developer for SEO-friendly, high-performance web applications.",
     address: {
       "@type": "PostalAddress",
       addressLocality: "Savar",
@@ -48,7 +48,7 @@ export function PersonJsonLd() {
     name: `${site.name} — Portfolio`,
     url: site.url,
     description:
-      "Portfolio of Md. Tariqul Islam — Full-Stack Web Developer in Bangladesh specializing in Next.js, React, TypeScript, Python, Django and AI-powered web applications.",
+      "Md. Tariqul Islam is one of the best full-stack web developers in Bangladesh. Hire a top Next.js, React, TypeScript, Python and Django developer for SEO-friendly, high-performance web applications.",
     author: {
       "@type": "Person",
       name: site.name,
@@ -66,9 +66,24 @@ export function PersonJsonLd() {
       url: site.url,
       jobTitle: site.role,
       description:
-        "Md. Tariqul Islam is a Full-Stack Web Developer in Bangladesh specializing in Next.js, React, TypeScript, Python, Django, AI integration and SEO-friendly web applications.",
+        "Md. Tariqul Islam is one of the best full-stack web developers in Bangladesh. Hire a top Next.js, React, TypeScript, Python and Django developer for SEO-friendly, high-performance web applications.",
       sameAs: [site.github, site.linkedin],
     },
+  };
+
+  const nav = {
+    "@context": "https://schema.org",
+    "@type": "SiteNavigationElement",
+    name: "Main Navigation",
+    url: site.url,
+    hasPart: [
+      { "@type": "SiteNavigationElement", name: "About", url: `${site.url}/#about` },
+      { "@type": "SiteNavigationElement", name: "Projects", url: `${site.url}/#projects` },
+      { "@type": "SiteNavigationElement", name: "Skills", url: `${site.url}/#skills` },
+      { "@type": "SiteNavigationElement", name: "Experience", url: `${site.url}/#experience` },
+      { "@type": "SiteNavigationElement", name: "Blog", url: `${site.url}/blog` },
+      { "@type": "SiteNavigationElement", name: "Contact", url: `${site.url}/#contact` },
+    ],
   };
 
   return (
@@ -84,6 +99,10 @@ export function PersonJsonLd() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(profilePage) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(nav) }}
       />
     </>
   );

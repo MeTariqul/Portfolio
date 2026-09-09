@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { posts } from "@/lib/posts";
 import { getBlogPosts } from "@/lib/content";
 import { getMergedMessages } from "@/lib/messages";
+import { site } from "@/lib/site";
 
 export const revalidate = 60;
 
@@ -12,6 +13,37 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: messages.blog.heading,
     description: messages.blog.sub,
+    keywords: [
+      "blog",
+      "web development",
+      "full-stack developer",
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Python",
+      "Django",
+      "Md. Tariqul Islam",
+      "Bangladesh developer",
+    ],
+    alternates: {
+      canonical: `${site.url}/blog`,
+    },
+    openGraph: {
+      title: messages.blog.heading,
+      description: messages.blog.sub,
+      url: `${site.url}/blog`,
+      siteName: site.name,
+      type: "website",
+      locale: "en_US",
+      images: [
+        {
+          url: "/opengraph.png",
+          width: 1200,
+          height: 630,
+          alt: "Blog — Md. Tariqul Islam",
+        },
+      ],
+    },
   };
 }
 

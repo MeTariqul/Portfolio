@@ -4,6 +4,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { posts } from "@/lib/posts";
 import { getBlogPost, getSite } from "@/lib/content";
+import { site } from "@/lib/site";
 
 export const revalidate = 60;
 
@@ -22,11 +23,42 @@ export async function generateMetadata({
   return {
     title: post.title,
     description: post.description,
+    keywords: [
+      post.category,
+      "web development",
+      "full-stack developer",
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Python",
+      "Django",
+      "Md. Tariqul Islam",
+      "Bangladesh developer",
+    ],
+    authors: [{ name: "Md. Tariqul Islam", url: "https://metariqul.vercel.app" }],
+    alternates: {
+      canonical: `https://metariqul.vercel.app/en/blog/${slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.description,
       type: "article",
       publishedTime: post.date,
+      authors: ["Md. Tariqul Islam"],
+      images: [
+        {
+          url: "/opengraph.png",
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.description,
+      images: ["/opengraph.png"],
     },
   };
 }
@@ -67,8 +99,37 @@ export default async function BlogPostPage({
             },
             mainEntityOfPage: {
               "@type": "WebPage",
-              "@id": `${s.url}/blog/${slug}`,
+              "@id": `${site.url}/blog/${slug}`,
             },
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Home",
+                item: site.url,
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "Blog",
+                item: `${site.url}/blog`,
+              },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: post.title,
+                item: `${site.url}/blog/${slug}`,
+              },
+            ],
           }),
         }}
       />
