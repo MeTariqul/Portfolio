@@ -14,7 +14,6 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "crazyTime" });
   return {
     title: t("title"),
-    robots: { index: false, follow: false },
   };
 }
 
