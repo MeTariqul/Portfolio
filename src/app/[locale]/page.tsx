@@ -7,7 +7,7 @@ import { Statement } from "@/components/statement";
 import { About } from "@/components/about";
 import { Services } from "@/components/services";
 import { Projects } from "@/components/projects";
-import { Skills } from "@/components/skills";
+import { SkillsWrapper } from "@/components/skills-wrapper";
 import { Process } from "@/components/process";
 import { Experience } from "@/components/experience";
 import { BlogSection } from "@/components/blog-section";
@@ -164,7 +164,7 @@ export default async function HomePage({
       <Services items={withItems(dbServices)} />
       <WordDivider words={wordBuild?.length ? wordBuild : ["Build", "Create", "Ship"]} />
       <Projects items={withItems(dbProjects)} githubUrl={dbSite.github} />
-      <Skills rings={rings} />
+      <SkillsWrapper rings={rings} />
       <Process items={withItems(dbProcess)} />
       <Experience items={withItems(dbExperience)} />
       <WordDivider words={wordDesign?.length ? wordDesign : ["Design", "Code", "Repeat"]} />

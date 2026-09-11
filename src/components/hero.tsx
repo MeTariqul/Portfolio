@@ -1,17 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { ArrowDown, ArrowUpRight, Mail } from "lucide-react";
 import { GitHubIcon, LinkedInIcon } from "./brand-icons";
-import { HeroScene } from "./hero-scene";
 import { Magnetic } from "./magnetic";
 import { VisitorCount } from "./visitor-count";
 import { WordReveal } from "./word-reveal";
 import { scrollToId } from "@/lib/lenis-store";
 import { site } from "@/lib/site";
 import type { SiteProfile } from "@/lib/content";
+
+const HeroScene = dynamic(() => import("./hero-scene").then((m) => m.HeroScene), {
+  ssr: false,
+  loading: () => null,
+});
 
 const ROLE_INTERVAL = 2400;
 
@@ -47,11 +52,11 @@ export function Hero({
   const textX = useTransform(sx, [-0.5, 0.5], [14, -14]);
   const textY = useTransform(sy, [-0.5, 0.5], [10, -10]);
 
-  const onMouseMove = (e: React.MouseEvent) => {
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
     const { innerWidth, innerHeight } = window;
     mx.set(e.clientX / innerWidth - 0.5);
     my.set(e.clientY / innerHeight - 0.5);
-  };
+  }, [mx, my]);
 
   return (
     <section

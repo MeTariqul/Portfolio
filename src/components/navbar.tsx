@@ -58,6 +58,15 @@ export function Navbar() {
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+
   const go = (id: string) => {
     setOpen(false);
     const delay = open ? 350 : 0;
@@ -92,7 +101,7 @@ export function Navbar() {
             onClick={() => go("home")}
             data-cursor="link"
             className="group flex items-center gap-2 font-display text-lg font-bold tracking-tight"
-            aria-label="Back to top"
+            aria-label={t("backToTop")}
           >
             <span className="gradient-text">MT</span>
             <span className="hidden sm:inline text-soft">·</span>
@@ -109,7 +118,7 @@ export function Navbar() {
                   key={id}
                   onClick={() => go(id)}
                   data-cursor="link"
-                  aria-current={isActive ? "true" : undefined}
+                  aria-current={isActive ? "page" : undefined}
                   className={`group relative font-mono text-xs uppercase tracking-[0.2em] transition-colors ${
                     isActive ? "text-ink" : "text-soft hover:text-ink"
                   }`}
@@ -133,6 +142,18 @@ export function Navbar() {
           <div className="flex items-center gap-3">
             <Magnetic className="hidden lg:block">
               <button
+                onClick={() => router.push("/crazy-time")}
+                data-cursor="link"
+                className="group glass flex items-center gap-2 rounded-full px-4 py-2.5 font-mono text-[11px] font-semibold uppercase tracking-widest transition-colors hover:border-neon/40 hover:text-neon"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute h-full w-full animate-pulse-dot rounded-full bg-neon" />
+                </span>
+                {t("crazyTime")}
+              </button>
+            </Magnetic>
+            <Magnetic className="hidden lg:block">
+              <button
                 onClick={() => go("contact")}
                 data-cursor="link"
                 className="group relative overflow-hidden rounded-full bg-ink px-5 py-2.5 font-mono text-xs font-semibold uppercase tracking-widest text-bg"
@@ -146,7 +167,7 @@ export function Navbar() {
             <button
               onClick={() => setOpen(true)}
               data-cursor="link"
-              aria-label="Open menu"
+              aria-label={t("openMenu")}
               className="glass flex h-11 w-11 items-center justify-center rounded-full lg:hidden"
             >
               <Menu size={20} />
@@ -171,7 +192,7 @@ export function Navbar() {
               <button
                 onClick={() => setOpen(false)}
                 data-cursor="link"
-                aria-label="Close menu"
+                aria-label={t("closeMenu")}
                 className="glass flex h-11 w-11 items-center justify-center rounded-full"
               >
                 <X size={20} />
@@ -188,7 +209,7 @@ export function Navbar() {
                     initial={{ opacity: 0, x: -32 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 + i * 0.07, duration: 0.5 }}
-                    aria-current={isActive ? "true" : undefined}
+                    aria-current={isActive ? "page" : undefined}
                     className={`text-left font-display text-5xl font-semibold transition-colors ${
                       isActive ? "gradient-text" : "text-soft hover:text-ink"
                     }`}
@@ -203,6 +224,18 @@ export function Navbar() {
             </div>
 
             <div className="px-8 pb-[max(env(safe-area-inset-bottom),2.5rem)]">
+              <motion.button
+                onClick={() => {
+                  setOpen(false);
+                  setTimeout(() => router.push("/crazy-time"), 350);
+                }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="mb-3 w-full rounded-full border border-line py-4 font-mono text-sm font-semibold uppercase tracking-widest text-neon"
+              >
+                {t("crazyTime")}
+              </motion.button>
               <motion.button
                 onClick={() => go("contact")}
                 initial={{ opacity: 0, y: 20 }}

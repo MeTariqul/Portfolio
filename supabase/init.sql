@@ -205,6 +205,29 @@ on conflict (key) do nothing;
 
 -- Seed hero + about sections (roles/status/subtitle + stats/badges/terminal lines)
 insert into sections (key, value) values
-  ('hero', '{"roles":["Full-Stack Developer","Next.js & React","Python & AI","SaaS Builder"],"subtitle":"I build fast, cinematic and AI-powered web experiences — real products, not tutorials. Currently crafting a universe of apps from Savar, Dhaka.","status":"CSE @ Gono University"}'::jsonb),
-  ('about', '{"stats":[{"value":15,"suffix":"+","label":"Public projects"},{"value":32,"suffix":"+","label":"Technologies"},{"value":2,"suffix":"+","label":"Years freelancing"}],"badges":["Next.js 15","React 19","TypeScript","Tailwind v4","Three.js","Python","FastAPI","Django","PostgreSQL","Prisma","Redis","AI / LLM","Node.js","Framer Motion","Vercel","Cloudflare"],"terminalLines":["> whoami","Md. Tariqul Islam — Full-Stack Web Developer","> location","Savar, Dhaka, Bangladesh (UTC+6)","> education","B.Sc. in CSE @ Gono Bishwabidyalay (2023 → 2027)","> stack","Next.js · React · TypeScript · Node.js · PostgreSQL · Prisma · Redis","> python","FastAPI · Django · pandas · NumPy · Selenium · BeautifulSoup · scikit-learn","> philosophy","I build real products that ship — not tutorial demos. If it doesn't work, it doesn't exist.","> focus","Web engineering, AI workflows and performance — shipped, measured, iterated.","> status","Currently open to freelance & full-time opportunities ✓"]}'::jsonb)
+  ('hero', '{"roles":["Full-Stack Developer","Next.js & React","Python & AI","SaaS Builder"],"subtitle":"I build fast, cinematic and AI-powered web experiences — real products, not tutorials. Currently crafting a universe of apps from Savar, Dhaka.","status":"CSE @ Gono Bishwabidyalay"}'::jsonb),
+  ('about', '{"stats":[{"value":15,"suffix":"+","label":"Public projects"},{"value":32,"suffix":"+","label":"Technologies"},{"value":2,"suffix":"+","label":"Years freelancing"}],"badges":["Next.js 15","React 19","TypeScript","Tailwind v4","Three.js","Python","FastAPI","Django","PostgreSQL","Prisma","Redis","AI / LLM","Node.js","Framer Motion","Vercel","Cloudflare"],"terminalLines":["> whoami","Md. Tariqul Islam — Full-Stack Web Developer","> location","Savar, Dhaka, Bangladesh (UTC+6)","> education","B.Sc. in CSE @ Gono Bishwabidyalay (2023 → 2027)","> stack","Next.js · React · TypeScript · Node.js · PostgreSQL · Prisma · Redis","> python","FastAPI · Django · pandas · NumPy · Selenium · BeautifulSoup · scikit-learn","> philosophy","I build real products that ship — not tutorial demos. If it doesn\'t work, it doesn\'t exist.","> focus","Web engineering, AI workflows and performance — shipped, measured, iterated.","> status","Currently open to freelance & full-time opportunities ✓"]}'::jsonb)
 on conflict (key) do nothing;
+
+-- Crazy Time: hidden posts (only accessible via navbar button, not in sitemap/blog)
+create table if not exists crazy_time (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text not null default '',
+  content text not null default '',
+  image_url text not null default '',
+  youtube_url text not null default '',
+  doc_url text not null default '',
+  category text not null default 'Tech Tips',
+  created_at timestamptz not null default now()
+);
+
+-- Crazy Time: public read, authenticated write
+drop policy if exists "public read crazy_time" on crazy_time;
+create policy "public read crazy_time" on crazy_time for select using (true);
+drop policy if exists "admins insert crazy_time" on crazy_time;
+drop policy if exists "admins update crazy_time" on crazy_time;
+drop policy if exists "admins delete crazy_time" on crazy_time;
+create policy "admins insert crazy_time" on crazy_time for insert with check (auth.uid() is not null);
+create policy "admins update crazy_time" on crazy_time for update using (auth.uid() is not null);
+create policy "admins delete crazy_time" on crazy_time for delete using (auth.uid() is not null);

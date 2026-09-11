@@ -17,18 +17,21 @@ const space = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-space",
   display: "swap",
+  preload: true,
 });
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
+  preload: true,
 });
 
 const mono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains",
   display: "swap",
+  preload: true,
 });
 
 export function generateStaticParams() {

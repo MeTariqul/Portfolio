@@ -35,9 +35,9 @@ export async function generateMetadata({
       "Md. Tariqul Islam",
       "Bangladesh developer",
     ],
-    authors: [{ name: "Md. Tariqul Islam", url: "https://metariqul.vercel.app" }],
+    authors: [{ name: "Md. Tariqul Islam", url: site.url }],
     alternates: {
-      canonical: `https://metariqul.vercel.app/en/blog/${slug}`,
+      canonical: `${site.url}/en/blog/${slug}`,
     },
     openGraph: {
       title: post.title,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Check,
@@ -25,8 +25,9 @@ import { BlogManager } from "./blog-manager";
 import { ProjectsManager } from "./projects-manager";
 import { SettingsManager } from "./settings-manager";
 import { SectionsManager } from "./sections-manager";
+import { CrazyTimeManager } from "./crazy-time-manager";
 
-type Tab = "messages" | "blog" | "projects" | "sections" | "settings";
+type Tab = "messages" | "blog" | "projects" | "sections" | "settings" | "crazytime";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "messages", label: "Messages" },
@@ -34,6 +35,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "projects", label: "Projects" },
   { id: "sections", label: "Sections" },
   { id: "settings", label: "Settings" },
+  { id: "crazytime", label: "Crazy Time" },
 ];
 
 function ReplyModal({
@@ -49,6 +51,20 @@ function ReplyModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  useEffect(() => {
+    dialogRef.current?.focus();
+  }, []);
 
   async function handleGenerate() {
     setLoading(true);
@@ -81,10 +97,17 @@ function ReplyModal({
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-3xl border border-line bg-bg p-6 shadow-2xl">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="w-full max-w-lg rounded-3xl border border-line bg-bg p-6 shadow-2xl outline-none"
+      >
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="font-display text-lg font-semibold text-ink">
+            <p id={titleId} className="font-display text-lg font-semibold text-ink">
               Reply to {message.name}
             </p>
             <p className="font-mono text-xs text-soft">{message.email}</p>
@@ -261,6 +284,7 @@ export function AdminDashboard({ email }: { email: string }) {
       {tab === "projects" && <ProjectsManager />}
       {tab === "sections" && <SectionsManager />}
       {tab === "settings" && <SettingsManager />}
+      {tab === "crazytime" && <CrazyTimeManager />}
 
       {tab === "messages" &&
         (messages === null ? (

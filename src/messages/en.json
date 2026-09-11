@@ -13,6 +13,7 @@
     "blog": "Blog",
     "contact": "Contact",
     "hire": "Hire Me",
+    "crazyTime": "Crazy Time",
     "backToTop": "Back to top",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
@@ -34,7 +35,7 @@
     "ctaWork": "Explore My Work",
     "ctaCv": "Download CV",
     "openToWork": "Open to work",
-    "status": "CSE @ Gono University",
+    "status": "CSE @ Gono Bishwabidyalay",
     "visitors": "visitors here now",
     "scroll": "Scroll to explore",
     "view": "view",
@@ -304,5 +305,15 @@
     "journeySub": "Education and experience that shaped me.",
     "ctaText": "Want to work together?",
     "ctaButton": "Get in touch"
+  },
+  "crazyTime": {
+    "title": "Crazy Time",
+    "heading": "Tech Tips & More",
+    "sub": "Quick tips, tricks, tutorials and random tech stuff.",
+    "readMore": "Read more",
+    "watchVideo": "Watch video",
+    "viewDoc": "View document",
+    "noPosts": "No posts yet. Check back soon!",
+    "back": "Back to home"
   }
 }

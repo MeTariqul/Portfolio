@@ -2,6 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import crypto from "crypto";
+import { generateAdminReply } from "@/lib/ai";
 
 function revalidate() {
   revalidatePath("/", "layout");
@@ -544,8 +547,8 @@ export async function sendReply(
         subject: "Re: Thanks for reaching out — Md. Tariqul Islam",
         htmlContent: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
-            <p style="color: #333; line-height: 1.7;">Hi ${msg.name},</p>
-            <div style="color: #333; line-height: 1.7; white-space: pre-wrap;">${replyText.replace(/\n/g, "<br/>")}</div>
+            <p style="color: #333; line-height: 1.7;">Hi ${msg.name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")},</p>
+            <div style="color: #333; line-height: 1.7; white-space: pre-wrap;">${replyText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br/>")}</div>
             <p style="margin-top: 24px; color: #333; line-height: 1.7;">Best regards,<br/><strong>Samba</strong><br/>Manager, Md. Tariqul Islam</p>
             <p style="margin-top: 16px; color: #999; font-size: 12px;">Full-Stack Web Developer — Next.js / React / TypeScript / Python / AI</p>
           </div>
@@ -651,9 +654,64 @@ export async function saveSection(
 
 // ─── Password Recovery ───────────────────────────────────────────────────────
 
-import { createAdminClient } from "@/lib/supabase/admin";
-import crypto from "crypto";
-import { generateAdminReply } from "@/lib/ai";
+export type AdminCrazyTimePost = {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  image_url: string;
+  youtube_url: string;
+  doc_url: string;
+  category: string;
+  created_at: string;
+};
+
+export async function listCrazyTimePosts(): Promise<ActionResult & { posts?: AdminCrazyTimePost[] }> {
+  const supabase = await requireClient();
+  if (!supabase) return { ok: false, error: "Unauthorized" };
+
+  const { data, error } = await supabase
+    .from("crazy_time")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, posts: (data ?? []) as AdminCrazyTimePost[] };
+}
+
+export async function saveCrazyTimePost(post: AdminCrazyTimePost): Promise<ActionResult> {
+  const supabase = await requireClient();
+  if (!supabase) return { ok: false, error: "Unauthorized" };
+
+  const payload = {
+    title: post.title.trim(),
+    description: post.description.trim(),
+    content: post.content.trim(),
+    image_url: post.image_url.trim(),
+    youtube_url: post.youtube_url.trim(),
+    doc_url: post.doc_url.trim(),
+    category: post.category.trim(),
+  };
+  if (!payload.title) return { ok: false, error: "Title is required" };
+
+  const { error } = post.id
+    ? await supabase.from("crazy_time").update(payload).eq("id", post.id)
+    : await supabase.from("crazy_time").insert(payload);
+
+  if (error) return { ok: false, error: error.message };
+  revalidate();
+  return { ok: true };
+}
+
+export async function deleteCrazyTimePost(id: string): Promise<ActionResult> {
+  const supabase = await requireClient();
+  if (!supabase) return { ok: false, error: "Unauthorized" };
+
+  const { error } = await supabase.from("crazy_time").delete().eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  revalidate();
+  return { ok: true };
+}
 
 function generateToken(): string {
   return crypto.randomBytes(32).toString("hex");
@@ -853,8 +911,8 @@ export async function resetPassword(
     return { ok: false, error: "Reset link expired" };
   }
 
-  if (newPassword.length < 6) {
-    return { ok: false, error: "Password must be at least 6 characters" };
+  if (newPassword.length < 8) {
+    return { ok: false, error: "Password must be at least 8 characters" };
   }
 
   // Find user by email and update password
