@@ -25,6 +25,8 @@ type CrazyTimePost = {
   description: string;
   content: string;
   image_url: string;
+  file_url: string;
+  file_name: string;
   youtube_url: string;
   doc_url: string;
   category: string;
@@ -39,11 +41,6 @@ async function getCrazyTimePosts(): Promise<CrazyTimePost[]> {
     .select("*")
     .order("created_at", { ascending: false });
   return (data ?? []) as CrazyTimePost[];
-}
-
-function extractYouTubeId(url: string): string | null {
-  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/);
-  return match?.[1] ?? null;
 }
 
 export default async function CrazyTimePage({
@@ -76,76 +73,43 @@ export default async function CrazyTimePage({
           <p className="text-lg text-soft">{t("noPosts")}</p>
         </div>
       ) : (
-        <div className="mt-16 space-y-12">
+        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
-            <article
+            <Link
               key={post.id}
-              className="glass overflow-hidden rounded-3xl border border-line"
+              href={`/crazy-time/${post.id}`}
+              data-cursor="link"
+              className="glass group overflow-hidden rounded-3xl border border-line transition-all duration-300 hover:-translate-y-1 hover:border-neon/40"
             >
-              {post.image_url && (
+              {post.image_url ? (
                 <div className="relative aspect-video w-full overflow-hidden">
                   <img
                     src={post.image_url}
                     alt={post.title}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                   />
                 </div>
-              )}
-
-              {post.youtube_url && extractYouTubeId(post.youtube_url) && (
-                <div className="relative aspect-video w-full">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${extractYouTubeId(post.youtube_url)}`}
-                    title={post.title}
-                    className="absolute inset-0 h-full w-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    loading="lazy"
-                  />
+              ) : (
+                <div className="flex aspect-video w-full items-center justify-center bg-surface">
+                  <span className="font-display text-4xl font-bold text-soft/20">CT</span>
                 </div>
               )}
 
-              <div className="p-6 sm:p-8">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded-full bg-gradient-to-r from-nebula to-neon bg-clip-text font-mono text-xs font-bold uppercase tracking-widest text-transparent">
-                    {post.category}
-                  </span>
-                  <span className="font-mono text-xs text-soft">
-                    {new Date(post.created_at).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                </div>
-
-                <h2 className="mt-4 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+              <div className="p-5">
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-neon">
+                  {post.category}
+                </span>
+                <h2 className="mt-2 font-display text-lg font-semibold tracking-tight">
                   {post.title}
                 </h2>
-                <p className="mt-3 text-soft">{post.description}</p>
-
-                {post.content && (
-                  <div className="mt-6 whitespace-pre-wrap text-sm leading-relaxed text-soft sm:text-base">
-                    {post.content}
-                  </div>
+                {post.file_name && (
+                  <p className="mt-2 truncate font-mono text-xs text-soft">
+                    {post.file_name}
+                  </p>
                 )}
-
-                <div className="mt-6 flex flex-wrap gap-3">
-                  {post.doc_url && (
-                    <a
-                      href={post.doc_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      data-cursor="link"
-                      className="glass flex items-center gap-2 rounded-full px-5 py-2.5 font-mono text-xs uppercase tracking-widest text-soft transition-colors hover:border-neon/40 hover:text-ink"
-                    >
-                      {t("viewDoc")} →
-                    </a>
-                  )}
-                </div>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       )}

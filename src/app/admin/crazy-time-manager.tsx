@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Edit3, Plus, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Edit3, Plus, Trash2, Upload, X } from "lucide-react";
 import {
   deleteCrazyTimePost,
+  deleteCrazyTimeFile,
   listCrazyTimePosts,
   saveCrazyTimePost,
+  uploadCrazyTimeFile,
   type AdminCrazyTimePost,
 } from "@/app/actions/admin";
 
@@ -24,11 +26,97 @@ function emptyPost(): AdminCrazyTimePost {
     description: "",
     content: "",
     image_url: "",
+    file_url: "",
+    file_name: "",
     youtube_url: "",
     doc_url: "",
     category: "Tech Tips",
     created_at: new Date().toISOString(),
   };
+}
+
+function FileUpload({
+  label,
+  accept,
+  currentFile,
+  currentUrl,
+  onUpload,
+  onRemove,
+}: {
+  label: string;
+  accept: string;
+  currentFile: string;
+  currentUrl: string;
+  onUpload: (fileName: string, fileUrl: string) => void;
+  onRemove: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const base64Data = base64.split(",")[1];
+      const res = await uploadCrazyTimeFile(file.name, base64Data, file.type);
+      if (res.ok && res.url) {
+        onUpload(file.name, res.url);
+      } else {
+        setError("Upload failed");
+      }
+    } catch {
+      setError("Upload failed");
+    }
+    setUploading(false);
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  return (
+    <div>
+      <label className={labelClass}>{label}</label>
+      {currentUrl ? (
+        <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3">
+          <span className="min-w-0 flex-1 truncate text-sm text-soft">{currentFile}</span>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-soft hover:text-red-400"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      ) : (
+        <div>
+          <input
+            ref={inputRef}
+            type="file"
+            accept={accept}
+            onChange={handleChange}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-line bg-surface py-6 text-sm text-soft transition-colors hover:border-neon/40 hover:text-ink disabled:opacity-50"
+          >
+            <Upload size={16} />
+            {uploading ? "Uploading…" : "Click to upload"}
+          </button>
+          {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function CrazyTimeManager() {
@@ -81,6 +169,24 @@ export function CrazyTimeManager() {
     else setError(res.error);
   }
 
+  async function handleRemoveImage() {
+    if (!editing) return;
+    if (editing.image_url) {
+      const path = editing.image_url.split("/crazy-time/")[1];
+      if (path) await deleteCrazyTimeFile(`crazy-time/${path}`);
+    }
+    setEditing({ ...editing, image_url: "" });
+  }
+
+  async function handleRemoveFile() {
+    if (!editing) return;
+    if (editing.file_url) {
+      const path = editing.file_url.split("/crazy-time/")[1];
+      if (path) await deleteCrazyTimeFile(`crazy-time/${path}`);
+    }
+    setEditing({ ...editing, file_url: "", file_name: "" });
+  }
+
   if (posts === null) {
     return <p className="text-soft">Loading…</p>;
   }
@@ -128,32 +234,26 @@ export function CrazyTimeManager() {
         </div>
 
         <div>
-          <label className={labelClass}>Description</label>
-          <input
-            value={editing.description}
-            onChange={(e) => setEditing({ ...editing, description: e.target.value })}
-            className={inputClass}
-            placeholder="Short description"
+          <label className={labelClass}>Photo</label>
+          <FileUpload
+            label=""
+            accept="image/*"
+            currentFile=""
+            currentUrl={editing.image_url}
+            onUpload={(_name, url) => setEditing({ ...editing, image_url: url })}
+            onRemove={handleRemoveImage}
           />
         </div>
 
         <div>
-          <label className={labelClass}>Content</label>
-          <textarea
-            value={editing.content}
-            onChange={(e) => setEditing({ ...editing, content: e.target.value })}
-            className={`${inputClass} min-h-[160px] resize-y`}
-            placeholder="Write your post content here..."
-          />
-        </div>
-
-        <div>
-          <label className={labelClass}>Image URL</label>
-          <input
-            value={editing.image_url}
-            onChange={(e) => setEditing({ ...editing, image_url: e.target.value })}
-            className={inputClass}
-            placeholder="https://example.com/image.jpg"
+          <label className={labelClass}>File / Document</label>
+          <FileUpload
+            label=""
+            accept=".pdf,.doc,.docx,.txt,.zip,.rar,.pptx,.xlsx"
+            currentFile={editing.file_name}
+            currentUrl={editing.file_url}
+            onUpload={(name, url) => setEditing({ ...editing, file_url: url, file_name: name })}
+            onRemove={handleRemoveFile}
           />
         </div>
 
@@ -164,16 +264,6 @@ export function CrazyTimeManager() {
             onChange={(e) => setEditing({ ...editing, youtube_url: e.target.value })}
             className={inputClass}
             placeholder="https://youtube.com/watch?v=..."
-          />
-        </div>
-
-        <div>
-          <label className={labelClass}>Document URL</label>
-          <input
-            value={editing.doc_url}
-            onChange={(e) => setEditing({ ...editing, doc_url: e.target.value })}
-            className={inputClass}
-            placeholder="https://example.com/document.pdf"
           />
         </div>
 
@@ -214,11 +304,25 @@ export function CrazyTimeManager() {
               key={post.id}
               className="flex items-center justify-between rounded-2xl border border-line bg-surface p-4"
             >
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium">{post.title}</p>
-                <p className="mt-1 font-mono text-xs text-soft">
-                  {post.category} · {new Date(post.created_at).toLocaleDateString()}
-                </p>
+              <div className="flex items-center gap-4">
+                {post.image_url ? (
+                  <img
+                    src={post.image_url}
+                    alt={post.title}
+                    className="h-12 w-12 rounded-xl object-cover"
+                  />
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-bg font-display text-sm font-bold text-soft/30">
+                    CT
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{post.title}</p>
+                  <p className="mt-1 font-mono text-xs text-soft">
+                    {post.category}
+                    {post.file_name && ` · ${post.file_name}`}
+                  </p>
+                </div>
               </div>
               <div className="ml-4 flex items-center gap-2">
                 <button

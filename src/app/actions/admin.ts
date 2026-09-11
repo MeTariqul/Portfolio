@@ -660,6 +660,8 @@ export type AdminCrazyTimePost = {
   description: string;
   content: string;
   image_url: string;
+  file_url: string;
+  file_name: string;
   youtube_url: string;
   doc_url: string;
   category: string;
@@ -688,6 +690,8 @@ export async function saveCrazyTimePost(post: AdminCrazyTimePost): Promise<Actio
     description: post.description.trim(),
     content: post.content.trim(),
     image_url: post.image_url.trim(),
+    file_url: post.file_url.trim(),
+    file_name: post.file_name.trim(),
     youtube_url: post.youtube_url.trim(),
     doc_url: post.doc_url.trim(),
     category: post.category.trim(),
@@ -710,6 +714,37 @@ export async function deleteCrazyTimePost(id: string): Promise<ActionResult> {
   const { error } = await supabase.from("crazy_time").delete().eq("id", id);
   if (error) return { ok: false, error: error.message };
   revalidate();
+  return { ok: true };
+}
+
+export async function uploadCrazyTimeFile(
+  fileName: string,
+  fileBase64: string,
+  contentType: string
+): Promise<ActionResult & { path?: string; url?: string }> {
+  const supabase = await requireClient();
+  if (!supabase) return { ok: false, error: "Unauthorized" };
+
+  const buffer = Buffer.from(fileBase64, "base64");
+  const ext = fileName.split(".").pop() ?? "bin";
+  const path = `crazy-time/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from("crazy-time")
+    .upload(path, buffer, { contentType, upsert: false });
+
+  if (error) return { ok: false, error: error.message };
+
+  const { data: urlData } = supabase.storage.from("crazy-time").getPublicUrl(path);
+  return { ok: true, path, url: urlData.publicUrl };
+}
+
+export async function deleteCrazyTimeFile(path: string): Promise<ActionResult> {
+  const supabase = await requireClient();
+  if (!supabase) return { ok: false, error: "Unauthorized" };
+
+  const { error } = await supabase.storage.from("crazy-time").remove([path]);
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
 

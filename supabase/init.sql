@@ -216,6 +216,8 @@ create table if not exists crazy_time (
   description text not null default '',
   content text not null default '',
   image_url text not null default '',
+  file_url text not null default '',
+  file_name text not null default '',
   youtube_url text not null default '',
   doc_url text not null default '',
   category text not null default 'Tech Tips',
