@@ -134,3 +134,10 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+@layer utilities {
+  .contain-lazy {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 500px;
+  }
+}

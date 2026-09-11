@@ -18,6 +18,7 @@ const space = Space_Grotesk({
   variable: "--font-space",
   display: "swap",
   preload: true,
+  weight: ["400", "500", "600", "700"],
 });
 
 const inter = Inter({
@@ -25,6 +26,7 @@ const inter = Inter({
   variable: "--font-inter",
   display: "swap",
   preload: true,
+  weight: ["400", "500", "600"],
 });
 
 const mono = JetBrains_Mono({
@@ -32,6 +34,7 @@ const mono = JetBrains_Mono({
   variable: "--font-jetbrains",
   display: "swap",
   preload: true,
+  weight: ["400", "500"],
 });
 
 export function generateStaticParams() {
