@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     telephone: false,
   },
   verification: {
-    google: "google683f017a47c16045",
+    google: "google62145c0c8174e585",
   },
   openGraph: {
     title: "Md. Tariqul Islam | Best Full-Stack Web Developer in Bangladesh",
