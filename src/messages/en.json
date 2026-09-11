@@ -12,7 +12,10 @@
     "experience": "Experience",
     "blog": "Blog",
     "contact": "Contact",
-    "hire": "Hire Me"
+    "hire": "Hire Me",
+    "backToTop": "Back to top",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "preloader": {
     "loading": "LOADING",
@@ -62,7 +65,8 @@
       { "value": 15, "suffix": "+", "label": "Technologies" },
       { "value": 2, "suffix": "+", "label": "Years freelancing" }
     ],
-    "badges": ["Next.js 15", "React 19", "TypeScript", "Tailwind v4", "Three.js", "Python", "FastAPI", "Django", "PostgreSQL", "Prisma", "Redis", "AI / LLM", "Node.js", "Framer Motion", "Vercel", "Cloudflare"]
+    "badges": ["Next.js 15", "React 19", "TypeScript", "Tailwind v4", "Three.js", "Python", "FastAPI", "Django", "PostgreSQL", "Prisma", "Redis", "AI / LLM", "Node.js", "Framer Motion", "Vercel", "Cloudflare"],
+    "showMore": "Show more"
   },
   "projects": {
     "label": "Projects",
@@ -74,6 +78,7 @@
     "more": "And more on GitHub",
     "moreDesc": "Experiments, tools and open-source projects — the full archive lives on GitHub.",
     "visitGitHub": "Visit GitHub",
+    "swipe": "swipe",
     "items": [
       {
         "title": "CoverVerse",
@@ -185,6 +190,10 @@
     "emailLabel": "Email",
     "locationLabel": "Location",
     "followLabel": "Follow me",
+    "placeholderName": "John Doe",
+    "placeholderEmail": "john@example.com",
+    "placeholderMessage": "Tell me about your project…",
+    "demoMode": "demo mode — set RESEND_API_KEY to deliver",
     "errors": {
       "name": "Please tell me your name",
       "email": "Enter a valid email address",
@@ -248,6 +257,7 @@
     "label": "Process",
     "heading": "How I work",
     "sub": "A structured approach to building web applications.",
+    "stages": "stages",
     "items": [
       {
         "title": "Discover",
@@ -277,5 +287,22 @@
     "title2": "Let's build it.",
     "sub": "Send a message and I'll get back to you.",
     "button": "Start a project"
+  },
+  "aboutPage": {
+    "title": "About — Md. Tariqul Islam",
+    "description": "Learn more about Md. Tariqul Islam — a full-stack web developer in Bangladesh specializing in Next.js, React, TypeScript, Python, Django and AI-powered web applications.",
+    "heading": "About Me",
+    "intro": "I'm Md. Tariqul Islam, a full-stack web developer from Savar, Dhaka, Bangladesh. I build fast, SEO-friendly and scalable web applications using modern technologies. Here's the full story.",
+    "storyLabel": "My Story",
+    "storyHeading": "How I started",
+    "storySub": "From curious student to full-stack developer.",
+    "story1": "I started building websites out of curiosity — tweaking HTML templates, breaking CSS layouts, and figuring out why things didn't work. That curiosity turned into a passion for creating digital products that solve real problems.",
+    "story2": "Today, I specialize in building full-stack web applications with Next.js, React, TypeScript, Python and Django. I focus on performance, SEO, and clean user experiences. Whether it's an AI-powered study platform, an e-commerce store, or a developer portfolio — I enjoy the process of turning ideas into working products.",
+    "story3": "When I'm not coding, I'm exploring new technologies, contributing to open source, and writing about what I learn. I believe in building things that are fast, accessible, and useful.",
+    "journeyLabel": "Journey",
+    "journeyHeading": "My journey so far",
+    "journeySub": "Education and experience that shaped me.",
+    "ctaText": "Want to work together?",
+    "ctaButton": "Get in touch"
   }
 }

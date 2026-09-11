@@ -12,6 +12,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 1,
   };
 
+  const aboutPage = {
+    url: `${s.url}/about`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.9,
+  };
+
   const blogIndex = {
     url: `${s.url}/blog`,
     lastModified: new Date(),
@@ -27,5 +34,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     })) ?? [];
 
-  return [homepage, blogIndex, ...blogPosts];
+  return [homepage, aboutPage, blogIndex, ...blogPosts];
 }
