@@ -23,6 +23,7 @@ create table if not exists blogs (
   gradient text not null default 'from-violet-600 via-fuchsia-500 to-cyan-400',
   blocks jsonb not null default '[]'::jsonb,
   published boolean not null default true,
+  image_url text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -37,6 +38,7 @@ create table if not exists projects (
   github text not null default '',
   featured boolean not null default false,
   sort int not null default 0,
+  image_url text not null default '',
   created_at timestamptz not null default now()
 );
 

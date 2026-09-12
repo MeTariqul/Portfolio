@@ -93,6 +93,7 @@ export type AdminBlog = {
   gradient: string;
   blocks: unknown[];
   published: boolean;
+  image_url: string;
 };
 
 export type AdminProject = {
@@ -105,6 +106,7 @@ export type AdminProject = {
   github: string;
   featured: boolean;
   sort: number;
+  image_url: string;
 };
 
 export type GithubRepo = {
@@ -151,6 +153,7 @@ export async function saveBlog(blog: AdminBlog): Promise<ActionResult> {
     gradient: blog.gradient,
     blocks: blog.blocks,
     published: blog.published,
+    image_url: blog.image_url?.trim() ?? "",
   };
   if (!payload.slug || !payload.title) {
     return { ok: false, error: "Slug and title are required" };
@@ -204,6 +207,7 @@ export async function saveProject(project: AdminProject): Promise<ActionResult> 
     github: project.github.trim(),
     featured: project.featured,
     sort: project.sort,
+    image_url: project.image_url?.trim() ?? "",
   };
   if (!payload.title) return { ok: false, error: "Title is required" };
 

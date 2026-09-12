@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Edit3, Plus, Trash2 } from "lucide-react";
 import { GitHubIcon } from "@/components/brand-icons";
+import { FileUpload } from "@/components/file-upload";
 import {
   deleteProject,
   getGithubRepos,
@@ -29,6 +30,7 @@ function emptyProject(): AdminProject {
     github: "",
     featured: false,
     sort: 0,
+    image_url: "",
   };
 }
 
@@ -284,6 +286,18 @@ export function ProjectsManager() {
               />
               Featured
             </label>
+          </div>
+
+          <div>
+            <FileUpload
+              label="Project Image"
+              accept="image/*"
+              bucket="projects"
+              currentFile=""
+              currentUrl={editing.image_url}
+              onUpload={(_name, url) => setEditing({ ...editing, image_url: url })}
+              onRemove={() => setEditing({ ...editing, image_url: "" })}
+            />
           </div>
 
           <div className="flex gap-3">

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Edit3, Plus, Trash2 } from "lucide-react";
+import { FileUpload } from "@/components/file-upload";
 import {
   deleteBlog,
   listBlogs,
@@ -35,6 +36,7 @@ function emptyBlog(): AdminBlog {
     gradient: GRADIENTS[0],
     blocks: [{ type: "p", text: "" }],
     published: true,
+    image_url: "",
   };
 }
 
@@ -237,6 +239,18 @@ export function BlogManager() {
               />
               Published
             </label>
+          </div>
+
+          <div>
+            <FileUpload
+              label="Cover Image"
+              accept="image/*"
+              bucket="blog"
+              currentFile=""
+              currentUrl={editing.image_url}
+              onUpload={(_name, url) => setEditing({ ...editing, image_url: url })}
+              onRemove={() => setEditing({ ...editing, image_url: "" })}
+            />
           </div>
 
           <div>
