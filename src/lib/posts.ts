@@ -14,6 +14,7 @@ export type Post = {
   featured?: boolean;
   gradient: string;
   blocks: BlogBlock[];
+  image_url?: string;
 };
 
 export const posts: Post[] = [

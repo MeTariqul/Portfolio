@@ -245,7 +245,6 @@ export function BlogManager() {
             <FileUpload
               label="Cover Image"
               accept="image/*"
-              bucket="blog"
               currentFile=""
               currentUrl={editing.image_url}
               onUpload={(_name, url) => setEditing({ ...editing, image_url: url })}

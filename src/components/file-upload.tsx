@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Upload, X, Link as LinkIcon } from "lucide-react";
-import { uploadCrazyTimeFile, deleteCrazyTimeFile } from "@/app/actions/admin";
+import { uploadCrazyTimeFile } from "@/app/actions/admin";
 
 const labelClass =
   "mb-2 block font-mono text-xs uppercase tracking-widest text-soft";
@@ -10,7 +10,6 @@ const labelClass =
 type FileUploadProps = {
   label: string;
   accept?: string;
-  bucket?: string;
   currentFile?: string;
   currentUrl?: string;
   onUpload: (fileName: string, fileUrl: string) => void;
@@ -20,7 +19,6 @@ type FileUploadProps = {
 export function FileUpload({
   label,
   accept = "image/*",
-  bucket = "crazy-time",
   currentFile = "",
   currentUrl = "",
   onUpload,

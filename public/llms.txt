@@ -1,0 +1,42 @@
+# Md. Tariqul Islam — Full-Stack Web Developer
+
+> Full-stack web developer from Savar, Dhaka, Bangladesh specializing in Next.js, React, TypeScript, and Python with AI integration.
+
+## About
+
+Md. Tariqul Islam is a full-stack web developer with 2+ years of experience building modern web applications. B.Sc. in CSE from Gono Bishwabidyalay (2023-2027). Based in Savar, Dhaka, Bangladesh.
+
+## Core Expertise
+
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS v4, Framer Motion, Three.js
+- **Backend**: Node.js, PostgreSQL, Prisma, Redis, REST APIs, JWT Auth
+- **AI/ML**: OpenAI, Gemini, LangChain, RAG, Prompt Engineering
+- **Python**: FastAPI, Django, pandas, NumPy, Selenium
+- **DevOps**: Vercel, Cloudflare, Git, CI/CD
+
+## Services
+
+- Full-stack web application development
+- AI/ML integration and automation
+- E-commerce solutions
+- SaaS product development
+- API development and integration
+- Performance optimization
+
+## Notable Projects
+
+- **CoverVerse**: AI-powered assignment cover generator with 500+ templates
+- **MeTariqul Tec Shop**: Full-featured e-commerce platform
+- **AI Study Platform**: Upload docs, OCR, flashcards, quizzes, AI tutor
+- **Portfolio**: Cinematic dark-mode portfolio with 3D scenes
+
+## Contact
+
+- Website: https://metariqul.vercel.app
+- Email: hello@metariqul.dev
+- GitHub: https://github.com/MeTariqul
+- LinkedIn: https://linkedin.com/in/metariqul
+
+## Availability
+
+Open to freelance projects, full-time positions, collaborations, and consulting.

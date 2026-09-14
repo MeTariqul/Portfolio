@@ -45,25 +45,18 @@ export function About({
           className="relative mx-auto w-full max-w-md lg:max-w-none"
         >
           <div className="group relative aspect-square overflow-hidden rounded-3xl border border-line">
-            <div
-              aria-hidden
-              className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,color-mix(in_srgb,var(--accent)_30%,transparent),transparent_60%),radial-gradient(circle_at_75%_80%,color-mix(in_srgb,var(--accent-3)_25%,transparent),transparent_55%)]"
+            <img
+              src="/profile.jpg"
+              alt="Md. Tariqul Islam"
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div
               aria-hidden
-              className="absolute inset-0 flex items-center justify-center transition-transform duration-700 group-hover:scale-110"
-            >
-              <span className="font-display text-[10rem] font-bold leading-none">
-                <span className="gradient-text">MT</span>
-              </span>
-            </div>
-            <div
-              aria-hidden
-              className="absolute inset-4 rounded-2xl border border-line"
+              className="absolute inset-0 bg-gradient-to-t from-bg/60 via-transparent to-transparent"
             />
             <div
               aria-hidden
-              className="absolute inset-0 bg-[linear-gradient(120deg,transparent_40%,color-mix(in_srgb,white_12%,transparent)_50%,transparent_60%)] bg-[length:250%_250%] transition-all duration-700 group-hover:bg-[position:0%_0%]"
+              className="absolute inset-4 rounded-2xl border border-white/10"
             />
             <motion.div
               aria-hidden

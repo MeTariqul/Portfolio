@@ -98,16 +98,15 @@ export function Navbar() {
       >
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 sm:px-8">
           <button
-            onClick={() => go("home")}
+            onClick={() => {
+              setOpen(false);
+              router.push("/");
+            }}
             data-cursor="link"
             className="group flex items-center gap-2 font-display text-lg font-bold tracking-tight"
             aria-label={t("backToTop")}
           >
             <span className="gradient-text">MT</span>
-            <span className="hidden sm:inline text-soft">·</span>
-            <span className="hidden text-sm font-medium text-soft sm:inline">
-              {t("home")}
-            </span>
           </button>
 
           <div className="hidden items-center gap-8 lg:flex">
@@ -186,9 +185,16 @@ export function Navbar() {
             transition={{ duration: 0.35 }}
           >
             <div className="flex items-center justify-between px-5 pb-4 pt-[max(env(safe-area-inset-top),1rem)]">
-              <span className="font-display text-lg font-bold">
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  setTimeout(() => router.push("/"), 350);
+                }}
+                data-cursor="link"
+                className="font-display text-lg font-bold"
+              >
                 <span className="gradient-text">MT</span>
-              </span>
+              </button>
               <button
                 onClick={() => setOpen(false)}
                 data-cursor="link"

@@ -50,10 +50,18 @@ export function BlogSection({ posts: propPosts }: { posts?: Post[] }) {
             data-cursor="link"
             className="group relative block h-full min-h-[320px] overflow-hidden rounded-3xl border border-line"
           >
-            <div
-              aria-hidden
-              className={`absolute inset-0 bg-gradient-to-br ${featured.gradient} opacity-90 transition-transform duration-700 group-hover:scale-105`}
-            />
+            {featured.image_url ? (
+              <img
+                src={featured.image_url}
+                alt={featured.title}
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+            ) : (
+              <div
+                aria-hidden
+                className={`absolute inset-0 bg-gradient-to-br ${featured.gradient} opacity-90 transition-transform duration-700 group-hover:scale-105`}
+              />
+            )}
             <div
               aria-hidden
               className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(255,255,255,0.25),transparent_50%)]"
@@ -111,11 +119,19 @@ export function BlogSection({ posts: propPosts }: { posts?: Post[] }) {
                 data-cursor="link"
                 className="group glass relative flex h-full min-h-[150px] flex-col justify-between overflow-hidden rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-neon/40"
               >
-                <div
-                  aria-hidden
-                  className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${post.gradient}`}
-                />
-                <div>
+                {post.image_url ? (
+                  <img
+                    src={post.image_url}
+                    alt={post.title}
+                    className="absolute inset-0 h-full w-full object-cover opacity-30 transition-transform duration-700 group-hover:scale-105"
+                  />
+                ) : (
+                  <div
+                    aria-hidden
+                    className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${post.gradient}`}
+                  />
+                )}
+                <div className="relative">
                   <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-neon">
                     {post.category} · {post.readTime} {t("readTime")}
                   </span>
@@ -123,7 +139,7 @@ export function BlogSection({ posts: propPosts }: { posts?: Post[] }) {
                     {post.title}
                   </h3>
                 </div>
-                <span className="mt-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-soft transition-colors group-hover:text-neon">
+                <span className="relative mt-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-soft transition-colors group-hover:text-neon">
                   {t("read")}
                   <ArrowUpRight
                     size={13}

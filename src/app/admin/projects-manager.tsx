@@ -292,7 +292,6 @@ export function ProjectsManager() {
             <FileUpload
               label="Project Image"
               accept="image/*"
-              bucket="projects"
               currentFile=""
               currentUrl={editing.image_url}
               onUpload={(_name, url) => setEditing({ ...editing, image_url: url })}

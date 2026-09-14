@@ -6,6 +6,7 @@ export function PersonJsonLd() {
     "@type": "Person",
     name: site.name,
     url: site.url,
+    image: `${site.url}/opengraph.png`,
     jobTitle: site.role,
     description:
       "Md. Tariqul Islam is one of the best full-stack web developers in Bangladesh. Hire a top Next.js, React, TypeScript, Python and Django developer for SEO-friendly, high-performance web applications.",
@@ -54,7 +55,6 @@ export function PersonJsonLd() {
       name: site.name,
       url: site.url,
     },
-
   };
 
   const profilePage = {
@@ -64,10 +64,68 @@ export function PersonJsonLd() {
       "@type": "Person",
       name: site.name,
       url: site.url,
+      image: `${site.url}/opengraph.png`,
       jobTitle: site.role,
       description:
         "Md. Tariqul Islam is one of the best full-stack web developers in Bangladesh. Hire a top Next.js, React, TypeScript, Python and Django developer for SEO-friendly, high-performance web applications.",
       sameAs: [site.github, site.linkedin],
+    },
+  };
+
+  const professionalService = {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    name: `${site.name} — Full-Stack Web Development`,
+    url: site.url,
+    image: `${site.url}/opengraph.png`,
+    description:
+      "Professional full-stack web development services by Md. Tariqul Islam. Next.js, React, TypeScript, Python, Django, AI integration, and more.",
+    provider: {
+      "@type": "Person",
+      name: site.name,
+      url: site.url,
+    },
+    areaServed: {
+      "@type": "Country",
+      name: "Bangladesh",
+    },
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Web Development Services",
+      itemListElement: [
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: "Full-Stack Web Development",
+            description: "Complete web applications using Next.js, React, TypeScript, Node.js, and Python",
+          },
+        },
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: "AI/ML Integration",
+            description: "AI-powered features using OpenAI, Gemini, LangChain, and custom ML models",
+          },
+        },
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: "E-commerce Development",
+            description: "Full-featured online stores with payment processing and inventory management",
+          },
+        },
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: "Performance Optimization",
+            description: "Speed improvements, Core Web Vitals optimization, and SEO enhancements",
+          },
+        },
+      ],
     },
   };
 
@@ -99,6 +157,10 @@ export function PersonJsonLd() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(profilePage) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(professionalService) }}
       />
       <script
         type="application/ld+json"

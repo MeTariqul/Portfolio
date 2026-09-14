@@ -77,10 +77,18 @@ export default async function BlogPage({
               i === 0 ? "min-h-[320px]" : "min-h-[180px]"
             }`}
           >
-            <div
-              aria-hidden
-              className={`absolute inset-0 bg-gradient-to-br ${post.gradient} opacity-15 transition-opacity duration-500 group-hover:opacity-25`}
-            />
+            {post.image_url ? (
+              <img
+                src={post.image_url}
+                alt={post.title}
+                className="absolute inset-0 h-full w-full object-cover opacity-20 transition-transform duration-700 group-hover:scale-105"
+              />
+            ) : (
+              <div
+                aria-hidden
+                className={`absolute inset-0 bg-gradient-to-br ${post.gradient} opacity-15 transition-opacity duration-500 group-hover:opacity-25`}
+              />
+            )}
             <span className="absolute right-6 top-6 font-display text-6xl font-bold text-soft/10">
               0{i + 1}
             </span>

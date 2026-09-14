@@ -141,6 +141,16 @@ export default async function BlogPostPage({
         ← {t("label")}
       </Link>
 
+      {post.image_url && (
+        <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-3xl border border-line">
+          <img
+            src={post.image_url}
+            alt={post.title}
+            className="h-full w-full object-cover"
+          />
+        </div>
+      )}
+
       <h1 className="mt-6 font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
         {post.title}
       </h1>
