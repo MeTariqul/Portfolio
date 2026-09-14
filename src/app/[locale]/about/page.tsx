@@ -90,7 +90,7 @@ export default async function AboutPage({
 
       <div className="mt-16 grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
         <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-          <div className="group relative aspect-square overflow-hidden rounded-3xl border border-line">
+          <div className="group relative aspect-square overflow-hidden rounded-3xl border border-line bg-black">
             <img
               src="/profile.jpg"
               alt="Md. Tariqul Islam"

@@ -44,7 +44,7 @@ export function About({
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="relative mx-auto w-full max-w-md lg:max-w-none"
         >
-          <div className="group relative aspect-square overflow-hidden rounded-3xl border border-line">
+          <div className="group relative aspect-square overflow-hidden rounded-3xl border border-line bg-black">
             <img
               src="/profile.jpg"
               alt="Md. Tariqul Islam"
