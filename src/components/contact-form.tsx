@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, startTransition, useEffect, useRef } from "react";
+import { useActionState, startTransition, useEffect, useRef, useId } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,14 +15,24 @@ type FormValues = {
   message: string;
 };
 
-export function ContactForm() {
-  const t = useTranslations("contact");
-
-  const schema = z.object({
+function makeSchema(t: (key: string) => string) {
+  return z.object({
     name: z.string().min(2, t("errors.name")),
     email: z.string().email(t("errors.email")),
     message: z.string().min(10, t("errors.message")),
   });
+}
+
+export function ContactForm() {
+  const t = useTranslations("contact");
+  const nameId = useId();
+  const emailId = useId();
+  const messageId = useId();
+  const nameErrorId = useId();
+  const emailErrorId = useId();
+  const messageErrorId = useId();
+
+  const schema = makeSchema(t);
 
   const {
     register,
@@ -65,6 +75,8 @@ export function ContactForm() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             className="glass-strong flex flex-col items-center justify-center gap-4 rounded-3xl border border-emerald-400/30 px-8 py-20 text-center"
+            role="status"
+            aria-live="polite"
           >
             <motion.span
               initial={{ scale: 0 }}
@@ -78,7 +90,7 @@ export function ContactForm() {
             <p className="max-w-sm text-sm text-soft">{t("successDesc")}</p>
             {state.demo && (
               <p className="rounded-full border border-line px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-soft">
-                demo mode — set RESEND_API_KEY to deliver
+                {t("demoMode")}
               </p>
             )}
             <button
@@ -102,49 +114,55 @@ export function ContactForm() {
           >
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <label className="mb-2 block font-mono text-[11px] uppercase tracking-[0.2em] text-soft">
+                <label htmlFor={nameId} className="mb-2 block font-mono text-[11px] uppercase tracking-[0.2em] text-soft">
                   {t("name")}
                 </label>
                 <input
                   {...register("name")}
+                  id={nameId}
                   className={inputClass}
-                  placeholder="John Doe"
+                  placeholder={t("placeholderName")}
                   aria-invalid={!!errors.name}
+                  aria-describedby={errors.name ? nameErrorId : undefined}
                 />
                 {errors.name && (
-                  <p className="mt-2 font-mono text-xs text-red-400">{errors.name.message}</p>
+                  <p id={nameErrorId} className="mt-2 font-mono text-xs text-red-400">{errors.name.message}</p>
                 )}
               </div>
               <div>
-                <label className="mb-2 block font-mono text-[11px] uppercase tracking-[0.2em] text-soft">
+                <label htmlFor={emailId} className="mb-2 block font-mono text-[11px] uppercase tracking-[0.2em] text-soft">
                   {t("email")}
                 </label>
                 <input
                   {...register("email")}
+                  id={emailId}
                   type="email"
                   className={inputClass}
-                  placeholder="john@example.com"
+                  placeholder={t("placeholderEmail")}
                   aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? emailErrorId : undefined}
                 />
                 {errors.email && (
-                  <p className="mt-2 font-mono text-xs text-red-400">{errors.email.message}</p>
+                  <p id={emailErrorId} className="mt-2 font-mono text-xs text-red-400">{errors.email.message}</p>
                 )}
               </div>
             </div>
 
             <div>
-              <label className="mb-2 block font-mono text-[11px] uppercase tracking-[0.2em] text-soft">
+              <label htmlFor={messageId} className="mb-2 block font-mono text-[11px] uppercase tracking-[0.2em] text-soft">
                 {t("message")}
               </label>
               <textarea
                 {...register("message")}
+                id={messageId}
                 rows={6}
                 className={`${inputClass} resize-none`}
-                placeholder="Tell me about your project…"
+                placeholder={t("placeholderMessage")}
                 aria-invalid={!!errors.message}
+                aria-describedby={errors.message ? messageErrorId : undefined}
               />
               {errors.message && (
-                <p className="mt-2 font-mono text-xs text-red-400">{errors.message.message}</p>
+                <p id={messageErrorId} className="mt-2 font-mono text-xs text-red-400">{errors.message.message}</p>
               )}
             </div>
 

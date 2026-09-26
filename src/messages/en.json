@@ -1,8 +1,8 @@
 {
   "meta": {
-    "title": "Md. Tariqul Islam | Best Full-Stack Web Developer in Bangladesh",
-    "description": "Md. Tariqul Islam is one of the best full-stack web developers in Bangladesh. Hire a top Next.js, React, TypeScript, Python and Django developer for SEO-friendly, high-performance web applications.",
-    "ogDescription": "Top full-stack web developer in Bangladesh — Next.js, React, TypeScript, Python, Django, AI integration and SEO-friendly web applications."
+    "title": "Md. Tariqul Islam | Full-Stack Web Developer from Bangladesh",
+    "description": "Md. Tariqul Islam is a full-stack web developer from Bangladesh. He builds responsive websites, web applications, business platforms, and e-commerce solutions using Next.js, React, TypeScript, Python, and Django.",
+    "ogDescription": "Md. Tariqul Islam is a full-stack web developer from Bangladesh building responsive websites, web applications, business platforms, and e-commerce solutions with Next.js, React, TypeScript, Python, and Django."
   },
   "nav": {
     "home": "Home",
@@ -30,7 +30,7 @@
   "hero": {
     "greet": "Hello, I'm",
     "name": "Md. Tariqul Islam",
-    "roles": ["Full-Stack Developer", "Next.js & React", "Python & Django", "AI Integration"],
+    "roles": ["Web Developer", "Next.js & React", "Python & Django", "AI Integration"],
     "subtitle": "I build fast, SEO-friendly and scalable web applications using Next.js, React, TypeScript, Python and Django. Based in Savar, Dhaka, Bangladesh, I focus on building practical digital products with modern interfaces, reliable backends and performance in mind.",
     "ctaWork": "Explore My Work",
     "ctaCv": "Download CV",
@@ -80,6 +80,7 @@
     "moreDesc": "Experiments, tools and open-source projects — the full archive lives on GitHub.",
     "visitGitHub": "Visit GitHub",
     "swipe": "swipe",
+    "viewAll": "View all projects",
     "items": [
       {
         "title": "CoverVerse",
@@ -290,7 +291,7 @@
     "button": "Start a project"
   },
   "aboutPage": {
-    "title": "About — Md. Tariqul Islam",
+    "title": "About",
     "description": "Learn more about Md. Tariqul Islam — a full-stack web developer in Bangladesh specializing in Next.js, React, TypeScript, Python, Django and AI-powered web applications.",
     "heading": "About Me",
     "intro": "I'm Md. Tariqul Islam, a full-stack web developer from Savar, Dhaka, Bangladesh. I build fast, SEO-friendly and scalable web applications using modern technologies. Here's the full story.",
@@ -305,6 +306,43 @@
     "journeySub": "Education and experience that shaped me.",
     "ctaText": "Want to work together?",
     "ctaButton": "Get in touch"
+  },
+  "faq": {
+    "label": "Frequently Asked Questions",
+    "heading": "FAQ",
+    "sub": "Common questions about my work and process",
+    "items": [
+      {
+        "question": "What technologies do you specialize in?",
+        "answer": "I specialize in Next.js, React, TypeScript, Python, Django, and AI integration. I build fast, SEO-friendly and scalable web applications."
+      },
+      {
+        "question": "How can I contact you?",
+        "answer": "You can reach me through the contact form on my portfolio or via email at gbtarif37@gmail.com. I usually respond within 24-48 hours."
+      },
+      {
+        "question": "Do you offer freelance services?",
+        "answer": "Yes, I'm open to freelance & full-time opportunities. I focus on full-stack web development with modern technologies."
+      },
+      {
+        "question": "What is your educational background?",
+        "answer": "I have a B.Sc. in Computer Science & Engineering from Gono Bishwabidyalay (2023-2027)."
+      }
+    ]
+  },
+  "projectsPage": {
+    "label": "All Projects",
+    "heading": "Projects",
+    "sub": "Web applications, tools and experiments built by Md. Tariqul Islam using Next.js, React, TypeScript, Python and AI.",
+    "back": "Home",
+    "empty": "Projects are being updated. See the latest work on GitHub.",
+    "code": "Source code",
+    "live": "Live demo",
+    "stackLabel": "Built with",
+    "moreHeading": "More projects",
+    "viewGitHub": "View GitHub profile",
+    "featured": "Featured",
+    "details": "Details"
   },
   "crazyTime": {
     "title": "Crazy Time",

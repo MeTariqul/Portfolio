@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { areScenesReady, subscribeScenesReady } from "@/lib/render-store";
@@ -10,6 +10,9 @@ export function Preloader({ waitForScenes = false }: { waitForScenes?: boolean }
   const t = useTranslations("preloader");
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
+  const fontsOkRef = useRef(false);
+  const dataOkRef = useRef(false);
+  const scenesOkRef = useRef(false);
   const [fontsOk, setFontsOk] = useState(false);
   const [dataOk, setDataOk] = useState(false);
   const [scenesOk, setScenesOk] = useState(false);
@@ -52,12 +55,22 @@ export function Preloader({ waitForScenes = false }: { waitForScenes?: boolean }
       setProgress(Math.round(eased * 100));
       const assetsLoaded = document.readyState === "complete";
       const fonts = document.fonts.status === "loaded";
-      setFontsOk(fonts);
       const data = dataReady();
-      setDataOk(data);
       const scenes = waitForScenes && areScenesReady();
-      setScenesOk(waitForScenes ? scenes : true);
-      if (ratio >= 1 && assetsLoaded && fonts && data && scenes) {
+      const scenesFinal = waitForScenes ? scenes : true;
+      if (fonts !== fontsOkRef.current) {
+        fontsOkRef.current = fonts;
+        setFontsOk(fonts);
+      }
+      if (data !== dataOkRef.current) {
+        dataOkRef.current = data;
+        setDataOk(data);
+      }
+      if (scenesFinal !== scenesOkRef.current) {
+        scenesOkRef.current = scenesFinal;
+        setScenesOk(scenesFinal);
+      }
+      if (ratio >= 1 && assetsLoaded && fonts && data && scenesFinal) {
         finish();
         return;
       }

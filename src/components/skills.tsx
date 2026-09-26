@@ -205,6 +205,17 @@ export function Skills({ rings: propRings }: { rings?: SkillsRings }) {
           </Suspense>
         </Canvas>
       </motion.div>
+
+      <div className="sr-only">
+        <h3>{t("frontend")}</h3>
+        <ul>{rings.frontend.map((s) => <li key={s}>{s}</li>)}</ul>
+        <h3>{t("backend")}</h3>
+        <ul>{rings.backend.map((s) => <li key={s}>{s}</li>)}</ul>
+        <h3>{t("ai")}</h3>
+        <ul>{rings.ai.map((s) => <li key={s}>{s}</li>)}</ul>
+        <h3>{t("python")}</h3>
+        <ul>{rings.python.map((s) => <li key={s}>{s}</li>)}</ul>
+      </div>
     </section>
   );
 }

@@ -4,12 +4,13 @@ export function PersonJsonLd() {
   const person = {
     "@context": "https://schema.org",
     "@type": "Person",
+    "@id": `${site.url}/#person`,
     name: site.name,
     url: site.url,
-    image: `${site.url}/opengraph.png`,
-    jobTitle: site.role,
+    image: `${site.url}/profile.jpg`,
+    jobTitle: "Web Developer",
     description:
-      "Md. Tariqul Islam is one of the best full-stack web developers in Bangladesh. Hire a top Next.js, React, TypeScript, Python and Django developer for SEO-friendly, high-performance web applications.",
+      "Md. Tariqul Islam is a Web Developer from Bangladesh who builds responsive websites, web applications, business platforms, and e-commerce solutions using Next.js, React, TypeScript, Python, and Django.",
     address: {
       "@type": "PostalAddress",
       addressLocality: "Savar",
@@ -17,7 +18,6 @@ export function PersonJsonLd() {
       addressCountry: "BD",
     },
     sameAs: [site.github, site.linkedin],
-    email: site.email,
     knowsAbout: [
       "Web Development",
       "Next.js",
@@ -27,7 +27,6 @@ export function PersonJsonLd() {
       "Django",
       "FastAPI",
       "AI Integration",
-      "Full-Stack Development",
       "Node.js",
       "PostgreSQL",
       "Prisma",
@@ -36,9 +35,13 @@ export function PersonJsonLd() {
       "Three.js",
       "Framer Motion",
     ],
+    alumniOf: {
+      "@type": "CollegeOrUniversity",
+      name: "Gono Bishwabidyalay",
+    },
     hasOccupation: {
       "@type": "Occupation",
-      name: "Full-Stack Web Developer",
+      name: "Web Developer",
       skills: "Next.js, React, TypeScript, Python, Django, FastAPI, Node.js, PostgreSQL, Prisma, Redis, AI Integration, Three.js",
     },
   };
@@ -46,42 +49,56 @@ export function PersonJsonLd() {
   const website = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: `${site.name} — Portfolio`,
+    "@id": `${site.url}/#website`,
+    name: `${site.name} — Web Developer Portfolio`,
     url: site.url,
     description:
-      "Md. Tariqul Islam is one of the best full-stack web developers in Bangladesh. Hire a top Next.js, React, TypeScript, Python and Django developer for SEO-friendly, high-performance web applications.",
+      "Official portfolio website of Md. Tariqul Islam, a Web Developer from Bangladesh. View projects, skills, experience, and contact information.",
     author: {
       "@type": "Person",
+      "@id": `${site.url}/#person`,
       name: site.name,
       url: site.url,
+    },
+    publisher: {
+      "@type": "Person",
+      "@id": `${site.url}/#person`,
+      name: site.name,
     },
   };
 
   const profilePage = {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
+    "@id": `${site.url}/#profilepage`,
     mainEntity: {
       "@type": "Person",
+      "@id": `${site.url}/#person`,
       name: site.name,
       url: site.url,
-      image: `${site.url}/opengraph.png`,
-      jobTitle: site.role,
+      image: `${site.url}/profile.jpg`,
+      jobTitle: "Web Developer",
       description:
-        "Md. Tariqul Islam is one of the best full-stack web developers in Bangladesh. Hire a top Next.js, React, TypeScript, Python and Django developer for SEO-friendly, high-performance web applications.",
+        "Md. Tariqul Islam is a Web Developer from Bangladesh who builds responsive websites, web applications, business platforms, and e-commerce solutions using Next.js, React, TypeScript, Python, and Django.",
       sameAs: [site.github, site.linkedin],
+      alumniOf: {
+        "@type": "CollegeOrUniversity",
+        name: "Gono Bishwabidyalay",
+      },
     },
   };
 
   const professionalService = {
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
-    name: `${site.name} — Full-Stack Web Development`,
+    name: `${site.name} — Web Development`,
     url: site.url,
-    image: `${site.url}/opengraph.png`,
+    image: `${site.url}/profile.jpg`,
     description:
-      "Professional full-stack web development services by Md. Tariqul Islam. Next.js, React, TypeScript, Python, Django, AI integration, and more.",
+      "Professional web development services by Md. Tariqul Islam, a Web Developer from Bangladesh. Next.js, React, TypeScript, Python, Django, AI integration, and more.",
     provider: {
       "@type": "Person",
+      "@id": `${site.url}/#person`,
       name: site.name,
       url: site.url,
     },
@@ -135,8 +152,8 @@ export function PersonJsonLd() {
     name: "Main Navigation",
     url: site.url,
     hasPart: [
-      { "@type": "SiteNavigationElement", name: "About", url: `${site.url}/#about` },
-      { "@type": "SiteNavigationElement", name: "Projects", url: `${site.url}/#projects` },
+      { "@type": "SiteNavigationElement", name: "About", url: `${site.url}/about` },
+      { "@type": "SiteNavigationElement", name: "Projects", url: `${site.url}/projects` },
       { "@type": "SiteNavigationElement", name: "Skills", url: `${site.url}/#skills` },
       { "@type": "SiteNavigationElement", name: "Experience", url: `${site.url}/#experience` },
       { "@type": "SiteNavigationElement", name: "Blog", url: `${site.url}/blog` },

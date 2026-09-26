@@ -1,42 +1,49 @@
-# Md. Tariqul Islam — Full-Stack Web Developer
+# Md. Tariqul Islam — Web Developer
 
-> Full-stack web developer from Savar, Dhaka, Bangladesh specializing in Next.js, React, TypeScript, and Python with AI integration.
+> Web Developer from Savar, Dhaka, Bangladesh. Builds responsive websites, web applications, business platforms, e-commerce solutions, and software projects using Next.js, React, TypeScript, Python, and Django.
 
 ## About
 
-Md. Tariqul Islam is a full-stack web developer with 2+ years of experience building modern web applications. B.Sc. in CSE from Gono Bishwabidyalay (2023-2027). Based in Savar, Dhaka, Bangladesh.
+Md. Tariqul Islam is a Web Developer from Bangladesh and a Bachelor of Science in Computer Science and Engineering student at Gono Bishwabidyalay (2023–2027). He builds fast, SEO-friendly, and scalable web applications with a focus on performance, accessibility, and clean user experiences.
 
 ## Core Expertise
 
-- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS v4, Framer Motion, Three.js
+- **Frontend**: Next.js, React, TypeScript, Tailwind CSS, Framer Motion, Three.js
 - **Backend**: Node.js, PostgreSQL, Prisma, Redis, REST APIs, JWT Auth
-- **AI/ML**: OpenAI, Gemini, LangChain, RAG, Prompt Engineering
-- **Python**: FastAPI, Django, pandas, NumPy, Selenium
+- **AI/ML**: OpenAI, Gemini, LangChain, RAG, Prompt Engineering, OCR
+- **Python**: FastAPI, Django, pandas, NumPy, Selenium, BeautifulSoup
 - **DevOps**: Vercel, Cloudflare, Git, CI/CD
 
 ## Services
 
-- Full-stack web application development
+- Full-stack web application development (Next.js/React + Node.js/Python)
 - AI/ML integration and automation
 - E-commerce solutions
-- SaaS product development
 - API development and integration
-- Performance optimization
+- Performance optimization and SEO
 
 ## Notable Projects
 
-- **CoverVerse**: AI-powered assignment cover generator with 500+ templates
-- **MeTariqul Tec Shop**: Full-featured e-commerce platform
-- **AI Study Platform**: Upload docs, OCR, flashcards, quizzes, AI tutor
-- **Portfolio**: Cinematic dark-mode portfolio with 3D scenes
+- **CoverVerse**: AI-powered assignment cover generator with templates, live preview, and PDF export
+- **MeTariqul Tec Shop**: E-commerce web application with shopping cart, checkout, and inventory management
+- **AI Study Platform**: Document upload, OCR, flashcards, quizzes, and AI tutor
+- **Cloudflare Tunnel Monitor**: Dashboard for monitoring Cloudflare Tunnel health
+- **IPTV Stream Checker**: Web-based IPTV playlist viewer with stream availability checks
+- **PrintEdge**: Printing shop web platform for online print orders
 
-## Contact
+## Key Pages
 
-- Website: https://metariqul.vercel.app
-- Email: hello@metariqul.dev
+- Home: https://metariqul.vercel.app
+- About: https://metariqul.vercel.app/about
+- Projects: https://metariqul.vercel.app/projects
+- Blog: https://metariqul.vercel.app/blog
+
+## Profiles
+
+- Portfolio: https://metariqul.vercel.app
 - GitHub: https://github.com/MeTariqul
-- LinkedIn: https://linkedin.com/in/metariqul
+- LinkedIn: https://www.linkedin.com/in/metariqul
 
-## Availability
+## Location
 
-Open to freelance projects, full-time positions, collaborations, and consulting.
+Savar, Dhaka, Bangladesh

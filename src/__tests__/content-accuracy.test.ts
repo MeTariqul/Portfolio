@@ -5,13 +5,13 @@ import { site } from "@/lib/site";
 describe("en.json content accuracy", () => {
   it("has correct meta title with Bangladesh", () => {
     expect(en.meta.title).toContain("Bangladesh");
-    expect(en.meta.title).toContain("Full-Stack Web Developer");
+    expect(en.meta.title).toContain("Web Developer");
   });
 
-  it("has correct meta description with Django and SEO-friendly", () => {
+  it("has correct meta description with Django and Bangladesh", () => {
     expect(en.meta.description).toContain("Django");
-    expect(en.meta.description).toContain("SEO-friendly");
     expect(en.meta.description).toContain("Bangladesh");
+    expect(en.meta.description).toContain("Md. Tariqul Islam");
   });
 
   it("hero subtitle mentions Django and Bangladesh", () => {

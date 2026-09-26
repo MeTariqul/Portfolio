@@ -6,6 +6,7 @@ import { getSite, getAbout, getExperience } from "@/lib/content";
 import { Terminal } from "@/components/terminal";
 import { Counter, type Stat } from "@/components/counters";
 import { SectionHeading } from "@/components/section-heading";
+import { BreadcrumbJsonLd, FaqJsonLd, homeCrumb } from "@/components/structured-data";
 
 export const revalidate = 60;
 
@@ -21,12 +22,12 @@ export async function generateMetadata({
     description: t("description"),
     keywords: [
       "Md. Tariqul Islam",
-      "about",
-      "full-stack developer",
-      "web developer bangladesh",
-      "next.js developer",
-      "react developer",
-      "python django developer",
+      "Web Developer",
+      "Bangladesh",
+      "Next.js Developer",
+      "React Developer",
+      "Python Developer",
+      "Django Developer",
     ],
     alternates: {
       canonical: `${site.url}/about`,
@@ -57,6 +58,7 @@ export default async function AboutPage({
   setRequestLocale(locale);
   const t = await getTranslations("about");
   const tp = await getTranslations("aboutPage");
+  const tf = await getTranslations("faq");
 
   const [dbAbout, dbExperience, dbSite] = await Promise.all([
     getAbout(),
@@ -69,9 +71,14 @@ export default async function AboutPage({
   const stats = dbAbout?.stats ?? (t.raw("stats") as Stat[]);
   const badges = dbAbout?.badges ?? (t.raw("badges") as string[]);
   const experience = dbExperience ?? [];
+  const faqItems = tf.raw("items") as { question: string; answer: string }[];
 
   return (
     <div className="mx-auto max-w-5xl px-5 pb-32 pt-36 sm:px-8">
+      <BreadcrumbJsonLd
+        items={[homeCrumb(), { name: "About", url: `${site.url}/about` }]}
+      />
+      <FaqJsonLd items={faqItems} pageUrl={`${site.url}/about`} />
       <Link
         href="/#about"
         data-cursor="link"
@@ -93,7 +100,7 @@ export default async function AboutPage({
           <div className="group relative aspect-square overflow-hidden rounded-3xl border border-line bg-black">
             <img
               src="/profile.jpg"
-              alt="Md. Tariqul Islam"
+              alt="Md. Tariqul Islam, full-stack web developer from Bangladesh"
               className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div
@@ -179,6 +186,34 @@ export default async function AboutPage({
         >
           {tp("ctaButton")}
         </Link>
+      </div>
+
+      <div className="mt-24">
+        <SectionHeading number="03" label={tf("label")} title={tf("heading")} sub={tf("sub")} align="center" />
+        <div className="mt-12 space-y-4">
+          {faqItems.map((item, i) => (
+            <details
+              key={item.question}
+              className="group glass overflow-hidden rounded-2xl border border-line"
+              open={i === 0}
+            >
+              <summary className="flex cursor-pointer items-center justify-between gap-4 p-6 font-display text-lg font-semibold tracking-tight sm:text-xl">
+                <span className="flex items-start gap-3">
+                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-gradient-to-r from-nebula to-neon" />
+                  {item.question}
+                </span>
+                <span className="shrink-0 text-soft transition-transform duration-300 group-open:rotate-45">
+                  +
+                </span>
+              </summary>
+              <div className="border-t border-line px-6 pb-6 pt-4">
+                <p className="text-base leading-relaxed text-soft sm:text-lg">
+                  {item.answer}
+                </p>
+              </div>
+            </details>
+          ))}
+        </div>
       </div>
     </div>
   );

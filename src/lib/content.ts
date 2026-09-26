@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { posts, type Post, type BlogBlock } from "@/lib/posts";
 import { site } from "@/lib/site";
+import en from "@/messages/en.json";
 
 export type SiteProfile = typeof site;
 
@@ -144,6 +145,28 @@ export async function getProjects(): Promise<ProjectItem[] | null> {
     console.error("[content/getProjects] Exception:", e);
     return null;
   }
+}
+
+export function projectSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+const fallbackProjects = (en as { projects?: { items?: ProjectItem[] } }).projects
+  ?.items ?? [];
+
+export async function getAllProjects(): Promise<ProjectItem[]> {
+  const db = await getProjects();
+  return db && db.length > 0 ? db : fallbackProjects;
+}
+
+export async function getProjectBySlug(slug: string): Promise<ProjectItem | null> {
+  const all = await getAllProjects();
+  return all.find((p) => projectSlug(p.title) === slug) ?? null;
 }
 
 export async function getSettings(): Promise<SettingsMap | null> {
@@ -298,6 +321,35 @@ export async function getSiteContent(): Promise<SiteContentMap | null> {
     const value = data.value as SiteContentMap;
     if (!value || typeof value !== "object") return null;
     return value;
+  } catch {
+    return null;
+  }
+}
+
+export type CrazyTimePost = {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  image_url: string;
+  file_url: string;
+  file_name: string;
+  youtube_url: string;
+  doc_url: string;
+  category: string;
+  created_at: string;
+};
+
+export async function getCrazyTimePosts(): Promise<CrazyTimePost[] | null> {
+  const supabase = createAdminClient();
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("crazy_time")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) return null;
+    return (data ?? []) as CrazyTimePost[];
   } catch {
     return null;
   }

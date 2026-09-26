@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { site } from "@/lib/site";
+import { BreadcrumbJsonLd, homeCrumb } from "@/components/structured-data";
 
 export const revalidate = 60;
 
@@ -15,6 +17,25 @@ export async function generateMetadata({
   return {
     title: t("title"),
     description: t("sub"),
+    alternates: {
+      canonical: `${site.url}/crazy-time`,
+    },
+    openGraph: {
+      title: t("title"),
+      description: t("sub"),
+      url: `${site.url}/crazy-time`,
+      siteName: site.name,
+      type: "website",
+      locale: "en_US",
+      images: [
+        {
+          url: "/opengraph.png",
+          width: 1200,
+          height: 630,
+          alt: "Crazy Time — Md. Tariqul Islam",
+        },
+      ],
+    },
   };
 }
 
@@ -54,6 +75,9 @@ export default async function CrazyTimePage({
 
   return (
     <div className="mx-auto max-w-5xl px-5 pb-32 pt-36 sm:px-8">
+      <BreadcrumbJsonLd
+        items={[homeCrumb(), { name: "Crazy Time", url: `${site.url}/crazy-time` }]}
+      />
       <Link
         href="/"
         data-cursor="link"

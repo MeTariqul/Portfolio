@@ -5,6 +5,11 @@ import { posts } from "@/lib/posts";
 import { getBlogPosts } from "@/lib/content";
 import { getMergedMessages } from "@/lib/messages";
 import { site } from "@/lib/site";
+import {
+  BreadcrumbJsonLd,
+  ItemListJsonLd,
+  homeCrumb,
+} from "@/components/structured-data";
 
 export const revalidate = 60;
 
@@ -59,6 +64,19 @@ export default async function BlogPage({
 
   return (
     <div className="mx-auto max-w-5xl px-5 pb-32 pt-36 sm:px-8">
+      <BreadcrumbJsonLd
+        items={[homeCrumb(), { name: "Blog", url: `${site.url}/blog` }]}
+      />
+      <ItemListJsonLd
+        name="Blog — Md. Tariqul Islam"
+        description="Technical articles and case studies by Md. Tariqul Islam, full-stack web developer."
+        url={`${site.url}/blog`}
+        items={all.map((post) => ({
+          name: post.title,
+          url: `${site.url}/blog/${post.slug}`,
+          description: post.description,
+        }))}
+      />
       <p className="font-mono text-xs uppercase tracking-[0.35em] text-soft">
         09 · {t("label")}
       </p>

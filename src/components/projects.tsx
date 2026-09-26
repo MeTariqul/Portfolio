@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowUpRight, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { GitHubIcon } from "./brand-icons";
 import { SectionHeading } from "./section-heading";
 import { TiltCard } from "./tilt-card";
@@ -23,14 +24,14 @@ export function Projects({
 
   const trackRef = useRef<HTMLDivElement>(null);
 
-  const scroll = (direction: "left" | "right") => {
+  const scroll = useCallback((direction: "left" | "right") => {
     const el = trackRef.current;
     if (!el) return;
     const cardWidth = el.firstElementChild?.clientWidth ?? 400;
     const gap = 24;
     const scrollAmount = direction === "left" ? -(cardWidth + gap) : cardWidth + gap;
     el.scrollBy({ left: scrollAmount, behavior: "smooth" });
-  };
+  }, []);
 
   const gradientTiles = [
     "from-violet-600 to-fuchsia-500",
@@ -116,6 +117,7 @@ export function Projects({
                         href={item.github || gh}
                         target="_blank"
                         rel="noreferrer"
+                        data-cursor="link"
                         className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-soft transition-colors hover:text-neon"
                       >
                         <GitHubIcon width={13} height={13} />
@@ -126,6 +128,7 @@ export function Projects({
                           href={item.link}
                           target="_blank"
                           rel="noreferrer"
+                          data-cursor="link"
                           className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-soft transition-all duration-300 group-hover:translate-x-1 group-hover:text-neon"
                         >
                           {t("live")}
@@ -187,7 +190,7 @@ export function Projects({
             <ChevronLeft size={18} />
           </button>
           <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-soft">
-            swipe
+            {t("swipe")}
           </span>
           <button
             onClick={() => scroll("right")}
@@ -197,6 +200,42 @@ export function Projects({
             <ChevronRight size={18} />
           </button>
         </div>
+
+        <div className="mt-8 flex justify-center">
+          <Link
+            href="/projects"
+            data-cursor="link"
+            className="group glass inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 font-mono text-xs uppercase tracking-widest text-soft transition-all duration-300 hover:border-neon/50 hover:text-neon"
+          >
+            {t("viewAll")}
+            <ArrowUpRight size={13} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+          </Link>
+        </div>
+      </div>
+
+      <div className="sr-only" aria-hidden="false">
+        <h3>{t("heading")}</h3>
+        <p>{t("sub")}</p>
+        {items.map((item) => (
+          <article key={item.title}>
+            <h4>{item.title}</h4>
+            <p>{item.desc}</p>
+            <p>Category: {item.category}</p>
+            {item.tags && (
+              <p>Technologies: {item.tags.join(", ")}</p>
+            )}
+            {item.github && (
+              <a href={item.github} rel="noopener">
+                GitHub repository for {item.title}
+              </a>
+            )}
+            {item.link && (
+              <a href={item.link} rel="noopener">
+                Live demo of {item.title}
+              </a>
+            )}
+          </article>
+        ))}
       </div>
     </section>
   );

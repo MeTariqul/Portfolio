@@ -114,6 +114,7 @@ function ReplyModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="rounded-xl p-2 text-soft transition-colors hover:text-ink"
           >
             <X size={18} />

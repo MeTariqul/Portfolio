@@ -89,6 +89,7 @@ function FileUpload({
           <button
             type="button"
             onClick={onRemove}
+            aria-label="Remove file"
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-soft hover:text-red-400"
           >
             <X size={14} />

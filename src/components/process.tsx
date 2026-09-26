@@ -48,7 +48,7 @@ export function Process({ items: propItems }: { items?: ProcessStep[] }) {
                 className="mt-10 flex items-center gap-3 font-mono text-xs uppercase tracking-[0.3em] text-soft lg:hidden"
               >
                 <span className="h-px w-8 bg-neon" />
-                {items.length} {t("label").toLowerCase()} stages
+                {items.length} {t("label").toLowerCase()} {t("stages")}
               </motion.p>
             </div>
 

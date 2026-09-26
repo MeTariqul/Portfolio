@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { site } from "@/lib/site";
+import { BreadcrumbJsonLd, homeCrumb } from "@/components/structured-data";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +12,32 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string; id: string }>;
 }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale, id } = await params;
   const t = await getTranslations({ locale, namespace: "crazyTime" });
+  const post = await getPost(id);
+  if (!post) return { title: t("title") };
+  const url = `${site.url}/crazy-time/${id}`;
   return {
-    title: t("title"),
+    title: post.title,
+    description: post.description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: post.title,
+      description: post.description,
+      url,
+      siteName: site.name,
+      type: "article",
+      locale: "en_US",
+      publishedTime: post.created_at,
+      images: [
+        {
+          url: "/opengraph.png",
+          width: 1200,
+          height: 630,
+          alt: `${post.title} — Md. Tariqul Islam`,
+        },
+      ],
+    },
   };
 }
 
@@ -74,6 +98,13 @@ export default async function CrazyTimeDetailPage({
 
   return (
     <div className="mx-auto max-w-3xl px-5 pb-32 pt-36 sm:px-8">
+      <BreadcrumbJsonLd
+        items={[
+          homeCrumb(),
+          { name: "Crazy Time", url: `${site.url}/crazy-time` },
+          { name: post.title, url: `${site.url}/crazy-time/${id}` },
+        ]}
+      />
       <Link
         href="/crazy-time"
         data-cursor="link"

@@ -32,7 +32,10 @@ export function Statement() {
       </motion.div>
 
       <div className="relative z-10 mx-auto max-w-5xl text-center">
-        <p className="font-display text-5xl font-semibold leading-[1.05] tracking-tight sm:text-7xl lg:text-8xl">
+        <h2 className="font-display text-5xl font-semibold leading-[1.05] tracking-tight sm:text-7xl lg:text-8xl sr-only">
+          {t("line1")} {t("line2")} {t("line3")}
+        </h2>
+        <p aria-hidden className="font-display text-5xl font-semibold leading-[1.05] tracking-tight sm:text-7xl lg:text-8xl">
           <WordReveal text={t("line1")} />
           <br />
           <span className="text-soft">

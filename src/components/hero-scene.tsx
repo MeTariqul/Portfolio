@@ -9,7 +9,7 @@ import { useFrameloopOnView } from "@/lib/use-frameloop-on-view";
 import { SceneBoundary } from "./scene-boundary";
 import * as THREE from "three";
 
-function EnergyCore({ theme }: { theme: "dark" | "light" }) {
+function EnergyCore() {
   const ref = useRef<THREE.Mesh>(null);
   const shell = useRef<THREE.Mesh>(null);
 
@@ -24,17 +24,14 @@ function EnergyCore({ theme }: { theme: "dark" | "light" }) {
     }
   });
 
-  const coreColor = theme === "dark" ? "#8b5cf6" : "#6d28d9";
-  const shellColor = theme === "dark" ? "#22d3ee" : "#7c3aed";
-
   return (
     <group>
       <Float speed={1.6} rotationIntensity={0.35} floatIntensity={0.7}>
         <mesh ref={ref}>
           <icosahedronGeometry args={[1.15, 32]} />
           <MeshDistortMaterial
-            color={coreColor}
-            emissive={coreColor}
+            color="#8b5cf6"
+            emissive="#8b5cf6"
             emissiveIntensity={0.45}
             distort={0.42}
             speed={2}
@@ -45,7 +42,7 @@ function EnergyCore({ theme }: { theme: "dark" | "light" }) {
         <mesh ref={shell}>
           <icosahedronGeometry args={[1.6, 2]} />
           <meshBasicMaterial
-            color={shellColor}
+            color="#22d3ee"
             wireframe
             transparent
             opacity={0.14}
@@ -56,7 +53,7 @@ function EnergyCore({ theme }: { theme: "dark" | "light" }) {
   );
 }
 
-function OrbitRings({ theme }: { theme: "dark" | "light" }) {
+function OrbitRings() {
   const ring = useRef<THREE.Mesh>(null);
   const ring2 = useRef<THREE.Mesh>(null);
 
@@ -65,18 +62,15 @@ function OrbitRings({ theme }: { theme: "dark" | "light" }) {
     if (ring2.current) ring2.current.rotation.z -= delta * 0.16;
   });
 
-  const color = theme === "dark" ? "#ec4899" : "#db2777";
-  const color2 = theme === "dark" ? "#22d3ee" : "#0891b2";
-
   return (
     <group>
       <mesh ref={ring} rotation={[Math.PI / 2.15, 0, 0]}>
         <torusGeometry args={[2.35, 0.012, 8, 128]} />
-        <meshBasicMaterial color={color} transparent opacity={0.55} />
+        <meshBasicMaterial color="#ec4899" transparent opacity={0.55} />
       </mesh>
       <mesh ref={ring2} rotation={[Math.PI / 1.85, 0.4, 0]}>
         <torusGeometry args={[2.9, 0.008, 8, 128]} />
-        <meshBasicMaterial color={color2} transparent opacity={0.35} />
+        <meshBasicMaterial color="#22d3ee" transparent opacity={0.35} />
       </mesh>
     </group>
   );
@@ -84,7 +78,7 @@ function OrbitRings({ theme }: { theme: "dark" | "light" }) {
 
 const SHARD_COUNT = 8;
 
-function OrbitingShards({ theme }: { theme: "dark" | "light" }) {
+function OrbitingShards() {
   const group = useRef<THREE.Group>(null);
 
   useFrame(({ clock }, delta) => {
@@ -99,15 +93,13 @@ function OrbitingShards({ theme }: { theme: "dark" | "light" }) {
     });
   });
 
-  const color = theme === "dark" ? "#a5b4fc" : "#6d28d9";
-
   return (
     <group ref={group}>
       {Array.from({ length: SHARD_COUNT }).map((_, i) => (
         <mesh key={i}>
           <octahedronGeometry args={[0.07 + (i % 3) * 0.03, 0]} />
           <meshStandardMaterial
-            color={color}
+            color="#a5b4fc"
             transparent
             opacity={0.85}
             metalness={0.6}
@@ -129,7 +121,7 @@ function CameraRig() {
   return null;
 }
 
-function Scene({ theme }: { theme: "dark" | "light" }) {
+function Scene() {
   const isSmall =
     typeof window !== "undefined" && window.innerWidth < 768;
 
@@ -138,23 +130,23 @@ function Scene({ theme }: { theme: "dark" | "light" }) {
       <Stars
         radius={55}
         depth={38}
-        count={isSmall ? 1400 : theme === "dark" ? 4200 : 1600}
-        factor={isSmall ? 2.4 : theme === "dark" ? 3.2 : 2}
+        count={isSmall ? 1400 : 4200}
+        factor={isSmall ? 2.4 : 3.2}
         saturation={0}
         fade
-        speed={theme === "dark" ? 0.9 : 0.4}
+        speed={0.9}
       />
-      <EnergyCore theme={theme} />
-      <OrbitRings theme={theme} />
-      <OrbitingShards theme={theme} />
+      <EnergyCore />
+      <OrbitRings />
+      <OrbitingShards />
       <CameraRig />
       <EffectComposer multisampling={0}>
         <Bloom
-          intensity={theme === "dark" ? 1.0 : 0.6}
+          intensity={1.0}
           luminanceThreshold={0.22}
           mipmapBlur
         />
-        <Vignette eskil={false} offset={0.22} darkness={theme === "dark" ? 0.8 : 0.45} />
+        <Vignette eskil={false} offset={0.22} darkness={0.8} />
       </EffectComposer>
       <ambientLight intensity={0.35} />
       <pointLight position={[4, 3, 4]} intensity={30} color="#8b5cf6" />
@@ -183,9 +175,9 @@ export function HeroScene() {
         }}
       >
         <Suspense fallback={null}>
-          <SceneBoundary onFallback={() => setSceneReady("hero")}>
-            <Scene theme="dark" />
-          </SceneBoundary>
+            <SceneBoundary onFallback={() => setSceneReady("hero")}>
+              <Scene />
+            </SceneBoundary>
         </Suspense>
       </Canvas>
     </div>

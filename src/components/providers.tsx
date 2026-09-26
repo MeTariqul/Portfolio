@@ -2,6 +2,7 @@
 
 import { type ReactNode, useEffect } from "react";
 import Lenis from "lenis";
+import { MotionConfig } from "framer-motion";
 import { setLenis, scrollToId } from "@/lib/lenis-store";
 
 if (typeof window !== "undefined") {
@@ -53,5 +54,5 @@ export function Providers({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("hashchange", handleHash);
   }, []);
 
-  return <>{children}</>;
+  return <MotionConfig reducedMotion="user">{children}</MotionConfig>;
 }

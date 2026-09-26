@@ -16,6 +16,8 @@ export function Testimonials({ items: propItems }: { items?: Testimonial[] }) {
 
   useEffect(() => {
     if (!items?.length) return;
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
     const id = setInterval(() => setIndex((i) => (i + 1) % items.length), INTERVAL);
     return () => clearInterval(id);
   }, [items.length]);

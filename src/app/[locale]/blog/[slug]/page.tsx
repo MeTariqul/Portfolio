@@ -37,7 +37,7 @@ export async function generateMetadata({
     ],
     authors: [{ name: "Md. Tariqul Islam", url: site.url }],
     alternates: {
-      canonical: `${site.url}/en/blog/${slug}`,
+      canonical: `${site.url}/blog/${slug}`,
     },
     openGraph: {
       title: post.title,

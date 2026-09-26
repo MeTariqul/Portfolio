@@ -47,7 +47,7 @@ export function About({
           <div className="group relative aspect-square overflow-hidden rounded-3xl border border-line bg-black">
             <img
               src="/profile.jpg"
-              alt="Md. Tariqul Islam"
+              alt="Md. Tariqul Islam, full-stack web developer from Bangladesh"
               className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div
