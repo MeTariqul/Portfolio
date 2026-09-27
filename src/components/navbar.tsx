@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Menu, X } from "lucide-react";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { Magnetic } from "./magnetic";
 import { scrollToId } from "@/lib/lenis-store";
 
@@ -16,6 +16,10 @@ const LINKS = [
   { id: "blog", key: "blog" },
   { id: "contact", key: "contact" },
 ] as const;
+
+const hrefFor = (id: string) => (id === "home" ? "/" : `/#${id}`);
+
+const MotionLink = motion.create(Link);
 
 export function Navbar() {
   const t = useTranslations("nav");
@@ -81,6 +85,11 @@ export function Navbar() {
     setTimeout(() => router.push(`/#${id}`), delay);
   };
 
+  const handleNav = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    go(id);
+  };
+
   return (
     <>
       <motion.header
@@ -97,25 +106,26 @@ export function Navbar() {
         }}
       >
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 sm:px-8">
-          <button
+          <Link
+            href="/"
             onClick={() => {
               setOpen(false);
-              router.push("/");
             }}
             data-cursor="link"
             className="group flex items-center gap-2 font-display text-lg font-bold tracking-tight"
-            aria-label={t("backToTop")}
+            aria-label="MT — Md. Tariqul Islam, home"
           >
             <span className="gradient-text">MT</span>
-          </button>
+          </Link>
 
           <div className="hidden items-center gap-8 lg:flex">
             {LINKS.map(({ id, key }) => {
               const isActive = active === id;
               return (
-                <button
+                <Link
                   key={id}
-                  onClick={() => go(id)}
+                  href={hrefFor(id)}
+                  onClick={(e) => handleNav(e, id)}
                   data-cursor="link"
                   aria-current={isActive ? "page" : undefined}
                   className={`group relative font-mono text-xs uppercase tracking-[0.2em] transition-colors ${
@@ -133,15 +143,15 @@ export function Navbar() {
                       isActive ? "w-full" : "w-0 group-hover:w-full"
                     }`}
                   />
-                </button>
+                </Link>
               );
             })}
           </div>
 
           <div className="flex items-center gap-3">
             <Magnetic className="hidden lg:block">
-              <button
-                onClick={() => router.push("/crazy-time")}
+              <Link
+                href="/crazy-time"
                 data-cursor="link"
                 className="group glass flex items-center gap-2 rounded-full px-4 py-2.5 font-mono text-[11px] font-semibold uppercase tracking-widest transition-colors hover:border-neon/40 hover:text-neon"
               >
@@ -149,11 +159,12 @@ export function Navbar() {
                   <span className="absolute h-full w-full animate-pulse-dot rounded-full bg-neon" />
                 </span>
                 {t("crazyTime")}
-              </button>
+              </Link>
             </Magnetic>
             <Magnetic className="hidden lg:block">
-              <button
-                onClick={() => go("contact")}
+              <Link
+                href={hrefFor("contact")}
+                onClick={(e) => handleNav(e, "contact")}
                 data-cursor="link"
                 className="group relative overflow-hidden rounded-full bg-ink px-5 py-2.5 font-mono text-xs font-semibold uppercase tracking-widest text-bg"
               >
@@ -161,7 +172,7 @@ export function Navbar() {
                   {t("hire")}
                 </span>
                 <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-nebula via-neon to-aqua transition-transform duration-500 ease-out group-hover:translate-x-0" />
-              </button>
+              </Link>
             </Magnetic>
             <button
               onClick={() => setOpen(true)}
@@ -185,16 +196,16 @@ export function Navbar() {
             transition={{ duration: 0.35 }}
           >
             <div className="flex items-center justify-between px-5 pb-4 pt-[max(env(safe-area-inset-top),1rem)]">
-              <button
+              <Link
+                href="/"
                 onClick={() => {
                   setOpen(false);
-                  setTimeout(() => router.push("/"), 350);
                 }}
                 data-cursor="link"
                 className="font-display text-lg font-bold"
               >
                 <span className="gradient-text">MT</span>
-              </button>
+              </Link>
               <button
                 onClick={() => setOpen(false)}
                 data-cursor="link"
@@ -209,9 +220,10 @@ export function Navbar() {
               {LINKS.map(({ id, key }, i) => {
                 const isActive = active === id;
                 return (
-                  <motion.button
+                  <MotionLink
                     key={id}
-                    onClick={() => go(id)}
+                    href={hrefFor(id)}
+                    onClick={(e) => handleNav(e, id)}
                     initial={{ opacity: 0, x: -32 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 + i * 0.07, duration: 0.5 }}
@@ -224,33 +236,36 @@ export function Navbar() {
                       0{i + 1}
                     </span>
                     {t(key)}
-                  </motion.button>
+                  </MotionLink>
                 );
               })}
             </div>
 
             <div className="px-8 pb-[max(env(safe-area-inset-bottom),2.5rem)]">
-              <motion.button
-                onClick={() => {
+              <MotionLink
+                href="/crazy-time"
+                onClick={(e) => {
+                  e.preventDefault();
                   setOpen(false);
                   setTimeout(() => router.push("/crazy-time"), 350);
                 }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="mb-3 w-full rounded-full border border-line py-4 font-mono text-sm font-semibold uppercase tracking-widest text-neon"
+                className="mb-3 block w-full rounded-full border border-line py-4 text-center font-mono text-sm font-semibold uppercase tracking-widest text-neon"
               >
                 {t("crazyTime")}
-              </motion.button>
-              <motion.button
-                onClick={() => go("contact")}
+              </MotionLink>
+              <MotionLink
+                href={hrefFor("contact")}
+                onClick={(e) => handleNav(e, "contact")}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.55 }}
-                className="w-full rounded-full bg-ink py-4 font-mono text-sm font-semibold uppercase tracking-widest text-bg"
+                className="block w-full rounded-full bg-ink py-4 text-center font-mono text-sm font-semibold uppercase tracking-widest text-bg"
               >
                 {t("hire")}
-              </motion.button>
+              </MotionLink>
             </div>
           </motion.div>
         )}

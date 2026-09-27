@@ -6,7 +6,12 @@ import { getSite, getAbout, getExperience } from "@/lib/content";
 import { Terminal } from "@/components/terminal";
 import { Counter, type Stat } from "@/components/counters";
 import { SectionHeading } from "@/components/section-heading";
-import { BreadcrumbJsonLd, FaqJsonLd, homeCrumb } from "@/components/structured-data";
+import {
+  BreadcrumbJsonLd,
+  FaqJsonLd,
+  WebPageJsonLd,
+  homeCrumb,
+} from "@/components/structured-data";
 
 export const revalidate = 60;
 
@@ -33,7 +38,7 @@ export async function generateMetadata({
       canonical: `${site.url}/about`,
     },
     openGraph: {
-      title: t("title"),
+      title: `${t("title")} | ${site.name}`,
       description: t("description"),
       url: `${site.url}/about`,
       type: "profile",
@@ -78,6 +83,11 @@ export default async function AboutPage({
       <BreadcrumbJsonLd
         items={[homeCrumb(), { name: "About", url: `${site.url}/about` }]}
       />
+      <WebPageJsonLd
+        name="About Md. Tariqul Islam"
+        description={tp("description")}
+        url={`${site.url}/about`}
+      />
       <FaqJsonLd items={faqItems} pageUrl={`${site.url}/about`} />
       <Link
         href="/#about"
@@ -100,7 +110,10 @@ export default async function AboutPage({
           <div className="group relative aspect-square overflow-hidden rounded-3xl border border-line bg-black">
             <img
               src="/profile.jpg"
-              alt="Md. Tariqul Islam, full-stack web developer from Bangladesh"
+              alt="Md. Tariqul Islam, Web Developer from Bangladesh"
+              width={400}
+              height={400}
+              decoding="async"
               className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div

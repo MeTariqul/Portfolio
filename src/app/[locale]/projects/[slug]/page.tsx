@@ -14,6 +14,7 @@ import { GitHubIcon } from "@/components/brand-icons";
 import {
   BreadcrumbJsonLd,
   ProjectJsonLd,
+  WebPageJsonLd,
   homeCrumb,
 } from "@/components/structured-data";
 
@@ -39,7 +40,7 @@ export async function generateMetadata({
       canonical: `${site.url}/projects/${slug}`,
     },
     openGraph: {
-      title: project.title,
+      title: `${project.title} | ${site.name}`,
       description: project.desc,
       url: `${site.url}/projects/${slug}`,
       siteName: site.name,
@@ -56,7 +57,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: project.title,
+      title: `${project.title} | ${site.name}`,
       description: project.desc,
       images: ["/opengraph.png"],
     },
@@ -97,6 +98,11 @@ export default async function ProjectDetailPage({
           { name: "Projects", url: `${site.url}/projects` },
           { name: project.title, url: `${site.url}/projects/${slug}` },
         ]}
+      />
+      <WebPageJsonLd
+        name={`${project.title} — Md. Tariqul Islam`}
+        description={project.desc}
+        url={`${site.url}/projects/${slug}`}
       />
       <ProjectJsonLd project={project} />
 

@@ -30,7 +30,8 @@ const securityHeaders = [
         ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com"
         : "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://*.vercel-insights.com",
+      "img-src 'self' data: blob: https://*.vercel-insights.com" +
+        (supabaseHost ? ` https://${supabaseHost}` : ""),
       "font-src 'self' data:",
       "connect-src 'self'" +
         (supabaseHost ? ` https://${supabaseHost}` : "") +

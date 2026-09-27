@@ -35,7 +35,7 @@ export function Services({ items: propItems }: { items?: ServiceItem[] }) {
                 <div
                   className="relative h-full overflow-hidden rounded-3xl border border-line p-8 transition-colors duration-500 group-hover:border-neon/40"
                 >
-                  <span className="absolute right-7 top-6 font-display text-5xl font-bold text-soft/10 transition-colors duration-500 group-hover:text-neon/20">
+                  <span aria-hidden className="absolute right-7 top-6 font-display text-5xl font-bold text-soft/10 transition-colors duration-500 group-hover:text-neon/20">
                     0{i + 1}
                   </span>
 

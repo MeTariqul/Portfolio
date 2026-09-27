@@ -3,7 +3,12 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { site } from "@/lib/site";
-import { BreadcrumbJsonLd, homeCrumb } from "@/components/structured-data";
+import { notFound } from "next/navigation";
+import {
+  BreadcrumbJsonLd,
+  WebPageJsonLd,
+  homeCrumb,
+} from "@/components/structured-data";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +27,7 @@ export async function generateMetadata({
     description: post.description,
     alternates: { canonical: url },
     openGraph: {
-      title: post.title,
+      title: `${post.title} | ${site.name}`,
       description: post.description,
       url,
       siteName: site.name,
@@ -81,20 +86,7 @@ export default async function CrazyTimeDetailPage({
   const t = await getTranslations("crazyTime");
   const post = await getPost(id);
 
-  if (!post) {
-    return (
-      <div className="mx-auto max-w-3xl px-5 pb-32 pt-36 sm:px-8">
-        <Link
-          href="/crazy-time"
-          data-cursor="link"
-          className="font-mono text-xs uppercase tracking-[0.25em] text-soft transition-colors hover:text-neon"
-        >
-          ← {t("back")}
-        </Link>
-        <p className="mt-12 text-center text-soft">Post not found.</p>
-      </div>
-    );
-  }
+  if (!post) notFound();
 
   return (
     <div className="mx-auto max-w-3xl px-5 pb-32 pt-36 sm:px-8">
@@ -104,6 +96,11 @@ export default async function CrazyTimeDetailPage({
           { name: "Crazy Time", url: `${site.url}/crazy-time` },
           { name: post.title, url: `${site.url}/crazy-time/${id}` },
         ]}
+      />
+      <WebPageJsonLd
+        name={`${post.title} — Md. Tariqul Islam`}
+        description={post.description || post.title}
+        url={`${site.url}/crazy-time/${id}`}
       />
       <Link
         href="/crazy-time"

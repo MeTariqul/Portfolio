@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Mail, Rocket } from "lucide-react";
 import { GitHubIcon, LinkedInIcon } from "./brand-icons";
 import { Magnetic } from "./magnetic";
@@ -11,12 +12,13 @@ import type { SiteProfile } from "@/lib/content";
 
 export function Footer({ siteProfile }: { siteProfile?: SiteProfile }) {
   const t = useTranslations("footer");
+  const tn = useTranslations("nav");
   const s = siteProfile ?? site;
   const year = new Date().getFullYear();
 
   return (
     <footer className="relative overflow-hidden border-t border-line">
-      <div className="overflow-hidden py-6 opacity-[0.07]">
+      <div aria-hidden className="overflow-hidden py-6 opacity-[0.07]">
         <div className="flex w-max animate-marquee-slow whitespace-nowrap">
           {[0, 1].map((n) => (
             <span
@@ -44,6 +46,26 @@ export function Footer({ siteProfile }: { siteProfile?: SiteProfile }) {
             </span>
             <VisitorCount mode="total" />
           </p>
+          <nav
+            aria-label="Footer"
+            className="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-2 sm:justify-start"
+          >
+            {[
+              { href: "/about", key: "about" },
+              { href: "/projects", key: "projects" },
+              { href: "/blog", key: "blog" },
+              { href: "/crazy-time", key: "crazyTime" },
+            ].map(({ href, key }) => (
+              <Link
+                key={href}
+                href={href}
+                data-cursor="link"
+                className="font-mono text-[10px] uppercase tracking-[0.2em] text-soft transition-colors hover:text-ink"
+              >
+                {tn(key)}
+              </Link>
+            ))}
+          </nav>
         </div>
 
         <div className="flex items-center gap-3">

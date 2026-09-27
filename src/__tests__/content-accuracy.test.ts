@@ -8,10 +8,12 @@ describe("en.json content accuracy", () => {
     expect(en.meta.title).toContain("Web Developer");
   });
 
-  it("has correct meta description with Django and Bangladesh", () => {
-    expect(en.meta.description).toContain("Django");
-    expect(en.meta.description).toContain("Bangladesh");
+  it("has correct meta description with identity and education", () => {
     expect(en.meta.description).toContain("Md. Tariqul Islam");
+    expect(en.meta.description).toContain("Web Developer");
+    expect(en.meta.description).toContain("Bangladesh");
+    expect(en.meta.description).toContain("Gono Bishwabidyalay");
+    expect(en.meta.description).toContain("Computer Science and Engineering");
   });
 
   it("hero subtitle mentions Django and Bangladesh", () => {

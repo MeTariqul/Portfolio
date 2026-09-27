@@ -35,6 +35,35 @@ export function homeCrumb(): Crumb {
   return { name: "Home", url: site.url };
 }
 
+export function WebPageJsonLd({
+  name,
+  description,
+  url,
+}: {
+  name: string;
+  description: string;
+  url: string;
+}) {
+  return (
+    <JsonLd
+      data={{
+        "@type": "WebPage",
+        name,
+        description,
+        url,
+        inLanguage: "en",
+        isPartOf: { "@type": "WebSite", "@id": `${site.url}/#website` },
+        about: {
+          "@type": "Person",
+          "@id": `${site.url}/#person`,
+          name: site.name,
+          url: site.url,
+        },
+      }}
+    />
+  );
+}
+
 export function FaqJsonLd({
   items,
   pageUrl,

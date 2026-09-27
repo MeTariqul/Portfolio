@@ -54,6 +54,8 @@ export function BlogSection({ posts: propPosts }: { posts?: Post[] }) {
               <img
                 src={featured.image_url}
                 alt={featured.title}
+                loading="lazy"
+                decoding="async"
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             ) : (
@@ -123,6 +125,8 @@ export function BlogSection({ posts: propPosts }: { posts?: Post[] }) {
                   <img
                     src={post.image_url}
                     alt={post.title}
+                    loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 h-full w-full object-cover opacity-30 transition-transform duration-700 group-hover:scale-105"
                   />
                 ) : (

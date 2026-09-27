@@ -15,11 +15,11 @@ export function Projects({
   items: propItems,
   githubUrl,
 }: {
-  items?: ProjectItem[];
+  items?: (ProjectItem & { slug?: string })[];
   githubUrl?: string;
 }) {
   const t = useTranslations("projects");
-  const items = propItems ?? (t.raw("items") as ProjectItem[]);
+  const items = propItems ?? (t.raw("items") as (ProjectItem & { slug?: string })[]);
   const gh = githubUrl ?? site.github;
 
   const trackRef = useRef<HTMLDivElement>(null);
@@ -97,7 +97,17 @@ export function Projects({
 
                   <div className="flex flex-1 flex-col p-6">
                     <h3 className="font-display text-2xl font-semibold tracking-tight">
-                      {item.title}
+                      {item.slug ? (
+                        <Link
+                          href={`/projects/${item.slug}`}
+                          data-cursor="link"
+                          className="transition-colors hover:text-neon"
+                        >
+                          {item.title}
+                        </Link>
+                      ) : (
+                        item.title
+                      )}
                     </h3>
                     <p className="mt-3 flex-1 text-sm leading-relaxed text-soft">
                       {item.desc}
@@ -135,7 +145,7 @@ export function Projects({
                           <ArrowUpRight size={13} />
                         </a>
                       ) : (
-                        <span className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-soft/50">
+                        <span className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-soft">
                           {t("live")}
                           <ArrowUpRight size={13} />
                         </span>

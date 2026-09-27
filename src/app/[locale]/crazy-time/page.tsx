@@ -3,7 +3,11 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { site } from "@/lib/site";
-import { BreadcrumbJsonLd, homeCrumb } from "@/components/structured-data";
+import {
+  BreadcrumbJsonLd,
+  WebPageJsonLd,
+  homeCrumb,
+} from "@/components/structured-data";
 
 export const revalidate = 60;
 
@@ -21,7 +25,7 @@ export async function generateMetadata({
       canonical: `${site.url}/crazy-time`,
     },
     openGraph: {
-      title: t("title"),
+      title: `${t("title")} | ${site.name}`,
       description: t("sub"),
       url: `${site.url}/crazy-time`,
       siteName: site.name,
@@ -78,6 +82,11 @@ export default async function CrazyTimePage({
       <BreadcrumbJsonLd
         items={[homeCrumb(), { name: "Crazy Time", url: `${site.url}/crazy-time` }]}
       />
+      <WebPageJsonLd
+        name="Crazy Time — Md. Tariqul Islam"
+        description={t("sub")}
+        url={`${site.url}/crazy-time`}
+      />
       <Link
         href="/"
         data-cursor="link"
@@ -115,7 +124,7 @@ export default async function CrazyTimePage({
                 </div>
               ) : (
                 <div className="flex aspect-video w-full items-center justify-center bg-surface">
-                  <span className="font-display text-4xl font-bold text-soft/20">CT</span>
+                  <span aria-hidden className="font-display text-4xl font-bold text-soft/20">CT</span>
                 </div>
               )}
 

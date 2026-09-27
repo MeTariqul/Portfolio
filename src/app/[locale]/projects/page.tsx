@@ -8,6 +8,7 @@ import { GitHubIcon } from "@/components/brand-icons";
 import {
   BreadcrumbJsonLd,
   ItemListJsonLd,
+  WebPageJsonLd,
   homeCrumb,
 } from "@/components/structured-data";
 
@@ -38,7 +39,7 @@ export async function generateMetadata({
       canonical: `${site.url}/projects`,
     },
     openGraph: {
-      title: t("heading"),
+      title: `${t("heading")} | ${site.name}`,
       description: t("sub"),
       url: `${site.url}/projects`,
       siteName: site.name,
@@ -79,6 +80,11 @@ export default async function ProjectsPage({
     <div className="mx-auto max-w-6xl px-5 pb-32 pt-36 sm:px-8">
       <BreadcrumbJsonLd
         items={[homeCrumb(), { name: "Projects", url: `${site.url}/projects` }]}
+      />
+      <WebPageJsonLd
+        name="Projects — Md. Tariqul Islam"
+        description={t("sub")}
+        url={`${site.url}/projects`}
       />
       <ItemListJsonLd
         name="Projects — Md. Tariqul Islam"

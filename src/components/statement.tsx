@@ -61,7 +61,7 @@ export function Statement() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 1.2 }}
-          className="mx-auto mt-8 max-w-lg font-mono text-xs uppercase tracking-[0.3em] text-soft/60"
+          className="mx-auto mt-8 max-w-lg font-mono text-xs uppercase tracking-[0.3em] text-soft"
         >
           {t("line2")} {t("line3")}
         </motion.p>

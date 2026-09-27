@@ -30,6 +30,7 @@ import {
   getSite,
   getSiteContent,
   getTestimonials,
+  projectSlug,
 } from "@/lib/content";
 import { getMetaContent } from "@/lib/messages";
 
@@ -157,7 +158,13 @@ export default async function HomePage({
       />
       <Services items={withItems(dbServices)} />
       <WordDivider words={wordBuild?.length ? wordBuild : ["Build", "Create", "Ship"]} />
-      <Projects items={withItems(dbProjects)} githubUrl={dbSite.github} />
+      <Projects
+        items={withItems(dbProjects)?.map((p) => ({
+          ...p,
+          slug: projectSlug(p.title),
+        }))}
+        githubUrl={dbSite.github}
+      />
       <SkillsWrapper rings={rings} />
       <Process items={withItems(dbProcess)} />
       <Experience items={withItems(dbExperience)} />

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { SectionHeading } from "./section-heading";
 import { Terminal } from "./terminal";
 import { Counter, type Stat } from "./counters";
@@ -21,8 +21,7 @@ export function About({
   location?: string;
 }) {
   const t = useTranslations("about");
-  const router = useRouter();
-  const location = propLocation ?? site.location;
+    const location = propLocation ?? site.location;
   const lines = propLines ?? (t.raw("terminalLines") as string[]);
   const stats = propStats ?? (t.raw("stats") as Stat[]);
   const badges = propBadges ?? (t.raw("badges") as string[]);
@@ -47,7 +46,11 @@ export function About({
           <div className="group relative aspect-square overflow-hidden rounded-3xl border border-line bg-black">
             <img
               src="/profile.jpg"
-              alt="Md. Tariqul Islam, full-stack web developer from Bangladesh"
+              alt="Md. Tariqul Islam, Web Developer from Bangladesh"
+              width={400}
+              height={400}
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div
@@ -114,18 +117,21 @@ export function About({
       </div>
 
       <div className="mt-12 flex justify-center">
-        <motion.button
-          onClick={() => router.push("/about")}
-          data-cursor="link"
+        <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="group flex items-center gap-2 rounded-full border border-line px-6 py-3 font-mono text-xs uppercase tracking-[0.2em] text-soft transition-all duration-300 hover:border-neon/50 hover:text-ink"
         >
-          {t("showMore")}
-          <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-        </motion.button>
+          <Link
+            href="/about"
+            data-cursor="link"
+            className="group flex items-center gap-2 rounded-full border border-line px-6 py-3 font-mono text-xs uppercase tracking-[0.2em] text-soft transition-all duration-300 hover:border-neon/50 hover:text-ink"
+          >
+            {t("showMore")}
+            <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

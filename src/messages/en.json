@@ -1,8 +1,8 @@
 {
   "meta": {
-    "title": "Md. Tariqul Islam | Full-Stack Web Developer from Bangladesh",
-    "description": "Md. Tariqul Islam is a full-stack web developer from Bangladesh. He builds responsive websites, web applications, business platforms, and e-commerce solutions using Next.js, React, TypeScript, Python, and Django.",
-    "ogDescription": "Md. Tariqul Islam is a full-stack web developer from Bangladesh building responsive websites, web applications, business platforms, and e-commerce solutions with Next.js, React, TypeScript, Python, and Django."
+    "title": "Md. Tariqul Islam | Web Developer from Bangladesh",
+    "description": "Official portfolio of Md. Tariqul Islam, a Web Developer from Bangladesh and Computer Science and Engineering student at Gono Bishwabidyalay.",
+    "ogDescription": "Official portfolio of Md. Tariqul Islam, a Web Developer from Bangladesh and Computer Science and Engineering student at Gono Bishwabidyalay."
   },
   "nav": {
     "home": "Home",
@@ -47,7 +47,7 @@
     "terminalTitle": "tariqul@portfolio",
     "terminalLines": [
       "> whoami",
-      "Md. Tariqul Islam — Full-Stack Web Developer",
+      "Md. Tariqul Islam — Web Developer",
       "> location",
       "Savar, Dhaka, Bangladesh (UTC+6)",
       "> education",
@@ -292,9 +292,9 @@
   },
   "aboutPage": {
     "title": "About",
-    "description": "Learn more about Md. Tariqul Islam — a full-stack web developer in Bangladesh specializing in Next.js, React, TypeScript, Python, Django and AI-powered web applications.",
-    "heading": "About Me",
-    "intro": "I'm Md. Tariqul Islam, a full-stack web developer from Savar, Dhaka, Bangladesh. I build fast, SEO-friendly and scalable web applications using modern technologies. Here's the full story.",
+    "description": "Education, technical skills and professional background of Md. Tariqul Islam, a Web Developer from Bangladesh studying Computer Science and Engineering at Gono Bishwabidyalay.",
+    "heading": "About Md. Tariqul Islam",
+    "intro": "I'm Md. Tariqul Islam, a Web Developer from Savar, Dhaka, Bangladesh. I build fast, accessible and scalable web applications with Next.js, React, TypeScript, Python and Django. Here's the full story.",
     "storyLabel": "My Story",
     "storyHeading": "How I started",
     "storySub": "From curious student to full-stack developer.",

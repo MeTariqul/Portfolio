@@ -62,7 +62,7 @@ export function Process({ items: propItems }: { items?: ProcessStep[] }) {
                   transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                   className="group relative overflow-hidden rounded-3xl border border-line p-7 transition-all duration-300 hover:-translate-y-1 hover:border-neon/40"
                 >
-                  <span className="absolute right-6 top-5 font-display text-6xl font-bold text-soft/10 transition-colors duration-500 group-hover:text-neon/20">
+                  <span aria-hidden className="absolute right-6 top-5 font-display text-6xl font-bold text-soft/10 transition-colors duration-500 group-hover:text-neon/20">
                     0{i + 1}
                   </span>
                   <span className="gradient-text font-mono text-xs font-bold uppercase tracking-[0.3em]">

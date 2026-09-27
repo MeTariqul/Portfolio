@@ -8,6 +8,7 @@ import { site } from "@/lib/site";
 import {
   BreadcrumbJsonLd,
   ItemListJsonLd,
+  WebPageJsonLd,
   homeCrumb,
 } from "@/components/structured-data";
 
@@ -34,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
       canonical: `${site.url}/blog`,
     },
     openGraph: {
-      title: messages.blog.heading,
+      title: `${messages.blog.heading} | ${site.name}`,
       description: messages.blog.sub,
       url: `${site.url}/blog`,
       siteName: site.name,
@@ -67,9 +68,14 @@ export default async function BlogPage({
       <BreadcrumbJsonLd
         items={[homeCrumb(), { name: "Blog", url: `${site.url}/blog` }]}
       />
+      <WebPageJsonLd
+        name="Blog — Md. Tariqul Islam"
+        description={t("sub")}
+        url={`${site.url}/blog`}
+      />
       <ItemListJsonLd
         name="Blog — Md. Tariqul Islam"
-        description="Technical articles and case studies by Md. Tariqul Islam, full-stack web developer."
+        description="Technical articles and case studies by Md. Tariqul Islam, Web Developer."
         url={`${site.url}/blog`}
         items={all.map((post) => ({
           name: post.title,
@@ -99,6 +105,8 @@ export default async function BlogPage({
               <img
                 src={post.image_url}
                 alt={post.title}
+                loading="lazy"
+                decoding="async"
                 className="absolute inset-0 h-full w-full object-cover opacity-20 transition-transform duration-700 group-hover:scale-105"
               />
             ) : (
@@ -107,7 +115,7 @@ export default async function BlogPage({
                 className={`absolute inset-0 bg-gradient-to-br ${post.gradient} opacity-15 transition-opacity duration-500 group-hover:opacity-25`}
               />
             )}
-            <span className="absolute right-6 top-6 font-display text-6xl font-bold text-soft/10">
+            <span aria-hidden className="absolute right-6 top-6 font-display text-6xl font-bold text-soft/10">
               0{i + 1}
             </span>
             <div className="relative">
