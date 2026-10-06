@@ -78,6 +78,7 @@ export default async function BlogPage({ searchParams }: Props) {
           <div className="mt-6 flex flex-wrap gap-2" aria-label="Filter by tag">
             <Link
               href={pageHref({ q: q || undefined, page: 1 })}
+              prefetch={false}
               className={cn(
                 "rounded-full border px-4 py-1.5 text-sm transition-colors",
                 !tag
@@ -91,6 +92,7 @@ export default async function BlogPage({ searchParams }: Props) {
               <Link
                 key={t}
                 href={pageHref({ q: q || undefined, tag: t, page: 1 })}
+                prefetch={false}
                 className={cn(
                   "rounded-full border px-4 py-1.5 text-sm transition-colors",
                   tag === t
@@ -112,6 +114,7 @@ export default async function BlogPage({ searchParams }: Props) {
             {", "}
             <Link
               href="/blog"
+              prefetch={false}
               className="link-underline text-accent hover:text-ink"
             >
               clear
@@ -143,6 +146,7 @@ export default async function BlogPage({ searchParams }: Props) {
                   tag: tag || undefined,
                   page: page - 1,
                 })}
+                prefetch={false}
                 className="link-underline text-accent"
               >
                 ← Newer posts
@@ -160,6 +164,7 @@ export default async function BlogPage({ searchParams }: Props) {
                   tag: tag || undefined,
                   page: page + 1,
                 })}
+                prefetch={false}
                 className="link-underline text-accent"
               >
                 Older posts →

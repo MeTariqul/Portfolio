@@ -37,6 +37,11 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   allowedDevOrigins: ["192.168.0.10"],
+  // Inline the stylesheet into the HTML so first paint has no render-blocking
+  // request to wait for (measured by PageSpeed/Lighthouse).
+  experimental: {
+    inlineCss: true,
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30,

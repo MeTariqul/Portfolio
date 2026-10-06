@@ -20,7 +20,11 @@ export function PostRow({ post }: { post: Post }) {
         )}
       </div>
       <h3 className="mt-2 text-2xl">
-        <Link href={`/blog/${post.slug}`} className="link-underline hover:text-accent">
+        <Link
+          href={`/blog/${post.slug}`}
+          prefetch={false}
+          className="link-underline hover:text-accent"
+        >
           {post.title}
         </Link>
       </h3>

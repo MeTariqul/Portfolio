@@ -24,7 +24,7 @@ export default function NotFound() {
               note. The homepage is a good place to start again.
             </p>
             <p className="mt-8">
-              <Link href="/" className="link-underline text-accent">
+              <Link href="/" prefetch={false} className="link-underline text-accent">
                 Back to the homepage
               </Link>
             </p>

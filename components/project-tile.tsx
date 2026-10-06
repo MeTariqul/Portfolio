@@ -21,6 +21,7 @@ export function ProjectTile({ project }: { project: Project }) {
       <h3 className="mt-1 text-xl">
         <Link
           href={`/projects/${project.slug}`}
+          prefetch={false}
           className="link-underline hover:text-accent"
         >
           {project.title}
@@ -53,6 +54,7 @@ export function ProjectRow({
         <h3 className="text-2xl">
           <Link
             href={`/projects/${project.slug}`}
+            prefetch={false}
             className="link-underline hover:text-accent"
           >
             {project.title}

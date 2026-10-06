@@ -43,6 +43,7 @@ export function Header() {
       <div className="mx-auto flex h-16 w-full max-w-[1120px] items-center justify-between px-6 md:px-8">
         <Link
           href="/"
+          prefetch={false}
           className="font-display text-lg tracking-tight hover:text-accent"
         >
           {site.shortName}
@@ -53,6 +54,7 @@ export function Header() {
             <Link
               key={l.href}
               href={l.href}
+              prefetch={false}
               className={cn(
                 "link-underline text-[0.95rem] text-soft transition-colors hover:text-ink",
                 pathname === l.href && "text-ink",
@@ -104,6 +106,7 @@ export function Header() {
               <Link
                 key={l.href}
                 href={l.href}
+                prefetch={false}
                 onClick={() => setOpen(false)}
                 className="py-3 text-soft transition-colors hover:text-accent"
               >

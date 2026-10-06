@@ -50,7 +50,11 @@ export default async function HomePage() {
 
         <div className="mt-8 flex flex-wrap items-center gap-4">
           <ButtonLink href="/contact">Start a project</ButtonLink>
-          <Link href="/projects" className="link-underline text-soft hover:text-ink">
+          <Link
+            href="/projects"
+            prefetch={false}
+            className="link-underline text-soft hover:text-ink"
+          >
             See my work
           </Link>
         </div>
@@ -66,7 +70,11 @@ export default async function HomePage() {
           ))}
         </div>
         <p className="mt-6">
-          <Link href="/projects" className="link-underline text-accent">
+          <Link
+            href="/projects"
+            prefetch={false}
+            className="link-underline text-accent"
+          >
             All projects
           </Link>
         </p>
@@ -82,7 +90,11 @@ export default async function HomePage() {
           ))}
         </div>
         <p className="mt-6">
-          <Link href="/blog" className="link-underline text-accent">
+          <Link
+            href="/blog"
+            prefetch={false}
+            className="link-underline text-accent"
+          >
             All posts
           </Link>
         </p>

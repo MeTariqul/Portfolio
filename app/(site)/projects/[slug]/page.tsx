@@ -50,7 +50,11 @@ export default async function ProjectPage({ params }: Props) {
     <Container>
       <article className="py-20 md:py-24">
         <p className="text-sm text-soft">
-          <Link href="/projects" className="link-underline hover:text-ink">
+          <Link
+            href="/projects"
+            prefetch={false}
+            className="link-underline hover:text-ink"
+          >
             Projects
           </Link>
           <span aria-hidden> / </span>
@@ -115,7 +119,11 @@ export default async function ProjectPage({ params }: Props) {
         </section>
 
         <p className="mt-16 border-t border-line pt-8">
-          <Link href="/projects" className="link-underline text-accent">
+          <Link
+            href="/projects"
+            prefetch={false}
+            className="link-underline text-accent"
+          >
             Back to all projects
           </Link>
         </p>

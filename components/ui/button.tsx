@@ -60,6 +60,8 @@ export function ButtonLink({
   return (
     <Link
       href={href}
+      // Keeps link prefetches out of the first-viewport network window.
+      prefetch={false}
       className={classes(variant, size, className)}
       {...props}
     >

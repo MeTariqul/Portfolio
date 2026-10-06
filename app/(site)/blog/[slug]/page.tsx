@@ -138,6 +138,7 @@ export default async function BlogPostPage({ params }: Props) {
           {adjacent.prev ? (
             <Link
               href={`/blog/${adjacent.prev.slug}`}
+              prefetch={false}
               className="link-underline max-w-[45%] text-soft hover:text-ink"
             >
               ← Newer: {adjacent.prev.title}
@@ -148,6 +149,7 @@ export default async function BlogPostPage({ params }: Props) {
           {adjacent.next ? (
             <Link
               href={`/blog/${adjacent.next.slug}`}
+              prefetch={false}
               className="link-underline max-w-[45%] text-right text-soft hover:text-ink sm:text-right"
             >
               Older: {adjacent.next.title} →

@@ -39,10 +39,18 @@ export function Footer() {
           >
             LinkedIn
           </a>
-          <Link href="/uses" className="link-underline text-soft hover:text-ink">
+          <Link
+            href="/uses"
+            prefetch={false}
+            className="link-underline text-soft hover:text-ink"
+          >
             Uses
           </Link>
-          <Link href="/rss.xml" className="link-underline text-soft hover:text-ink">
+          <Link
+            href="/rss.xml"
+            prefetch={false}
+            className="link-underline text-soft hover:text-ink"
+          >
             RSS
           </Link>
         </nav>
