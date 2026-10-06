@@ -23,8 +23,8 @@ const themeScript = `(function(){try{var s=localStorage.getItem("theme");var d=s
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: `${site.name} — Web developer`,
-    template: `%s — ${site.name}`,
+    default: `${site.name} · Web developer`,
+    template: `%s · ${site.name}`,
   },
   description:
     "Portfolio and blog of Md. Tariqul Islam, a web developer from Savar, Dhaka, Bangladesh.",

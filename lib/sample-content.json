@@ -1,0 +1,463 @@
+{
+  "settings": {
+    "availability": {
+      "available": true,
+      "note": "Open to freelance projects and full-time roles"
+    },
+    "home": {
+      "role": "I build websites and web apps for people and small teams.",
+      "intro": "I'm Md. Tariqul Islam, a web developer from Savar, Dhaka, Bangladesh. I work with Next.js, React, TypeScript, Python, Django and PostgreSQL. I also take freelance work on Fiverr."
+    },
+    "newsletter": {
+      "enabled": false
+    }
+  },
+  "about": {
+    "story": [
+      "I started building websites out of curiosity. Tweaking HTML templates, breaking CSS layouts, and figuring out why things did not work. That turned into a habit of building things until they do.",
+      "These days I build full-stack web applications with Next.js, React and TypeScript, and Python tools with Django and FastAPI. I care about speed, search visibility and interfaces that stay out of your way. An AI study platform, an online shop, a monitoring dashboard: I enjoy the part where an idea becomes something people can use.",
+      "When I am not coding I am reading about new tools, contributing where I can, and writing down what I learn on this blog."
+    ],
+    "interests": [
+      "Open source",
+      "Writing about what I learn",
+      "Databases and caching",
+      "Automation that saves real time"
+    ]
+  },
+  "skills": [
+    {
+      "name": "Next.js",
+      "group": "Frontend",
+      "order": 0
+    },
+    {
+      "name": "React",
+      "group": "Frontend",
+      "order": 1
+    },
+    {
+      "name": "TypeScript",
+      "group": "Frontend",
+      "order": 2
+    },
+    {
+      "name": "Tailwind CSS",
+      "group": "Frontend",
+      "order": 3
+    },
+    {
+      "name": "Framer Motion",
+      "group": "Frontend",
+      "order": 4
+    },
+    {
+      "name": "Node.js",
+      "group": "Backend & Databases",
+      "order": 0
+    },
+    {
+      "name": "PostgreSQL",
+      "group": "Backend & Databases",
+      "order": 1
+    },
+    {
+      "name": "Prisma",
+      "group": "Backend & Databases",
+      "order": 2
+    },
+    {
+      "name": "Redis",
+      "group": "Backend & Databases",
+      "order": 3
+    },
+    {
+      "name": "REST APIs",
+      "group": "Backend & Databases",
+      "order": 4
+    },
+    {
+      "name": "Python",
+      "group": "Python & AI",
+      "order": 0
+    },
+    {
+      "name": "Django",
+      "group": "Python & AI",
+      "order": 1
+    },
+    {
+      "name": "FastAPI",
+      "group": "Python & AI",
+      "order": 2
+    },
+    {
+      "name": "pandas",
+      "group": "Python & AI",
+      "order": 3
+    },
+    {
+      "name": "Selenium",
+      "group": "Python & AI",
+      "order": 4
+    },
+    {
+      "name": "OpenAI API",
+      "group": "Python & AI",
+      "order": 5
+    },
+    {
+      "name": "Vercel",
+      "group": "Deployment & Tools",
+      "order": 0
+    },
+    {
+      "name": "Cloudflare",
+      "group": "Deployment & Tools",
+      "order": 1
+    },
+    {
+      "name": "GitHub Actions",
+      "group": "Deployment & Tools",
+      "order": 2
+    },
+    {
+      "name": "Git",
+      "group": "Deployment & Tools",
+      "order": 3
+    }
+  ],
+  "experience": [
+    {
+      "kind": "FREELANCE",
+      "title": "Freelance Full-Stack Web Developer",
+      "org": "Fiverr",
+      "period": "2024 to Present",
+      "description": "Building websites, web applications, email templates and AI-assisted digital solutions for clients through freelance projects. Working across frontend development, backend integration, responsive UI implementation and deployment.",
+      "order": 0
+    },
+    {
+      "kind": "EDUCATION",
+      "title": "B.Sc. in Computer Science & Engineering",
+      "org": "Gono Bishwabidyalay",
+      "period": "2023 to 2027",
+      "description": "Studying computer science with a focus on software development, web technologies, databases, operating systems and computer networks while building practical web applications alongside coursework.",
+      "order": 1
+    },
+    {
+      "kind": "EDUCATION",
+      "title": "Higher Secondary Certificate (HSC)",
+      "org": "Mirza Golam Hafiz College",
+      "period": "Completed",
+      "description": "Science background with an early interest in technology, programming and problem solving.",
+      "order": 2
+    },
+    {
+      "kind": "EDUCATION",
+      "title": "Secondary School Certificate (SSC)",
+      "org": "Adarsha High School",
+      "period": "Completed",
+      "description": "Completed secondary education with an early foundation in science, mathematics and problem solving.",
+      "order": 3
+    }
+  ],
+  "services": [
+    {
+      "title": "Web Development",
+      "descriptionMD": "Modern, responsive and SEO-friendly websites and web applications built with Next.js, React and TypeScript. I focus on performance, accessibility, maintainability and clean user experiences.",
+      "priceNote": "Fixed quote per project after a short call. No hourly surprises.",
+      "order": 0
+    },
+    {
+      "title": "AI Integration",
+      "descriptionMD": "AI-powered features including chatbots, document analysis, OCR workflows, intelligent search, RAG-based applications and AI-assisted learning tools.",
+      "priceNote": null,
+      "order": 1
+    },
+    {
+      "title": "UI/UX & Interactive Web Design",
+      "descriptionMD": "Responsive interfaces, interactive animations, micro-interactions and 3D web experiences designed to make modern web applications engaging and easy to use.",
+      "priceNote": null,
+      "order": 2
+    },
+    {
+      "title": "Python & Backend Development",
+      "descriptionMD": "Python-based backend development, REST APIs, automation tools, OCR workflows and data-processing applications using Django and FastAPI.",
+      "priceNote": null,
+      "order": 3
+    },
+    {
+      "title": "Performance & Deployment",
+      "descriptionMD": "Performance-focused deployment, hosting optimization, monitoring and CI/CD using modern cloud and developer tools. I focus on fast loading times, efficient resource usage and good Core Web Vitals.",
+      "priceNote": null,
+      "order": 4
+    }
+  ],
+  "posts": [
+    {
+      "slug": "ai-study-platform-case-study",
+      "title": "Building an AI-Powered Study Platform from Scratch",
+      "excerpt": "Documents, OCR, flashcards, an AI tutor, free-vs-pro billing. how I architected a full study OS on a student budget.",
+      "contentMD": "Every student knows the feeling: 40 PDFs of lecture slides, zero time to read them, and an exam next week. That's the problem I set out to kill. I designed a platform where you upload course documents. PDF, DOCX, PPTX, even scanned papers. and the system turns them into a personal study engine: flashcards, quizzes, summaries and an AI tutor that knows your material.\n\n## The architecture\n\nNext.js 15 App Router on the front, API routes as a monolith backend, PostgreSQL (Neon) + Prisma for data, Upstash Redis for rate limiting and queues, and Vercel Blob for document storage. The secret sauce was the pipeline: file upload → text extraction → OCR when needed → chunking → embedding + LLM calls, all processed in background jobs so the UI never blocks.\n\n```ts\n// Pipeline sketch: document → study material\nexport async function processDocument(file: File) {\n  const text = file.type === 'application/pdf'\n    ? await extractPdf(file)      // pdf-parse + OCR fallback\n    : await extractOffice(file);  // DOCX / PPTX / TXT\n\n  const chunks = chunk(text, 800);\n  const embeddings = await embed(chunks);   // OpenAI\n  await upsertVectors(chunks, embeddings);  // pgvector\n\n  return enqueueSummaryJob(chunks);\n}\n```\n\n## OCR was the hardest 20%\n\nScanned Bengali lecture sheets are brutal for OCR engines. I ended up with a cascade: try the PDF's embedded text layer first, fall back to Tesseract, then to a vision LLM for low-confidence pages. Accuracy jumped from ~70% to 95%+, and free-tier users get the cheap path while Pro gets the smart path.\n\n## Free vs Pro, done right\n\n- Free: 5 documents, 50 AI questions/day, flashcards only\n- Pro: unlimited documents, AI tutor sessions, OCR priority\n- Stripe checkout, JWT sessions, email verification on signup\n\nThe lesson? Real products win on the boring parts. queues, retries, cost limits. not the flashy UI. That's what separates a demo from something people actually use.",
+      "coverImage": null,
+      "coverAlt": null,
+      "category": "Case Study",
+      "tags": [
+        "Next.js",
+        "AI",
+        "PostgreSQL"
+      ],
+      "date": "2026-06-18",
+      "featured": true,
+      "status": "PUBLISHED",
+      "seoTitle": null,
+      "seoDescription": null
+    },
+    {
+      "slug": "shipping-ai-on-vercel-free-tier",
+      "title": "Shipping AI Apps on Vercel's Free Tier Without Going Broke",
+      "excerpt": "The exact cost-optimization playbook: caching, queueing, model routing and edge tricks that keep an AI app at $0/mo.",
+      "contentMD": "Everyone's first AI app is a money pit waiting to happen. Here's the exact system I use to keep AI-heavy apps running on Vercel's free tier. zero server bills, single-digit API costs.\n\n## Rule 1: Cache like your budget depends on it\n\nThe same question asked twice costs twice. I hash the input (document ID + query) and check Redis before touching an LLM. For study-platform flashcards, ~40% of generation requests are duplicates. That's 40% of API spend deleted.\n\n```ts\nconst key = `gen:${sha1(input)}`;\nconst cached = await redis.get(key);\nif (cached) return cached;              // hit: $0.00\n\nconst result = await cheapestModel(input);\nawait redis.set(key, result, { ex: 86400 });\n```\n\n## Rule 2: Route to the cheapest model that works\n\n- Summaries → small fast models (Gemini Flash)\n- Reasoning-heavy tutoring → a capable mid-tier model\n- Batch jobs → the model with best cost/token that day\n- Always set maxTokens. runaway generation is how bills explode\n\n## Rule 3: Background, not request-time\n\nLong generations belong in background jobs with webhooks, not inside a serverless function you pay for per millisecond. A queue (Redis + a tiny worker) means users see a spinner for 2 seconds and you pay for the absolute minimum compute.\n\nThe whole app runs at roughly $0 infra + ~$5/month in API calls. The day it starts getting real traffic, everything scales horizontally without redesign. because the boring parts were done right from day one.",
+      "coverImage": null,
+      "coverAlt": null,
+      "category": "Engineering",
+      "tags": [
+        "Vercel",
+        "AI",
+        "Optimization"
+      ],
+      "date": "2026-04-02",
+      "featured": false,
+      "status": "PUBLISHED",
+      "seoTitle": null,
+      "seoDescription": null
+    },
+    {
+      "slug": "r3f-cinematic-heroes",
+      "title": "Crafting Cinematic 3D Heroes with React Three Fiber",
+      "excerpt": "Distorted geometry, instanced starfields, bloom postprocessing. the recipe for a hero section that makes people stop scrolling.",
+      "contentMD": "This very site you're reading has a WebGL hero. Here's how it's built, and the performance rules that keep it at 60fps on a mid-range laptop.\n\n## The recipe\n\n- An icosahedron with a distort material as the energy core\n- A wireframe shell that counter-rotates for depth\n- Instanced starfield from drei's <Stars>\n- Floating glass shards orbiting on their own clocks\n- Bloom + vignette postprocessing for the glow\n- Mouse parallax on the camera, not the objects\n\n```tsx\n<Canvas camera={{ position: [0, 0, 6], fov: 45 }} dpr={[1, 1.5]}>\n  <Stars radius={60} depth={40} count={4000} factor={3} fade />\n  <EnergyCore />\n  <OrbitingShards />\n  <EffectComposer>\n    <Bloom intensity={0.9} luminanceThreshold={0.2} />\n    <Vignette eskil={false} offset={0.25} darkness={0.75} />\n  </EffectComposer>\n</Canvas>\n```\n\n## The performance commandments\n\nCap DPR at 1.5. Pause the render loop when the hero scrolls out of view (IntersectionObserver + frameloop). Use instancing for anything repeated. Never animate CSS layout properties alongside WebGL. keep transforms and opacity only. And always ship a CSS fallback: no WebGL, no problem.\n\nA 3D hero isn't decoration. it's the first sentence of your portfolio. Make it say something about how you think.",
+      "coverImage": null,
+      "coverAlt": null,
+      "category": "Design & Motion",
+      "tags": [
+        "React",
+        "Three.js",
+        "Animation"
+      ],
+      "date": "2026-02-11",
+      "featured": false,
+      "status": "PUBLISHED",
+      "seoTitle": null,
+      "seoDescription": null
+    },
+    {
+      "slug": "python-ai-pipeline-sidekick",
+      "title": "Why Python Is My AI Pipeline Sidekick",
+      "excerpt": "OCR, scraping, data wrangling and model glue. the Python layer that powers the AI features in my Next.js products.",
+      "contentMD": "React and Next.js handle the user-facing side of everything I build, but a lot of the magic happens off-screen in Python. Every AI feature I've shipped. OCR fallbacks, document pipelines, scrapers, smart search. has a Python layer underneath. This post is about where Python earns its keep in a JavaScript-first stack.\n\n## The division of labor\n\n- Next.js: UI, routing, auth, billing, server actions\n- Python: OCR, PDF/DOCX extraction, scraping, data cleaning, ML models\n- Bridge: FastAPI microservices + background jobs. never blocking the UI\n\n```python\n# OCR fallback cascade: cheap → smart\ndef extract_text(path: Path) -> str:\n    text = try_pdf_text_layer(path)\n    if low_confidence(text):\n        text = tesseract_ocr(path)          # free tier\n    if low_confidence(text):\n        text = vision_llm(path)             # pro tier\n    return clean(text)\n\ndef clean(text: str) -> str:\n    return \" \".join(text.split())  # pandas-free, regex-lite\n```\n\n## Scraping that doesn't break\n\nSelenium for anything JavaScript-rendered, BeautifulSoup for static pages, and pandas for the messy aftermath. The rule: every scraper is a pipeline. fetch, parse, normalize, validate. with retries and a schema, so the data out the other end is always clean enough to feed a LangChain pipeline or a PostgreSQL table.\n\n## When NOT to use Python\n\nIf it fits in a 10-line Node script, don't add a service boundary. Python earns its place for heavy compute, ML, and ecosystems (LangChain, scikit-learn) where JavaScript is second-class. Everything else stays in the Next.js app. one deploy, one language, fewer moving parts.\n\nThe takeaway: a full-stack developer who can step between TypeScript and Python can ship features. OCR, automation, model glue. that most web devs have to outsource.",
+      "coverImage": null,
+      "coverAlt": null,
+      "category": "Python",
+      "tags": [
+        "Python",
+        "AI",
+        "Automation"
+      ],
+      "date": "2026-07-28",
+      "featured": false,
+      "status": "PUBLISHED",
+      "seoTitle": null,
+      "seoDescription": null
+    }
+  ],
+  "projects": [
+    {
+      "title": "CoverVerse",
+      "slug": "coververse",
+      "summary": "Assignment cover generator with 500+ templates, live preview and one-click PDF or image export.",
+      "problem": "Students format assignment cover pages by hand, and every department wants a slightly different layout. It eats time right before deadlines.",
+      "solutionMD": "I built CoverVerse, a web app with more than 500 ready templates, a live preview, and export to PDF or image. You fill in the course details once and the template fills itself. It also works offline, so a bad campus network does not stop you.",
+      "learnedMD": "Generating PDFs in the browser taught me how fonts, margins and print layouts behave. Offline support with a service worker made me think about what the app must do when the network drops.",
+      "stack": [
+        "Next.js",
+        "AI",
+        "PDF",
+        "OCR"
+      ],
+      "category": "AI & Web App",
+      "screenshots": [],
+      "liveUrl": null,
+      "githubUrl": "https://github.com/MeTariqul/Assignment-Cover-Page",
+      "featured": true,
+      "order": 0
+    },
+    {
+      "title": "MeTariqul Tec Shop",
+      "slug": "metariqul-tec-shop",
+      "summary": "E-commerce storefront with a custom cart, checkout flow and inventory management.",
+      "problem": "A small shop needed to sell online without paying for a heavy commerce platform it would never fully use.",
+      "solutionMD": "I built the storefront with a custom cart, a checkout workflow and inventory management on Next.js and PostgreSQL. Product data goes through Prisma, and the owner can update stock without touching code.",
+      "learnedMD": "Keeping the server as the source of truth for cart and stock made the whole flow predictable. I also learned how little a simple shop actually needs from a cart library.",
+      "stack": [
+        "Next.js",
+        "PostgreSQL",
+        "Prisma"
+      ],
+      "category": "E-commerce",
+      "screenshots": [],
+      "liveUrl": "https://tariqul-tecshop.vercel.app",
+      "githubUrl": "https://github.com/MeTariqul/MeTariqul-tecshop",
+      "featured": true,
+      "order": 1
+    },
+    {
+      "title": "AI Study Platform",
+      "slug": "ai-study-platform",
+      "summary": "Upload course documents and get flashcards, quizzes, summaries and an AI tutor that knows your material.",
+      "problem": "Lecture PDFs pile up before exams and nobody has time to read them all. I wanted a tool that turns the documents themselves into a study engine.",
+      "solutionMD": "You upload PDFs, DOCX files or scanned notes. The platform extracts the text, chunks it, and builds flashcards, quizzes and summaries, with an AI tutor that answers from your own material. A free tier covers light use and a Pro tier handles the heavy AI paths.",
+      "learnedMD": "OCR on scanned Bengali sheets was the hardest part. A cascade of embedded text, Tesseract and a vision model got accuracy up. The bigger lesson: queues, retries and cost limits matter more than the interface.",
+      "stack": [
+        "OpenAI",
+        "Gemini",
+        "LangChain",
+        "Python",
+        "Redis"
+      ],
+      "category": "AI Platform",
+      "screenshots": [],
+      "liveUrl": null,
+      "githubUrl": null,
+      "featured": true,
+      "order": 2
+    },
+    {
+      "title": "Python Automation Suite",
+      "slug": "python-automation-suite",
+      "summary": "Scraping bots, data pipelines and scheduled workflows that turn manual hours into seconds.",
+      "problem": "Repetitive data work: copying information between sites, cleaning spreadsheets, checking pages for changes. It is honest work that eats whole afternoons.",
+      "solutionMD": "A set of scripts built on Selenium, BeautifulSoup and pandas that scrape, transform and file data on a schedule. The scripts log what they did and email me when something looks wrong.",
+      "learnedMD": "Most automation fails on messy real-world HTML. Defensive parsing and good logs saved me more than any clever selector ever did.",
+      "stack": [
+        "Python",
+        "Selenium",
+        "pandas",
+        "Automation"
+      ],
+      "category": "Automation",
+      "screenshots": [],
+      "liveUrl": null,
+      "githubUrl": null,
+      "featured": false,
+      "order": 3
+    },
+    {
+      "title": "Cloudflare Tunnel Monitor",
+      "slug": "cloudflare-tunnel-monitor",
+      "summary": "Live dashboard for Cloudflare Tunnel health, with status history and failure alerts.",
+      "problem": "Cloudflare Tunnels can die quietly. You find out from users instead of from your own tools.",
+      "solutionMD": "A dashboard that checks tunnel health in real time over WebSockets, keeps a history of status, and flags connection failures the moment they happen.",
+      "learnedMD": "Designing the failure states first (unknown, degraded, down) made the UI honest. Heartbeat-style checks beat hammering the same endpoint.",
+      "stack": [
+        "Cloudflare",
+        "Node.js",
+        "WebSockets"
+      ],
+      "category": "DevOps",
+      "screenshots": [],
+      "liveUrl": null,
+      "githubUrl": "https://github.com/MeTariqul/Cloudflare-Tunnel-Monitor",
+      "featured": false,
+      "order": 4
+    },
+    {
+      "title": "IPTV Stream Checker",
+      "slug": "iptv-stream-checker",
+      "summary": "M3U playlist viewer that checks stream availability on a schedule and filters dead channels.",
+      "problem": "M3U playlists rot. Half the channels in a list stop working and nobody knows which ones until you click them.",
+      "solutionMD": "A web tool that parses M3U playlists, checks stream availability on a schedule, and marks dead channels so you can filter them out before sharing a list.",
+      "learnedMD": "Streaming checks are all about timeouts and flaky networks. I learned to treat slow as its own state instead of forcing a pass or fail.",
+      "stack": [
+        "Next.js",
+        "M3U",
+        "Vercel"
+      ],
+      "category": "Streaming",
+      "screenshots": [],
+      "liveUrl": "https://livetv-flax.vercel.app",
+      "githubUrl": "https://github.com/MeTariqul/Live-Tv",
+      "featured": false,
+      "order": 5
+    },
+    {
+      "title": "PrintEdge",
+      "slug": "printedge",
+      "summary": "Printing shop platform for online print orders, branding and customer contact.",
+      "problem": "A printing shop needed a real presence online: customers should place orders and see the brand properly.",
+      "solutionMD": "A web platform for print orders with shop branding, order submission and customer contact, built with React and Node.",
+      "learnedMD": "Order flows need a clear status at every step. I kept the states explicit so a customer is never left wondering what happened to their print job.",
+      "stack": [
+        "React",
+        "Node.js",
+        "MongoDB"
+      ],
+      "category": "Web App",
+      "screenshots": [],
+      "liveUrl": "https://printedge.vercel.app",
+      "githubUrl": "https://github.com/MeTariqul/printedge",
+      "featured": false,
+      "order": 6
+    }
+  ],
+  "uses": [
+    {
+      "title": "VS Code",
+      "description": "Editor, every day. Extensions stay minimal: ESLint, Prettier, Prisma.",
+      "group": "Daily",
+      "order": 0
+    },
+    {
+      "title": "Git and GitHub",
+      "description": "Small commits, feature branches, pull requests even when I am the only one on it.",
+      "group": "Daily",
+      "order": 1
+    },
+    {
+      "title": "Windows Terminal",
+      "description": "Where npm, git and prisma commands live. I keep the history long on purpose.",
+      "group": "Daily",
+      "order": 2
+    },
+    {
+      "title": "Vercel",
+      "description": "Preview deployments for every branch. The free tier covers all my projects.",
+      "group": "Infrastructure",
+      "order": 0
+    },
+    {
+      "title": "Supabase and PostgreSQL",
+      "description": "Postgres with a dashboard I actually like. Prisma for queries, SQL when I need speed.",
+      "group": "Infrastructure",
+      "order": 1
+    },
+    {
+      "title": "Chrome DevTools",
+      "description": "Performance panel first, network panel second, console when I am stubborn.",
+      "group": "Infrastructure",
+      "order": 2
+    },
+    {
+      "title": "MDN and documentation",
+      "description": "I read the docs before the blog posts. It has saved me more than once.",
+      "group": "Learning",
+      "order": 0
+    },
+    {
+      "title": "Figma",
+      "description": "Quick frames before code when a layout needs thinking through.",
+      "group": "Learning",
+      "order": 1
+    }
+  ]
+}

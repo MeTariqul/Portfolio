@@ -8,11 +8,12 @@ export function Reveal({
   children,
   className,
   as: Tag = "div",
+  ...rest
 }: {
   children: React.ReactNode;
   className?: string;
   as?: "div" | "section" | "li" | "article";
-}) {
+} & React.HTMLAttributes<HTMLElement>) {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -27,14 +28,14 @@ export function Reveal({
           }
         }
       },
-      { threshold: 0.15 },
+      { threshold: 0 },
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
   return (
-    <Tag ref={ref as never} className={`reveal ${className ?? ""}`}>
+    <Tag ref={ref as never} className={`reveal ${className ?? ""}`} {...rest}>
       {children}
     </Tag>
   );
