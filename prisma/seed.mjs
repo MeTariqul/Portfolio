@@ -45,17 +45,31 @@ async function seedSetting(key, value) {
   console.log(`  setting:${key}: seeded`);
 }
 
+// Read a key from .env directly: `npm run db:seed` does not load .env into
+// process.env (only Next.js does), so process.env alone silently falls back
+// to the defaults and creates an admin you cannot log in with.
+function envFromFile(key) {
+  if (process.env[key]) return process.env[key].trim();
+  try {
+    const raw = readFileSync(new URL("../.env", import.meta.url), "utf8");
+    const line = raw
+      .split(/\r?\n/)
+      .filter((l) => l.startsWith(key + "="))
+      .pop();
+    if (!line) return null;
+    return line.slice(key.length + 1).trim().replace(/^["']|["']$/g, "");
+  } catch {
+    return null;
+  }
+}
+
 async function seedAdmin() {
-  const email = process.env.ADMIN_EMAIL || "admin@example.com";
-  const password = process.env.ADMIN_PASSWORD || "change-me-please";
-  if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) {
-    console.warn(
-      "  ! ADMIN_EMAIL / ADMIN_PASSWORD not set in .env. Using defaults:",
-      email,
-      "/",
-      password,
-    );
-    console.warn("  ! Set them in .env and re-seed after deleting the user row.");
+  const email = envFromFile("ADMIN_EMAIL");
+  const password = envFromFile("ADMIN_PASSWORD");
+  if (!email || !password) {
+    console.warn("  ! ADMIN_EMAIL / ADMIN_PASSWORD not found in .env.");
+    console.warn("  ! Add them, then re-run npm run db:seed.");
+    return;
   }
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
