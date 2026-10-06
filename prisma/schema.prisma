@@ -1,0 +1,170 @@
+// Portfolio content model. Designed to be extensible:
+// new content types get their own model; free-form pages use `Page.blocks`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+}
+
+enum ExperienceKind {
+  EDUCATION
+  FREELANCE
+  WORK
+}
+
+// Single admin account. Password is scrypt-hashed (see lib/password.ts).
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Post {
+  id             String     @id @default(cuid())
+  title          String
+  slug           String     @unique
+  excerpt        String     @db.Text
+  contentMD      String     @db.Text
+  coverImage     String?
+  coverAlt       String?
+  category       String?
+  tags           String[]
+  status         PostStatus @default(DRAFT)
+  publishedAt    DateTime?
+  featured       Boolean    @default(false)
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([tags])
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  summary     String   @db.Text
+  problem     String   @db.Text
+  solutionMD  String   @db.Text
+  learnedMD   String   @db.Text
+  stack       String[]
+  category    String
+  screenshots Json // [{ url, alt }] — alt required by admin validation
+  liveUrl     String?
+  githubUrl   String?
+  featured    Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category, order])
+}
+
+// Skills grouped by area (Frontend, Backend, ...).
+model Skill {
+  id    String @id @default(cuid())
+  name  String
+  group String
+  order Int    @default(0)
+
+  @@index([group, order])
+}
+
+// About-page timeline (education, freelance work, jobs).
+model Experience {
+  id          String        @id @default(cuid())
+  kind        ExperienceKind
+  title       String
+  org         String
+  period      String
+  description String        @db.Text
+  order       Int           @default(0)
+
+  @@index([order])
+}
+
+model Service {
+  id           String  @id @default(cuid())
+  title        String
+  descriptionMD String @db.Text
+  priceNote    String?
+  order        Int     @default(0)
+
+  @@index([order])
+}
+
+// Contact-form submissions.
+model Message {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  content   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([read, createdAt])
+}
+
+// Uploaded files (Cloudinary). `alt` is required — enforced in the admin.
+model Media {
+  id        String   @id @default(cuid())
+  url       String
+  publicId  String
+  filename  String
+  alt       String
+  width     Int?
+  height    Int?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// Key/value site settings: title, socials, accent color, availability, nav, footer.
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+// Generic CMS pages: `blocks` is an ordered array of typed sections,
+// so new sections/pages can be added from the admin without code changes.
+model Page {
+  id        String   @id @default(cuid())
+  slug      String   @unique // "home", "about", "uses", ...
+  title     String
+  blocks    Json
+  updatedAt DateTime @updatedAt
+}
+
+model UsesItem {
+  id          String @id @default(cuid())
+  title       String
+  description String @db.Text
+  group       String?
+  order       Int    @default(0)
+
+  @@index([order])
+}
+
+// Optional newsletter (enabled via the `newsletter.enabled` setting).
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}

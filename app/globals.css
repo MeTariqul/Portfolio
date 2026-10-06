@@ -1,0 +1,241 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Design tokens ──────────────────────────────────────────────────── */
+:root {
+  --bg: #faf8f5; /* warm off-white */
+  --surface: #ffffff;
+  --ink: #26231f; /* soft charcoal, never pure black */
+  --soft: #6f6a62;
+  --line: rgb(38 35 31 / 0.12);
+  --accent: #b4552f; /* muted terracotta */
+  --accent-contrast: #ffffff;
+}
+
+.dark {
+  --bg: #1a1917;
+  --surface: #232120;
+  --ink: #ece8e2;
+  --soft: #a8a29a;
+  --line: rgb(236 232 226 / 0.14);
+  --accent: #d08a63;
+  --accent-contrast: #1a1917;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-soft: var(--soft);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-contrast: var(--accent-contrast);
+
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-inter), system-ui, -apple-system, sans-serif;
+
+  /* 4px spacing scale */
+  --spacing: 0.25rem;
+}
+
+/* ── Base ───────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    color-scheme: light;
+    scroll-behavior: smooth;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    line-height: 1.18;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 24%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ── Utilities ──────────────────────────────────────────────────────── */
+@utility text-balance {
+  text-wrap: balance;
+}
+
+/* Gentle hover underline that draws in from the left. */
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  transition: background-size 0.3s ease;
+}
+.link-underline:hover,
+.link-underline:focus-visible {
+  background-size: 100% 1px;
+}
+
+/* Scroll-reveal: JS adds .revealed when the element enters the viewport. */
+.reveal {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.45s ease-out,
+    transform 0.45s ease-out;
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Prose (rendered markdown) ──────────────────────────────────────── */
+.prose-site {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+.prose-site > * + * {
+  margin-top: 1.25em;
+}
+.prose-site h2 {
+  font-size: 1.5rem;
+  margin-top: 2.5em;
+}
+.prose-site h3 {
+  font-size: 1.2rem;
+  margin-top: 2em;
+}
+.prose-site a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.prose-site a:hover {
+  text-decoration-thickness: 2px;
+}
+.prose-site ul,
+.prose-site ol {
+  padding-left: 1.4em;
+}
+.prose-site ul {
+  list-style: disc;
+}
+.prose-site ol {
+  list-style: decimal;
+}
+.prose-site li + li {
+  margin-top: 0.4em;
+}
+.prose-site blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 1.1em;
+  color: var(--soft);
+  font-style: italic;
+}
+.prose-site img {
+  border-radius: 8px;
+}
+.prose-site hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+.prose-site code {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+  font-size: 0.9em;
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+.prose-site pre {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.prose-site pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* Minimal syntax-highlight theme (hand-tuned to the palette). */
+.hljs-comment,
+.hljs-quote {
+  color: var(--soft);
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal {
+  color: var(--accent);
+}
+.hljs-string,
+.hljs-attr {
+  color: #3f7d58;
+}
+.dark .hljs-string,
+.dark .hljs-attr {
+  color: #8fbfa4;
+}
+.hljs-number,
+.hljs-built_in {
+  color: #8a6d3b;
+}
+.dark .hljs-number,
+.dark .hljs-built_in {
+  color: #d3b078;
+}
+.hljs-title,
+.hljs-function .hljs-title {
+  color: var(--ink);
+}
+.hljs-variable,
+.hljs-template-variable {
+  color: var(--ink);
+}
