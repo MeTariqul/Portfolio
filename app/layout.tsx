@@ -18,7 +18,20 @@ const inter = Inter({
 });
 
 // Applies the saved theme (or system default) before paint to avoid a flash.
-const themeScript = `(function(){try{var s=localStorage.getItem("theme");var d=s?s==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}})();`;
+// Also flags that JS is on: reveal sections only stay hidden when JS is
+// around to show them (see .js .reveal in globals.css).
+const themeScript = `(function(){try{var s=localStorage.getItem("theme");var d=s?s==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}
+document.documentElement.classList.add("js");})();`;
+
+// Fades .reveal sections in as they scroll into view, without needing React
+// to hydrate first. The observer also picks up sections that appear later
+// through client-side navigation.
+const revealScript = `(function(){
+var io=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){if(es[i].isIntersecting){es[i].target.classList.add("revealed");io.unobserve(es[i].target)}}},{threshold:0});
+function scan(){var els=document.querySelectorAll(".reveal:not(.revealed)");for(var i=0;i<els.length;i++)io.observe(els[i])}
+scan();
+new MutationObserver(scan).observe(document.body,{childList:true,subtree:true});
+})();`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -54,6 +67,7 @@ export default function RootLayout({
       </head>
       <body>
         {children}
+        <script dangerouslySetInnerHTML={{ __html: revealScript }} />
         <Analytics />
       </body>
     </html>

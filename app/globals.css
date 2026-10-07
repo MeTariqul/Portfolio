@@ -112,20 +112,21 @@
   background-size: 100% 1px;
 }
 
-/* Scroll-reveal: JS adds .revealed when the element enters the viewport. */
-.reveal {
+/* Scroll-reveal: JS adds .revealed when the element enters the viewport.
+   Scoped to .js so visitors without JavaScript see everything right away. */
+.js .reveal {
   opacity: 0;
   transform: translateY(8px);
   transition:
     opacity 0.45s ease-out,
     transform 0.45s ease-out;
 }
-.reveal.revealed {
+.js .reveal.revealed {
   opacity: 1;
   transform: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .reveal {
+  .js .reveal {
     opacity: 1;
     transform: none;
   }

@@ -1,9 +1,6 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
-// Fades content in gently the first time it enters the viewport.
-// Purely decorative: with reduced motion (or no JS) everything stays visible.
+// Wraps sections that fade in as they scroll into the viewport. The
+// animation itself is plain IntersectionObserver code in app/layout.tsx, so
+// this component needs no client hydration at all.
 export function Reveal({
   children,
   className,
@@ -14,28 +11,8 @@ export function Reveal({
   className?: string;
   as?: "div" | "section" | "li" | "article";
 } & React.HTMLAttributes<HTMLElement>) {
-  const ref = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("revealed");
-            observer.unobserve(entry.target);
-          }
-        }
-      },
-      { threshold: 0 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <Tag ref={ref as never} className={`reveal ${className ?? ""}`} {...rest}>
+    <Tag className={`reveal ${className ?? ""}`} {...rest}>
       {children}
     </Tag>
   );

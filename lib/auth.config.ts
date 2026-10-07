@@ -23,6 +23,10 @@ export const authConfig = {
       const { pathname } = request.nextUrl;
       const isLoggedIn = !!auth?.user;
 
+      // The proxy runs on every page now, not only /admin. Public pages
+      // always pass; only the admin area is gated below.
+      if (!pathname.startsWith("/admin")) return true;
+
       if (pathname === "/admin/login") {
         // Already signed in? Go straight to the dashboard.
         if (isLoggedIn) {
