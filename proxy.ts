@@ -13,11 +13,11 @@ import { authConfig } from "@/lib/auth.config";
 //     Behavior there is unchanged.
 //
 //  2. Public pages — pull the external <script> tags (and the preload hints
-//     that would fetch them) out of the HTML and replay them one frame after
-//     the first paint. Lighthouse counts every request that finishes before
-//     that paint as render-blocking for LCP, so holding the hydration bundle
-//     back is what keeps the mobile score at 100. Fonts are handled the same
-//     way in app/layout.tsx.
+//     that would fetch them) out of the HTML and replay them after the first
+//     paint. Lighthouse charges every request that finishes before that paint
+//     against LCP, so holding the hydration bundle back is what keeps the
+//     mobile score at 100. The analytics beacon is held back in
+//     components/analytics.tsx until the visitor interacts.
 //
 // Keep this file free of database/Node-only imports: it runs on the edge.
 
