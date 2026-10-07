@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { getVisitorStats } from "@/lib/visitors";
+import { VisitorCounter } from "@/components/admin/visitor-counter";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -15,6 +18,7 @@ export default async function AdminDashboardPage() {
     messagesTotal,
     messagesUnread,
     media,
+    visitorStats,
   ] = await Promise.all([
     prisma.post.count({ where: { status: "PUBLISHED" } }),
     prisma.post.count({ where: { status: "DRAFT" } }),
@@ -22,6 +26,7 @@ export default async function AdminDashboardPage() {
     prisma.message.count(),
     prisma.message.count({ where: { read: false } }),
     prisma.media.count(),
+    getVisitorStats(),
   ]);
 
   const latest = await prisma.message.findMany({
@@ -42,13 +47,22 @@ export default async function AdminDashboardPage() {
       <h1 className="text-3xl">Dashboard</h1>
       <p className="mt-2 text-soft">Everything on your site, at a glance.</p>
 
+      <VisitorCounter
+        initialOnline={visitorStats.online}
+        initialVisits={visitorStats.visits}
+      />
+
       <div className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-5">
-        {stats.map((s) => (
+        {stats.map((s, i) => (
           <Link
             key={s.label}
             href={s.href}
             prefetch={false}
-            className="bg-surface p-4 transition-colors hover:bg-bg"
+            className={cn(
+              "bg-surface p-4 transition-colors hover:bg-bg",
+              // Fifth tile fills the last mobile row instead of leaving a hole.
+              i === stats.length - 1 && "max-sm:col-span-2",
+            )}
           >
             <p className="text-2xl tabular-nums">{s.value}</p>
             <p className="mt-1 text-xs text-soft">{s.label}</p>

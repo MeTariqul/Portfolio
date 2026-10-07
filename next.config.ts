@@ -23,9 +23,12 @@ const securityHeaders = [
         ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com"
         : "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://res.cloudinary.com https://*.vercel-insights.com",
+      // img-src: supabase.co covers Media/attachment files served from
+      // Supabase Storage. connect-src: same host, for the browser-to-storage
+      // direct uploads (see requestPostUpload) and the visit beacon.
+      "img-src 'self' data: blob: https://res.cloudinary.com https://*.supabase.co https://*.vercel-insights.com",
       "font-src 'self' data:",
-      "connect-src 'self' https://va.vercel-scripts.com https://vitals.vercel-insights.com",
+      "connect-src 'self' https://va.vercel-scripts.com https://vitals.vercel-insights.com https://*.supabase.co",
       "worker-src 'self' blob:",
       "frame-ancestors 'none'",
       "base-uri 'self'",

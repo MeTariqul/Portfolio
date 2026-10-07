@@ -51,7 +51,10 @@ model Post {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
+  attachments PostAttachment[]
+
   @@index([status, publishedAt])
+  @@index([status, featured, publishedAt])
   @@index([tags])
 }
 
@@ -121,7 +124,7 @@ model Message {
   @@index([read, createdAt])
 }
 
-// Uploaded files (Cloudinary). `alt` is required — enforced in the admin.
+// Uploaded files (Supabase Storage). `alt` is required — enforced in the admin.
 model Media {
   id        String   @id @default(cuid())
   url       String
@@ -167,4 +170,45 @@ model Subscriber {
   id        String   @id @default(cuid())
   email     String   @unique
   createdAt DateTime @default(now())
+}
+
+// Files attached to a post (photo, video, document). Photos render inline
+// on the public post page; videos and documents render as one button.
+enum AttachmentKind {
+  IMAGE
+  VIDEO
+  FILE
+}
+
+model PostAttachment {
+  id        String         @id @default(cuid())
+  postId    String
+  post      Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  url       String
+  filename  String
+  kind      AttachmentKind
+  mimeType  String
+  size      Int            @default(0)
+  width     Int?
+  height    Int?
+  createdAt DateTime       @default(now())
+
+  @@index([postId])
+}
+
+// Anonymous per-browser heartbeat for the dashboard's live visitor count.
+// Only a random id and timestamps — no personal data (see app/api/visit).
+model Visitor {
+  id        String   @id // random id kept in the visitor's localStorage
+  firstSeen DateTime @default(now())
+  lastSeen  DateTime @updatedAt
+
+  @@index([lastSeen])
+}
+
+// Small counters, incremented atomically by app/api/visit (page views).
+model Stat {
+  key       String   @id
+  value     Int      @default(0)
+  updatedAt DateTime @updatedAt
 }

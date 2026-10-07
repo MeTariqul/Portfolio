@@ -7,6 +7,17 @@ import sample from "@/lib/sample-content.json";
 // Pages render with the fallback during setup; after `npm run db:seed` the
 // database wins, and admin edits show up within the ISR window.
 
+export type PostAttachment = {
+  id: string;
+  url: string;
+  filename: string;
+  kind: string;
+  mimeType: string;
+  size: number;
+  width: number | null;
+  height: number | null;
+};
+
 export type Post = {
   slug: string;
   title: string;
@@ -20,6 +31,7 @@ export type Post = {
   featured: boolean;
   seoTitle: string | null;
   seoDescription: string | null;
+  attachments: PostAttachment[];
 };
 
 export type Project = {
@@ -120,6 +132,7 @@ function mapPost(p: {
   featured: boolean;
   seoTitle: string | null;
   seoDescription: string | null;
+  attachments?: PostAttachment[];
 }): Post {
   return {
     slug: p.slug,
@@ -134,12 +147,13 @@ function mapPost(p: {
     featured: p.featured,
     seoTitle: p.seoTitle,
     seoDescription: p.seoDescription,
+    attachments: p.attachments ?? [],
   };
 }
 
 const samplePublished = sample.posts
   .filter((p) => p.status === "PUBLISHED")
-  .map((p) => ({ ...p }));
+  .map((p) => ({ ...p, attachments: [] as PostAttachment[] }));
 
 export const getPosts = cache(
   async (opts: { q?: string; tag?: string; page?: number; perPage?: number } = {}) => {
@@ -160,8 +174,10 @@ export const getPosts = cache(
 
     const db = await safe(
       async () => {
-        const anyCount = await prisma.post.count();
-        if (anyCount === 0) return null; // empty table → use sample content
+        // Cheaper than count(): stops at the first row when the table has
+        // content, returns null immediately when it is empty.
+        const any = await prisma.post.findFirst({ select: { id: true } });
+        if (!any) return null; // empty table → use sample content
         const [total, rows] = await Promise.all([
           prisma.post.count({ where }),
           prisma.post.findMany({
@@ -198,7 +214,10 @@ export const getPosts = cache(
 export const getPost = cache(async (slug: string): Promise<Post | null> => {
   const db = await safe(
     async () => {
-      const row = await prisma.post.findUnique({ where: { slug } });
+      const row = await prisma.post.findUnique({
+        where: { slug },
+        include: { attachments: { orderBy: { createdAt: "asc" } } },
+      });
       return row && isPublished(row) ? mapPost(row) : null;
     },
     null,
@@ -239,16 +258,63 @@ export const getLatestPosts = cache(async (limit = 3): Promise<Post[]> => {
   return posts.slice(0, limit);
 });
 
+// Only the tag names of published posts — the blog page builds its tag
+// cloud from this instead of pulling every full post body out of the DB.
+export const getAllTags = cache(async (): Promise<string[]> => {
+  const db = await safe(
+    async () => {
+      const any = await prisma.post.findFirst({ select: { id: true } });
+      if (!any) return null;
+      const rows = await prisma.post.findMany({
+        where: { status: "PUBLISHED" },
+        select: { tags: true, publishedAt: true },
+      });
+      const visible = rows.filter(
+        (r) => r.publishedAt && r.publishedAt.getTime() <= Date.now(),
+      );
+      return Array.from(new Set(visible.flatMap((r) => r.tags))).sort();
+    },
+    null,
+  );
+  if (db !== null) return db;
+  return Array.from(new Set(samplePublished.flatMap((p) => p.tags))).sort();
+});
+
+const relevance = (
+  item: { category: string | null; tags: string[] },
+  ref: Post,
+) =>
+  (item.category && item.category === ref.category ? 2 : 0) +
+  item.tags.filter((t) => ref.tags.includes(t)).length;
+
 export const getRelatedPosts = cache(
   async (post: Post, limit = 3): Promise<Post[]> => {
-    const all = (await getPosts({ perPage: 100 })).posts.filter(
-      (p) => p.slug !== post.slug,
+    const db = await safe(
+      async () => {
+        const any = await prisma.post.findFirst({ select: { id: true } });
+        if (!any) return null; // empty table → sample content
+        const rows = await prisma.post.findMany({
+          where: { status: "PUBLISHED", slug: { not: post.slug } },
+          orderBy: { publishedAt: "desc" },
+          select: { slug: true, category: true, tags: true, publishedAt: true },
+        });
+        const scored = rows
+          .filter((r) => r.publishedAt && r.publishedAt.getTime() <= Date.now())
+          .map((r) => ({ slug: r.slug, s: relevance(r, post) }))
+          .filter((x) => x.s > 0)
+          .sort((a, b) => b.s - a.s)
+          .slice(0, limit);
+        // Hydrate only the winners (getPost is per-request cached).
+        const posts = await Promise.all(scored.map((x) => getPost(x.slug)));
+        return posts.filter((p): p is Post => p !== null);
+      },
+      null,
     );
-    const score = (p: Post) =>
-      (p.category && p.category === post.category ? 2 : 0) +
-      p.tags.filter((t) => post.tags.includes(t)).length;
+    if (db !== null) return db;
+
+    const all = samplePublished.filter((p) => p.slug !== post.slug);
     return all
-      .map((p) => ({ p, s: score(p) }))
+      .map((p) => ({ p, s: relevance(p, post) }))
       .filter((x) => x.s > 0)
       .sort((a, b) => b.s - a.s)
       .slice(0, limit)
@@ -256,13 +322,58 @@ export const getRelatedPosts = cache(
   },
 );
 
+// Newer/older neighbours for the post footer. Two tiny indexed lookups
+// instead of loading up to 100 full posts to find two slugs.
 export const getAdjacentPosts = cache(
   async (slug: string): Promise<{ prev: Post | null; next: Post | null }> => {
-    const { posts } = await getPosts({ perPage: 100 });
-    const i = posts.findIndex((p) => p.slug === slug);
+    const db = await safe(
+      async () => {
+        const any = await prisma.post.findFirst({ select: { id: true } });
+        if (!any) return null; // empty table → sample content
+        const row = await prisma.post.findUnique({
+          where: { slug },
+          select: { publishedAt: true, status: true },
+        });
+        const now = new Date();
+        const publishedAt =
+          row?.status === "PUBLISHED" ? row.publishedAt : null;
+        if (!publishedAt || publishedAt.getTime() > now.getTime()) {
+          return { prev: null, next: null };
+        }
+
+        const [newer, older] = await Promise.all([
+          prisma.post.findFirst({
+            where: {
+              status: "PUBLISHED",
+              publishedAt: { gt: publishedAt, lte: now },
+            },
+            orderBy: { publishedAt: "asc" },
+            select: { slug: true },
+          }),
+          prisma.post.findFirst({
+            where: {
+              status: "PUBLISHED",
+              publishedAt: { lt: publishedAt },
+            },
+            orderBy: { publishedAt: "desc" },
+            select: { slug: true },
+          }),
+        ]);
+        const [prev, next] = await Promise.all([
+          newer ? getPost(newer.slug) : null,
+          older ? getPost(older.slug) : null,
+        ]);
+        return { prev, next };
+      },
+      null,
+    );
+    if (db !== null) return db;
+
+    const i = samplePublished.findIndex((p) => p.slug === slug);
+    if (i === -1) return { prev: null, next: null };
     return {
-      prev: i > 0 ? posts[i - 1] : null,
-      next: i >= 0 && i < posts.length - 1 ? posts[i + 1] : null,
+      prev: i > 0 ? samplePublished[i - 1] : null,
+      next: i < samplePublished.length - 1 ? samplePublished[i + 1] : null,
     };
   },
 );

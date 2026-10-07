@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { PostRow } from "@/components/post-row";
-import { getPosts } from "@/lib/content";
+import { getPosts, getAllTags } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -31,12 +31,10 @@ export default async function BlogPage({ searchParams }: Props) {
   const page = Math.max(1, Number(sp.page) || 1);
   const perPage = 6;
 
-  const [{ posts, total }, all] = await Promise.all([
+  const [{ posts, total }, tags] = await Promise.all([
     getPosts({ q: q || undefined, tag: tag || undefined, page, perPage }),
-    getPosts({ perPage: 100 }),
+    getAllTags(),
   ]);
-
-  const tags = Array.from(new Set(all.posts.flatMap((p) => p.tags))).sort();
   const totalPages = Math.max(1, Math.ceil(total / perPage));
 
   return (

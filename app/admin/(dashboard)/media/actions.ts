@@ -3,38 +3,18 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import {
+  authHeaders,
+  BUCKET,
+  deleteObject,
+  ensureBucket,
+  publicUrl,
+  supabaseStorage,
+} from "@/lib/storage";
 
 export type UploadState = { error?: string; ok?: boolean };
 
 const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
-
-const BUCKET = "portfolio-media";
-
-function supabaseStorage() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-  return { url, key };
-}
-
-async function ensureBucket(url: string, key: string) {
-  try {
-    const res = await fetch(`${url}/storage/v1/bucket`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id: BUCKET, public: true }),
-    });
-    // 409 = already exists, that's fine
-    if (!res.ok && res.status !== 409) {
-      console.warn("Bucket create failed:", res.status, await res.text());
-    }
-  } catch (err) {
-    console.warn("Bucket create error:", err);
-  }
-}
 
 const uploadSchema = z.object({
   alt: z.string().trim().min(2, "Describe the image (alt text, 2+ chars)."),
@@ -71,21 +51,18 @@ export async function uploadMedia(
     .replace(/^-|-$/g, "");
   const path = `${Date.now()}-${safeName || "image"}`;
 
-  await ensureBucket(storage.url, storage.key);
+  await ensureBucket(storage);
 
   try {
-    const res = await fetch(
-      `${storage.url}/storage/v1/object/${BUCKET}/${path}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${storage.key}`,
-          "Content-Type": file.type,
-          "x-upsert": "true",
-        },
-        body: Buffer.from(await file.arrayBuffer()),
+    const res = await fetch(`${storage.url}/storage/v1/object/${BUCKET}/${path}`, {
+      method: "POST",
+      headers: {
+        ...authHeaders(storage),
+        "Content-Type": file.type,
+        "x-upsert": "true",
       },
-    );
+      body: Buffer.from(await file.arrayBuffer()),
+    });
     if (!res.ok) {
       console.warn("Storage upload failed:", res.status, await res.text());
       return { error: `Upload failed (storage returned ${res.status}).` };
@@ -95,11 +72,9 @@ export async function uploadMedia(
     return { error: "Upload failed. Check your connection and try again." };
   }
 
-  const publicUrl = `${storage.url}/storage/v1/object/public/${BUCKET}/${path}`;
-
   await prisma.media.create({
     data: {
-      url: publicUrl,
+      url: publicUrl(storage, path),
       publicId: path,
       filename: file.name,
       alt: parsed.data.alt,
@@ -115,19 +90,7 @@ export async function deleteMedia(id: string) {
   if (!row) return;
 
   const storage = supabaseStorage();
-  if (storage) {
-    try {
-      await fetch(
-        `${storage.url}/storage/v1/object/${BUCKET}/${row.publicId}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${storage.key}` },
-        },
-      );
-    } catch (err) {
-      console.warn("Storage delete error:", err);
-    }
-  }
+  if (storage) await deleteObject(storage, row.publicId);
 
   await prisma.media.delete({ where: { id } });
   revalidatePath("/admin/media");

@@ -105,6 +105,57 @@ export default async function BlogPostPage({ params }: Props) {
           <div className="min-w-0">
             <Markdown>{post.contentMD}</Markdown>
 
+            {post.attachments.length > 0 && (
+              <section
+                className="mt-10"
+                aria-labelledby="attachments-heading"
+              >
+                <h2 id="attachments-heading" className="text-xl">
+                  Attachments
+                </h2>
+                {post.attachments.some((a) => a.kind === "IMAGE") && (
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    {post.attachments
+                      .filter((a) => a.kind === "IMAGE")
+                      .map((a) => (
+                        <figure key={a.id}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={a.url}
+                            alt={a.filename}
+                            width={a.width ?? undefined}
+                            height={a.height ?? undefined}
+                            loading="lazy"
+                            className="w-full rounded-lg border border-line bg-line/30"
+                          />
+                          <figcaption className="mt-1.5 text-xs text-soft">
+                            {a.filename}
+                          </figcaption>
+                        </figure>
+                      ))}
+                  </div>
+                )}
+                {post.attachments.some((a) => a.kind !== "IMAGE") && (
+                  <ul className="mt-4 flex flex-wrap gap-3">
+                    {post.attachments
+                      .filter((a) => a.kind !== "IMAGE")
+                      .map((a) => (
+                        <li key={a.id}>
+                          <a
+                            href={a.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex h-10 items-center rounded-full border border-line px-4 text-sm text-soft transition-colors hover:border-accent hover:text-accent"
+                          >
+                            {a.filename}
+                          </a>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </section>
+            )}
+
             <div className="mt-12 border-t border-line pt-6">
               <ShareLinks title={post.title} url={url} />
             </div>
