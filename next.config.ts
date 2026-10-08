@@ -23,10 +23,14 @@ const securityHeaders = [
         ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com"
         : "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline'",
-      // img-src: supabase.co covers Media/attachment files served from
-      // Supabase Storage. connect-src: same host, for the browser-to-storage
-      // direct uploads (see requestPostUpload) and the visit beacon.
-      "img-src 'self' data: blob: https://res.cloudinary.com https://*.supabase.co https://*.vercel-insights.com",
+      // img-src: images live inside the content the admin writes — markdown
+      // in posts, and the "url | alt" lines in a project's Screenshots field —
+      // so a fixed host list silently breaks any link pasted from elsewhere
+      // (that is what broke a postimg.cc screenshot). Images cannot execute,
+      // so https: is the practical allowlist; Supabase and Cloudinary are
+      // https and stay covered. connect-src keeps its narrow list, because
+      // that one is about the browser talking to storage and the beacon.
+      "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       "connect-src 'self' https://va.vercel-scripts.com https://vitals.vercel-insights.com https://*.supabase.co",
       "worker-src 'self' blob:",
