@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
@@ -7,7 +9,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AdminLoginPage() {
+export default async function AdminLoginPage() {
+  // Already signed in? Go straight to the dashboard. proxy.ts cannot do
+  // this: the edge only checks the cookie signature, and a device whose
+  // session was revoked still carries a signed cookie, which would send
+  // it back to /admin and then straight here again.
+  const session = await auth();
+  if (session?.user) redirect("/admin");
+
   return (
     <main className="flex min-h-screen items-center justify-center px-5 py-16">
       <div className="w-full max-w-[400px]">

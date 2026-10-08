@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { randomBytes } from "node:crypto";
 import { Prisma } from "@prisma/client";
+import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { classifyUpload, UPLOAD_LIMITS } from "@/lib/uploads";
 import {
@@ -203,6 +204,7 @@ export async function savePost(
   _prev: PostFormState,
   formData: FormData,
 ): Promise<PostFormState> {
+  await requireAdmin();
   const { data, error } = parsePostForm(formData);
   if (!data) return { error: error ?? "Check the form." };
 
@@ -241,6 +243,7 @@ export async function savePost(
 // Fired by the editor a couple of seconds after typing stops. Never
 // redirects: it reports back so the form can show a saved-at time.
 export async function autosavePost(formData: FormData): Promise<AutosaveResult> {
+  await requireAdmin();
   const { data, error } = parsePostForm(formData);
   if (!data) {
     const filled =
@@ -311,6 +314,7 @@ export async function requestPostUpload(
   contentType: string,
   size: number,
 ): Promise<SignResult> {
+  await requireAdmin();
   if (typeof filename !== "string" || !filename || filename.length > 200) {
     return { error: "That filename is not usable." };
   }
@@ -355,6 +359,7 @@ export async function requestPostUpload(
 export async function discardPostUpload(
   url: string,
 ): Promise<{ ok?: boolean; error?: string }> {
+  await requireAdmin();
   if (typeof url !== "string") return { error: "Bad url." };
   const path = storagePathFromUrl(url);
   if (!path || !path.startsWith("posts/")) return { error: "Not an attachment." };
@@ -370,6 +375,7 @@ export async function discardSavedAttachment(
   id: string,
   slug: string,
 ): Promise<{ ok?: boolean; error?: string }> {
+  await requireAdmin();
   const row = await prisma.postAttachment.findUnique({
     where: { id },
     select: { url: true },
@@ -383,6 +389,7 @@ export async function discardSavedAttachment(
 }
 
 export async function deletePost(id: string) {
+  await requireAdmin();
   const row = await prisma.post.findUnique({
     where: { id },
     select: { slug: true, attachments: { select: { url: true } } },

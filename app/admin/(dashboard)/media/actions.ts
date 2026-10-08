@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   authHeaders,
@@ -24,6 +25,7 @@ export async function uploadMedia(
   _prev: UploadState,
   formData: FormData,
 ): Promise<UploadState> {
+  await requireAdmin();
   const parsed = uploadSchema.safeParse({ alt: formData.get("alt") });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Check the form." };
@@ -86,6 +88,7 @@ export async function uploadMedia(
 }
 
 export async function deleteMedia(id: string) {
+  await requireAdmin();
   const row = await prisma.media.findUnique({ where: { id } });
   if (!row) return;
 

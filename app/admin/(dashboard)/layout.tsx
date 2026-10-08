@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { doSignOut } from "@/app/admin/actions";
 import { NavLink } from "@/components/admin/nav-link";
+import { SessionWatch } from "@/components/admin/session-watch";
 
 // Admin shell. proxy.ts already redirects visitors to /admin/login;
 // this check is defense in depth (and covers direct server rendering).
@@ -19,6 +20,7 @@ export default async function AdminDashboardLayout({
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
+      <SessionWatch />
       <aside className="flex shrink-0 flex-col border-b border-line bg-surface md:min-h-screen md:w-60 md:border-r md:border-b-0">
         <div className="border-b border-line px-5 py-4">
           <p className="text-lg">Tariqul</p>

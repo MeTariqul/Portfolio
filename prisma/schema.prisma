@@ -25,12 +25,26 @@ enum ExperienceKind {
 
 // Single admin account. Password is scrypt-hashed (see lib/password.ts).
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String         @id @default(cuid())
+  email        String         @unique
   passwordHash String
   name         String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  sessions     AdminSession[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+// One row per signed-in admin device. At most two rows exist per user:
+// when a third device signs in, the oldest row is deleted, so that
+// device is signed out on its next request. See the jwt callback in
+// lib/auth.ts.
+model AdminSession {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
 
 model Post {

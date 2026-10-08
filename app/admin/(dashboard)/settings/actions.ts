@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { auth, requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "@/lib/password";
 
@@ -22,6 +22,7 @@ export async function saveSiteSettings(
   _prev: SettingsState,
   formData: FormData,
 ): Promise<SettingsState> {
+  await requireAdmin();
   const parsed = siteSchema.safeParse({
     available: formData.get("available") === "on",
     availabilityNote: formData.get("availabilityNote"),

@@ -27,13 +27,12 @@ export const authConfig = {
       // always pass; only the admin area is gated below.
       if (!pathname.startsWith("/admin")) return true;
 
-      if (pathname === "/admin/login") {
-        // Already signed in? Go straight to the dashboard.
-        if (isLoggedIn) {
-          return Response.redirect(new URL("/admin", request.nextUrl));
-        }
-        return true;
-      }
+      // The login page decides for itself. It reads the session in Node,
+      // where the two-device cap is enforced; the edge only checks the
+      // cookie signature and cannot tell a revoked session apart, so
+      // redirecting from here would bounce a signed-out device between
+      // /admin and /admin/login forever.
+      if (pathname === "/admin/login") return true;
 
       // Any other /admin route requires a session; otherwise Auth.js
       // redirects to the signIn page (/admin/login).

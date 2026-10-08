@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
+import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export type ProjectFormState = { error?: string };
@@ -39,6 +40,7 @@ export async function saveProject(
   _prev: ProjectFormState,
   formData: FormData,
 ): Promise<ProjectFormState> {
+  await requireAdmin();
   const parsed = projectSchema.safeParse({
     id: formData.get("id") || undefined,
     title: formData.get("title"),
@@ -123,6 +125,7 @@ export async function saveProject(
 }
 
 export async function deleteProject(id: string) {
+  await requireAdmin();
   await prisma.project.delete({ where: { id } });
   revalidatePath("/admin/projects");
   revalidatePath("/projects");
