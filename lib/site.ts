@@ -1,5 +1,15 @@
 // Identity and links. Static fallbacks only: the admin Settings screen
 // overrides these at runtime from the `Setting` table.
+//
+// `url` is the absolute origin behind canonical links, Open Graph URLs and the
+// RSS feed. Set NEXT_PUBLIC_SITE_URL in Vercel to pin it; otherwise the
+// deployment's own URL is used, so production never publishes
+// http://localhost:3000 (which it did, in every RSS link). A plain local build
+// keeps the localhost default. Read defensively: this module is imported by
+// client components too, where Vercel's variables do not exist.
+const env = typeof process !== "undefined" ? process.env : undefined;
+const deployed = env?.VERCEL_PROJECT_PRODUCTION_URL ?? env?.VERCEL_URL ?? null;
+
 export const site = {
   name: "Md. Tariqul Islam",
   shortName: "Tariqul",
@@ -9,6 +19,6 @@ export const site = {
   github: "https://github.com/MeTariqul",
   linkedin: "https://www.linkedin.com/in/metariqul",
   email: process.env.CONTACT_EMAIL ?? "gbtarif37@gmail.com",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  url: env?.NEXT_PUBLIC_SITE_URL ?? (deployed ? `https://${deployed}` : "http://localhost:3000"),
   cvPath: "/cv/Md-Tariqul-Islam-CV.pdf",
 };

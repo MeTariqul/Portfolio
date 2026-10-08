@@ -121,6 +121,7 @@ export async function saveProject(
   revalidatePath("/admin/projects");
   revalidatePath("/projects");
   revalidatePath("/");
+  revalidatePath("/sitemap.xml");
   redirect("/admin/projects");
 }
 
@@ -130,4 +131,5 @@ export async function deleteProject(id: string) {
   revalidatePath("/admin/projects");
   revalidatePath("/projects");
   revalidatePath("/");
+  revalidatePath("/sitemap.xml");
 }

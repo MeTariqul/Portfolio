@@ -63,6 +63,13 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Browsers and a few tools still ask for /favicon.ico directly; we only ship
+  // app/icon.svg, so send that request onwards instead of returning a 404.
+  async redirects() {
+    return [
+      { source: "/favicon.ico", destination: "/icon.svg", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

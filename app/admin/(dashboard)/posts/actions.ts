@@ -237,6 +237,8 @@ export async function savePost(
   revalidatePath("/blog");
   revalidatePath("/");
   revalidatePath(`/blog/${data.slug}`);
+  revalidatePath("/rss.xml"); // the feed mirrors the post list
+  revalidatePath("/sitemap.xml");
   redirect("/admin/posts");
 }
 
@@ -295,6 +297,8 @@ export async function autosavePost(formData: FormData): Promise<AutosaveResult> 
   revalidatePath("/blog");
   revalidatePath("/");
   revalidatePath(`/blog/${data.slug}`);
+  revalidatePath("/rss.xml"); // the feed mirrors the post list
+  revalidatePath("/sitemap.xml");
   return {
     ok: true,
     id,
@@ -402,4 +406,6 @@ export async function deletePost(id: string) {
   revalidatePath("/blog");
   revalidatePath("/");
   if (row) revalidatePath(`/blog/${row.slug}`);
+  revalidatePath("/rss.xml"); // the feed mirrors the post list
+  revalidatePath("/sitemap.xml");
 }
