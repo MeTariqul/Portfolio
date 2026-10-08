@@ -109,6 +109,11 @@ async function main() {
   await seedSetting("home", sample.settings.home);
   await seedSetting("about", sample.about);
   await seedSetting("newsletter", sample.settings.newsletter);
+  // Tells lib/content.ts that the sample copy now lives in the database. From
+  // here on the database is the source of truth: content you delete in the
+  // admin stays deleted on the site instead of coming back from
+  // lib/sample-content.json.
+  await seedSetting("seeded", { at: new Date().toISOString() });
   console.log("Done.");
 }
 

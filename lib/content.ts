@@ -2,10 +2,12 @@ import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import sample from "@/lib/sample-content.json";
 
-// Content layer: every function reads the database first and falls back to
-// lib/sample-content.json when a table is empty or the database is unreachable.
-// Pages render with the fallback during setup; after `npm run db:seed` the
-// database wins, and admin edits show up within the ISR window.
+// Content layer: every function reads the database first. It falls back to
+// lib/sample-content.json only while the database is unreachable or has never
+// been seeded — prisma/seed.mjs writes Setting{key:"seeded"} to say which
+// state it is in. Pages render the fallback during setup; after that the
+// database wins, an emptied table renders empty rather than resurrecting the
+// sample copy, and admin edits show up within the ISR window.
 
 export type PostAttachment = {
   id: string;
@@ -94,6 +96,32 @@ async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   }
 }
 
+// prisma/seed.mjs writes Setting{key:"seeded"} once the sample content is in
+// the database. Until that row exists the pages fall back to
+// lib/sample-content.json, so a fresh clone still renders something. After it,
+// the database is the only source of truth: a table you emptied in the admin
+// renders empty instead of quietly serving the sample copy behind your back.
+const seeded = cache(async (): Promise<boolean> => {
+  try {
+    return (
+      (await prisma.setting.findUnique({ where: { key: "seeded" } })) !== null
+    );
+  } catch {
+    return false; // database unreachable → stay on the sample fallback
+  }
+});
+
+// Reads one content table, keeping three cases apart:
+//   • query threw → the sample fallback, as before (database down);
+//   • rows found  → the database wins, however few;
+//   • zero rows   → sample content only while the database is unseeded.
+async function table<T>(query: () => Promise<T[]>, sample: () => T[]): Promise<T[]> {
+  const rows = await safe<T[] | undefined>(query, undefined);
+  if (rows === undefined) return sample();
+  if (rows.length > 0) return rows;
+  return (await seeded()) ? rows : sample();
+}
+
 export const getSettings = cache(async (): Promise<SiteSettings> => {
   return safe(
     async () => {
@@ -172,12 +200,8 @@ export const getPosts = cache(
       ...(tag ? { tags: { has: tag } } : {}),
     };
 
-    const db = await safe(
+    const db = await safe<{ total: number; posts: Post[] } | null | undefined>(
       async () => {
-        // Cheaper than count(): stops at the first row when the table has
-        // content, returns null immediately when it is empty.
-        const any = await prisma.post.findFirst({ select: { id: true } });
-        if (!any) return null; // empty table → use sample content
         const [total, rows] = await Promise.all([
           prisma.post.count({ where }),
           prisma.post.findMany({
@@ -189,9 +213,13 @@ export const getPosts = cache(
         ]);
         return { total, posts: rows.filter(isPublished).map(mapPost) };
       },
-      null,
+      undefined,
     );
-    if (db) return { ...db, page, perPage };
+    // The database answers, and either has something to show or has been
+    // seeded — so "nothing matched" is reported as nothing, not as sample.
+    if (db && (db.total > 0 || (await seeded()))) {
+      return { ...db, page, perPage };
+    }
 
     // Fallback: filter the sample posts with the same rules.
     const match = (p: Post) =>
@@ -212,7 +240,8 @@ export const getPosts = cache(
 );
 
 export const getPost = cache(async (slug: string): Promise<Post | null> => {
-  const db = await safe(
+  const samplePost = () => samplePublished.find((p) => p.slug === slug) ?? null;
+  const db = await safe<Post | null | undefined>(
     async () => {
       const row = await prisma.post.findUnique({
         where: { slug },
@@ -220,14 +249,17 @@ export const getPost = cache(async (slug: string): Promise<Post | null> => {
       });
       return row && isPublished(row) ? mapPost(row) : null;
     },
-    null,
+    undefined,
   );
-  if (db !== null) return db;
-  return samplePublished.find((p) => p.slug === slug) ?? null;
+  if (db === undefined) return samplePost(); // database unreachable
+  if (db) return db;
+  // Missing, or still a draft: once seeded, a post you unpublished or deleted
+  // stops being served from the sample copy.
+  return (await seeded()) ? null : samplePost();
 });
 
-export const getFeaturedPosts = cache(async (limit = 1): Promise<Post[]> => {
-  const db = await safe(
+export const getFeaturedPosts = cache(async (limit = 1): Promise<Post[]> =>
+  table<Post>(
     async () => {
       const rows = await prisma.post.findMany({
         where: { status: "PUBLISHED", featured: true },
@@ -236,14 +268,12 @@ export const getFeaturedPosts = cache(async (limit = 1): Promise<Post[]> => {
       });
       return rows.filter(isPublished).map(mapPost);
     },
-    [] as Post[],
-  );
-  if (db.length > 0) return db;
-  return samplePublished.filter((p) => p.featured).slice(0, limit);
-});
+    () => samplePublished.filter((p) => p.featured).slice(0, limit),
+  ),
+);
 
 export const getLatestPosts = cache(async (limit = 3): Promise<Post[]> => {
-  const db = await safe(
+  const posts = await table<Post>(
     async () => {
       const rows = await prisma.post.findMany({
         where: { status: "PUBLISHED" },
@@ -252,19 +282,16 @@ export const getLatestPosts = cache(async (limit = 3): Promise<Post[]> => {
       });
       return rows.filter(isPublished).map(mapPost);
     },
-    [] as Post[],
+    () => samplePublished,
   );
-  const posts = db.length > 0 ? db : samplePublished;
   return posts.slice(0, limit);
 });
 
 // Only the tag names of published posts — the blog page builds its tag
 // cloud from this instead of pulling every full post body out of the DB.
-export const getAllTags = cache(async (): Promise<string[]> => {
-  const db = await safe(
+export const getAllTags = cache(async (): Promise<string[]> =>
+  table<string>(
     async () => {
-      const any = await prisma.post.findFirst({ select: { id: true } });
-      if (!any) return null;
       const rows = await prisma.post.findMany({
         where: { status: "PUBLISHED" },
         select: { tags: true, publishedAt: true },
@@ -274,11 +301,9 @@ export const getAllTags = cache(async (): Promise<string[]> => {
       );
       return Array.from(new Set(visible.flatMap((r) => r.tags))).sort();
     },
-    null,
-  );
-  if (db !== null) return db;
-  return Array.from(new Set(samplePublished.flatMap((p) => p.tags))).sort();
-});
+    () => Array.from(new Set(samplePublished.flatMap((p) => p.tags))).sort(),
+  ),
+);
 
 const relevance = (
   item: { category: string | null; tags: string[] },
@@ -289,10 +314,17 @@ const relevance = (
 
 export const getRelatedPosts = cache(
   async (post: Post, limit = 3): Promise<Post[]> => {
-    const db = await safe(
+    const sampleRelated = () => {
+      const all = samplePublished.filter((p) => p.slug !== post.slug);
+      return all
+        .map((p) => ({ p, s: relevance(p, post) }))
+        .filter((x) => x.s > 0)
+        .sort((a, b) => b.s - a.s)
+        .slice(0, limit)
+        .map((x) => x.p);
+    };
+    return table<Post>(
       async () => {
-        const any = await prisma.post.findFirst({ select: { id: true } });
-        if (!any) return null; // empty table → sample content
         const rows = await prisma.post.findMany({
           where: { status: "PUBLISHED", slug: { not: post.slug } },
           orderBy: { publishedAt: "desc" },
@@ -308,17 +340,8 @@ export const getRelatedPosts = cache(
         const posts = await Promise.all(scored.map((x) => getPost(x.slug)));
         return posts.filter((p): p is Post => p !== null);
       },
-      null,
+      sampleRelated,
     );
-    if (db !== null) return db;
-
-    const all = samplePublished.filter((p) => p.slug !== post.slug);
-    return all
-      .map((p) => ({ p, s: relevance(p, post) }))
-      .filter((x) => x.s > 0)
-      .sort((a, b) => b.s - a.s)
-      .slice(0, limit)
-      .map((x) => x.p);
   },
 );
 
@@ -326,10 +349,21 @@ export const getRelatedPosts = cache(
 // instead of loading up to 100 full posts to find two slugs.
 export const getAdjacentPosts = cache(
   async (slug: string): Promise<{ prev: Post | null; next: Post | null }> => {
-    const db = await safe(
+    const none = { prev: null, next: null } as const;
+    const sampleAdjacent = (): { prev: Post | null; next: Post | null } => {
+      const i = samplePublished.findIndex((p) => p.slug === slug);
+      if (i === -1) return none;
+      return {
+        prev: i > 0 ? samplePublished[i - 1] : null,
+        next: i < samplePublished.length - 1 ? samplePublished[i + 1] : null,
+      };
+    };
+    const db = await safe<
+      { prev: Post | null; next: Post | null } | null | undefined
+    >(
       async () => {
         const any = await prisma.post.findFirst({ select: { id: true } });
-        if (!any) return null; // empty table → sample content
+        if (!any) return null; // empty table
         const row = await prisma.post.findUnique({
           where: { slug },
           select: { publishedAt: true, status: true },
@@ -338,7 +372,7 @@ export const getAdjacentPosts = cache(
         const publishedAt =
           row?.status === "PUBLISHED" ? row.publishedAt : null;
         if (!publishedAt || publishedAt.getTime() > now.getTime()) {
-          return { prev: null, next: null };
+          return none;
         }
 
         const [newer, older] = await Promise.all([
@@ -365,16 +399,11 @@ export const getAdjacentPosts = cache(
         ]);
         return { prev, next };
       },
-      null,
+      undefined,
     );
-    if (db !== null) return db;
-
-    const i = samplePublished.findIndex((p) => p.slug === slug);
-    if (i === -1) return { prev: null, next: null };
-    return {
-      prev: i > 0 ? samplePublished[i - 1] : null,
-      next: i < samplePublished.length - 1 ? samplePublished[i + 1] : null,
-    };
+    if (db === undefined) return sampleAdjacent(); // database unreachable
+    if (db) return db;
+    return (await seeded()) ? none : sampleAdjacent();
   },
 );
 
@@ -408,16 +437,15 @@ const mapProject = (p: {
   order: p.order,
 });
 
-export const getProjects = cache(async (): Promise<Project[]> => {
-  const db = await safe(
+export const getProjects = cache(async (): Promise<Project[]> =>
+  table<Project>(
     async () => {
       const rows = await prisma.project.findMany({ orderBy: { order: "asc" } });
       return rows.map(mapProject);
     },
-    [] as Project[],
-  );
-  return db.length > 0 ? db : [...sample.projects].sort(byOrder);
-});
+    () => [...sample.projects].sort(byOrder),
+  ),
+);
 
 export const getFeaturedProjects = cache(
   async (limit = 3): Promise<Project[]> => {
@@ -429,34 +457,45 @@ export const getFeaturedProjects = cache(
 
 export const getProject = cache(
   async (slug: string): Promise<Project | null> => {
-    const db = await safe(
+    const sampleProject = () => sample.projects.find((p) => p.slug === slug) ?? null;
+    const db = await safe<Project | null | undefined>(
       async () => {
         const row = await prisma.project.findUnique({ where: { slug } });
         return row ? mapProject(row) : null;
       },
-      null,
+      undefined,
     );
+    if (db === undefined) return sampleProject(); // database unreachable
     if (db) return db;
-    return sample.projects.find((p) => p.slug === slug) ?? null;
+    // Deleted in the admin: stop serving its page out of the sample JSON.
+    return (await seeded()) ? null : sampleProject();
   },
 );
 
-export const getSkills = cache(async (): Promise<Skill[]> => {
-  const db = await safe(() => prisma.skill.findMany(), [] as Skill[]);
-  return db.length > 0 ? [...db].sort(byOrder) : sample.skills;
-});
+export const getSkills = cache(async (): Promise<Skill[]> =>
+  table<Skill>(
+    async () => [...(await prisma.skill.findMany())].sort(byOrder),
+    () => sample.skills,
+  ),
+);
 
-export const getExperience = cache(async (): Promise<ExperienceItem[]> => {
-  const db = await safe(() => prisma.experience.findMany(), []);
-  return db.length > 0 ? [...db].sort(byOrder) : sample.experience;
-});
+export const getExperience = cache(async (): Promise<ExperienceItem[]> =>
+  table<ExperienceItem>(
+    async () => [...(await prisma.experience.findMany())].sort(byOrder),
+    () => sample.experience,
+  ),
+);
 
-export const getServices = cache(async (): Promise<Service[]> => {
-  const db = await safe(() => prisma.service.findMany(), []);
-  return db.length > 0 ? [...db].sort(byOrder) : sample.services;
-});
+export const getServices = cache(async (): Promise<Service[]> =>
+  table<Service>(
+    async () => [...(await prisma.service.findMany())].sort(byOrder),
+    () => sample.services,
+  ),
+);
 
-export const getUses = cache(async (): Promise<UsesItem[]> => {
-  const db = await safe(() => prisma.usesItem.findMany(), []);
-  return db.length > 0 ? [...db].sort(byOrder) : sample.uses;
-});
+export const getUses = cache(async (): Promise<UsesItem[]> =>
+  table<UsesItem>(
+    async () => [...(await prisma.usesItem.findMany())].sort(byOrder),
+    () => sample.uses,
+  ),
+);

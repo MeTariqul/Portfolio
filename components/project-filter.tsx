@@ -34,6 +34,12 @@ export function ProjectFilter({ projects }: { projects: Project[] }) {
         : "border-line text-soft hover:text-ink",
     );
 
+  // No projects at all is different from no matches, and saying "try clearing
+  // a filter" when there is nothing to filter would be a lie.
+  if (projects.length === 0) {
+    return <p className="text-soft">No projects to show yet.</p>;
+  }
+
   return (
     <div>
       <div className="space-y-3">

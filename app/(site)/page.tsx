@@ -60,45 +60,49 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <Reveal as="section" className="pb-16" aria-labelledby="work-heading">
-        <h2 id="work-heading" className="text-3xl">
-          Selected work
-        </h2>
-        <div className="mt-6">
-          {projects.map((p, i) => (
-            <ProjectRow key={p.slug} project={p} index={i} />
-          ))}
-        </div>
-        <p className="mt-6">
-          <Link
-            href="/projects"
-            prefetch={false}
-            className="link-underline text-accent"
-          >
-            All projects
-          </Link>
-        </p>
-      </Reveal>
+      {projects.length > 0 && (
+        <Reveal as="section" className="pb-16" aria-labelledby="work-heading">
+          <h2 id="work-heading" className="text-3xl">
+            Selected work
+          </h2>
+          <div className="mt-6">
+            {projects.map((p, i) => (
+              <ProjectRow key={p.slug} project={p} index={i} />
+            ))}
+          </div>
+          <p className="mt-6">
+            <Link
+              href="/projects"
+              prefetch={false}
+              className="link-underline text-accent"
+            >
+              All projects
+            </Link>
+          </p>
+        </Reveal>
+      )}
 
-      <Reveal as="section" className="pb-16" aria-labelledby="writing-heading">
-        <h2 id="writing-heading" className="text-3xl">
-          Latest writing
-        </h2>
-        <div className="mt-6">
-          {posts.map((p) => (
-            <PostRow key={p.slug} post={p} />
-          ))}
-        </div>
-        <p className="mt-6">
-          <Link
-            href="/blog"
-            prefetch={false}
-            className="link-underline text-accent"
-          >
-            All posts
-          </Link>
-        </p>
-      </Reveal>
+      {posts.length > 0 && (
+        <Reveal as="section" className="pb-16" aria-labelledby="writing-heading">
+          <h2 id="writing-heading" className="text-3xl">
+            Latest writing
+          </h2>
+          <div className="mt-6">
+            {posts.map((p) => (
+              <PostRow key={p.slug} post={p} />
+            ))}
+          </div>
+          <p className="mt-6">
+            <Link
+              href="/blog"
+              prefetch={false}
+              className="link-underline text-accent"
+            >
+              All posts
+            </Link>
+          </p>
+        </Reveal>
+      )}
 
       <Reveal as="section" className="border-t border-line py-16" aria-labelledby="cta-heading">
         <h2 id="cta-heading" className="max-w-[680px] text-3xl">
