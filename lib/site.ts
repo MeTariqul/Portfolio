@@ -18,7 +18,11 @@ export const site = {
   education: "B.Sc. in CSE at Gono Bishwabidyalay",
   github: "https://github.com/MeTariqul",
   linkedin: "https://www.linkedin.com/in/metariqul",
-  email: process.env.CONTACT_EMAIL ?? "gbtarif37@gmail.com",
+  // Shown publicly on the home page, contact page and footer. Deliberately a
+  // fixed address rather than CONTACT_EMAIL: that variable is the inbox
+  // contact-form notifications go to (and the From address), and in
+  // production it holds something you would not want printed on a public page.
+  email: "tarif_me@outlook.com",
   url: env?.NEXT_PUBLIC_SITE_URL ?? (deployed ? `https://${deployed}` : "http://localhost:3000"),
   cvPath: "/cv/Md-Tariqul-Islam-CV.pdf",
 };
