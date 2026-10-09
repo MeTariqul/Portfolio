@@ -9,21 +9,25 @@ import {
   getSettings,
   getSkills,
   getExperience,
+  getCopy,
 } from "@/lib/content";
 
-export const metadata: Metadata = {
-  title: "About",
-  description:
-    "The story, education and skills of Md. Tariqul Islam, a web developer from Savar, Dhaka, Bangladesh.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const copy = await getCopy();
+  return {
+    title: copy["about.title"],
+    description: copy["about.metaDescription"],
+  };
+}
 
 export const revalidate = 60;
 
 export default async function AboutPage() {
-  const [settings, skills, experience] = await Promise.all([
+  const [settings, skills, experience, copy] = await Promise.all([
     getSettings(),
     getSkills(),
     getExperience(),
+    getCopy(),
   ]);
   const { about } = settings;
 
@@ -39,15 +43,14 @@ export default async function AboutPage() {
       <section className="py-20 md:py-24">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           <div>
-            <h1 className="max-w-[680px] text-4xl">About me</h1>
+            <h1 className="max-w-[680px] text-4xl">{copy["about.h1"]}</h1>
             <p className="mt-6 max-w-[680px] text-lg text-soft">
-              {site.name}. Web developer in {site.location}. I build things for
-              the web and write down what I learn.
+              {copy["about.intro"]}
             </p>
           </div>
           <Image
             src="/profile.jpg"
-            alt={`Portrait of ${site.name}`}
+            alt={copy["ui.portraitAlt"]}
             width={160}
             height={160}
             className="rounded-full border border-line self-start"
@@ -61,7 +64,7 @@ export default async function AboutPage() {
         </div>
 
         <div className="mt-10 max-w-[680px]">
-          <h2 className="text-2xl">What I enjoy</h2>
+          <h2 className="text-2xl">{copy["about.enjoyHeading"]}</h2>
           <p className="mt-3 text-soft">
             {about.interests.join(". ")}.
           </p>
@@ -70,7 +73,7 @@ export default async function AboutPage() {
 
       <Reveal as="section" className="pb-16" aria-labelledby="timeline-heading">
         <h2 id="timeline-heading" className="text-3xl">
-          Timeline
+          {copy["about.timelineHeading"]}
         </h2>
         <div className="mt-6">
           {experience.map((e) => (
@@ -93,7 +96,7 @@ export default async function AboutPage() {
 
       <Reveal as="section" className="pb-16" aria-labelledby="skills-heading">
         <h2 id="skills-heading" className="text-3xl">
-          Skills
+          {copy["about.skillsHeading"]}
         </h2>
         <div className="mt-6 grid gap-8 md:grid-cols-2">
           {Array.from(groups.entries()).map(([group, items]) => (
@@ -110,9 +113,9 @@ export default async function AboutPage() {
       </Reveal>
 
       <section className="border-t border-line py-16">
-        <h2 className="text-3xl">Curriculum vitae</h2>
+        <h2 className="text-3xl">{copy["about.cvHeading"]}</h2>
         <p className="mt-4 max-w-[680px] text-soft">
-          The short version of everything above, in one PDF.
+          {copy["about.cvBody"]}
         </p>
         <div className="mt-6 flex flex-wrap gap-4">
           <a
@@ -120,16 +123,20 @@ export default async function AboutPage() {
             download
             className="inline-flex h-11 items-center rounded-full bg-accent px-6 text-[0.95rem] font-medium text-accent-contrast transition-opacity hover:opacity-90"
           >
-            Download CV
+            {copy["about.cvDownload"]}
           </a>
           <ButtonLink href="/contact" variant="secondary">
-            Work with me
+            {copy["about.cvWork"]}
           </ButtonLink>
         </div>
         <div className="mt-6 flex flex-wrap gap-2">
-          {["Next.js", "TypeScript", "Python", "PostgreSQL"].map((t) => (
-            <Tag key={t}>{t}</Tag>
-          ))}
+          {copy["about.cvTools"]
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+            .map((t) => (
+              <Tag key={t}>{t}</Tag>
+            ))}
         </div>
       </section>
     </Container>

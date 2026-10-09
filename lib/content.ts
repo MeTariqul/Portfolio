@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import sample from "@/lib/sample-content.json";
+import { copyDefaults, type Copy, type CopyKey } from "@/lib/copy";
 
 // Content layer: every function reads the database first. It falls back to
 // lib/sample-content.json only while the database is unreachable or has never
@@ -140,6 +141,30 @@ export const getSettings = cache(async (): Promise<SiteSettings> => {
     },
     sampleSettings,
   );
+});
+
+// Overrides for every site word, written by the admin Copy screen
+// (app/admin/copy). A key wins only when the `copy` setting holds a
+// non-empty string for it; everything else — including a database that is
+// unreachable — falls back to the defaults in lib/copy.ts, so the site can
+// never render a missing word as blank.
+export const getCopy = cache(async (): Promise<Copy> => {
+  const overrides = await safe<Record<string, unknown>>(async () => {
+    const row = await prisma.setting.findUnique({ where: { key: "copy" } });
+    return (row?.value ?? {}) as Record<string, unknown>;
+  }, {});
+
+  const merged: Copy = { ...copyDefaults };
+  for (const [key, value] of Object.entries(overrides)) {
+    if (
+      typeof value === "string" &&
+      value !== "" &&
+      key in copyDefaults
+    ) {
+      merged[key as CopyKey] = value;
+    }
+  }
+  return merged;
 });
 
 const isPublished = (p: { status: string; publishedAt: Date | null }) =>

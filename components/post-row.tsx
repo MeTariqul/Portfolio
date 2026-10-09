@@ -1,17 +1,21 @@
 import Link from "next/link";
-import type { Post } from "@/lib/content";
+import { getCopy, type Post } from "@/lib/content";
 import { formatDate, readingTime } from "@/lib/markdown";
 import { Tag } from "@/components/ui/tag";
+import { fill } from "@/lib/utils";
 
 // A blog list row: date, title, excerpt, reading time. Calm hairline rows
-// instead of identical cards.
-export function PostRow({ post }: { post: Post }) {
+// instead of identical cards. The reading-time wording comes from the admin
+// Copy screen, so this component reads it itself (it is a server component).
+export async function PostRow({ post }: { post: Post }) {
+  const copy = await getCopy();
+
   return (
     <article className="border-t border-line py-7">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-soft">
         <time dateTime={post.date}>{formatDate(post.date)}</time>
         <span aria-hidden>·</span>
-        <span>{readingTime(post.contentMD)} min read</span>
+        <span>{fill(copy["post.readTime"], { n: readingTime(post.contentMD) })}</span>
         {post.category && (
           <>
             <span aria-hidden>·</span>

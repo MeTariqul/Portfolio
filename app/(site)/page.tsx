@@ -10,15 +10,17 @@ import {
   getSettings,
   getFeaturedProjects,
   getLatestPosts,
+  getCopy,
 } from "@/lib/content";
 
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [settings, projects, posts] = await Promise.all([
+  const [settings, projects, posts, copy] = await Promise.all([
     getSettings(),
     getFeaturedProjects(3),
     getLatestPosts(3),
+    getCopy(),
   ]);
   const { availability, home } = settings;
 
@@ -27,7 +29,7 @@ export default async function HomePage() {
       <section className="py-20 md:py-28">
         <Image
           src="/profile.jpg"
-          alt={`Portrait of ${site.name}`}
+          alt={copy["ui.portraitAlt"]}
           width={132}
           height={132}
           priority
@@ -49,13 +51,13 @@ export default async function HomePage() {
         <p className="mt-6 max-w-[680px] text-lg text-soft">{home.intro}</p>
 
         <div className="mt-8 flex flex-wrap items-center gap-4">
-          <ButtonLink href="/contact">Start a project</ButtonLink>
+          <ButtonLink href="/contact">{copy["cta.startProject"]}</ButtonLink>
           <Link
             href="/projects"
             prefetch={false}
             className="link-underline text-soft hover:text-ink"
           >
-            See my work
+            {copy["home.workLink"]}
           </Link>
         </div>
       </section>
@@ -63,7 +65,7 @@ export default async function HomePage() {
       {projects.length > 0 && (
         <Reveal as="section" className="pb-16" aria-labelledby="work-heading">
           <h2 id="work-heading" className="text-3xl">
-            Selected work
+            {copy["home.workHeading"]}
           </h2>
           <div className="mt-6">
             {projects.map((p, i) => (
@@ -76,7 +78,7 @@ export default async function HomePage() {
               prefetch={false}
               className="link-underline text-accent"
             >
-              All projects
+              {copy["home.allProjects"]}
             </Link>
           </p>
         </Reveal>
@@ -85,7 +87,7 @@ export default async function HomePage() {
       {posts.length > 0 && (
         <Reveal as="section" className="pb-16" aria-labelledby="writing-heading">
           <h2 id="writing-heading" className="text-3xl">
-            Latest writing
+            {copy["home.writingHeading"]}
           </h2>
           <div className="mt-6">
             {posts.map((p) => (
@@ -98,7 +100,7 @@ export default async function HomePage() {
               prefetch={false}
               className="link-underline text-accent"
             >
-              All posts
+              {copy["home.allPosts"]}
             </Link>
           </p>
         </Reveal>
@@ -106,13 +108,13 @@ export default async function HomePage() {
 
       <Reveal as="section" className="border-t border-line py-16" aria-labelledby="cta-heading">
         <h2 id="cta-heading" className="max-w-[680px] text-3xl">
-          Have something you want built?
+          {copy["home.ctaHeading"]}
         </h2>
         <p className="mt-4 max-w-[680px] text-soft">
-          Tell me what it is. I read every message and reply within a day.
+          {copy["home.ctaBody"]}
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-4">
-          <ButtonLink href="/contact">Get in touch</ButtonLink>
+          <ButtonLink href="/contact">{copy["home.ctaContact"]}</ButtonLink>
           <a
             href={`mailto:${site.email}`}
             className="link-underline text-soft hover:text-ink"

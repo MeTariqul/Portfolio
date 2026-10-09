@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { sendMail } from "@/lib/email";
 import { site } from "@/lib/site";
+import { getCopy } from "@/lib/content";
 
 export type ContactState = {
   status: "idle" | "ok" | "error";
@@ -13,22 +14,25 @@ export type ContactState = {
   errors?: Record<string, string[]>;
 };
 
-const contactSchema = z.object({
-  name: z.string().trim().min(2, "Please tell me your name.").max(100),
-  email: z.email("Please enter a valid email address.").max(200),
-  message: z
-    .string()
-    .trim()
-    .min(10, "Write at least a few words so I can help.")
-    .max(5000),
-  // Honeypot: real users never fill this hidden field.
-  website: z.string().max(500).optional().default(""),
-});
-
 export async function sendContact(
   _prev: ContactState,
   formData: FormData,
 ): Promise<ContactState> {
+  // The wording of every message the visitor can see comes from the admin
+  // Copy screen; the schema is built here so its error text does too.
+  const copy = await getCopy();
+  const contactSchema = z.object({
+    name: z.string().trim().min(2, copy["contact.errName"]).max(100),
+    email: z.email(copy["contact.errEmail"]).max(200),
+    message: z
+      .string()
+      .trim()
+      .min(10, copy["contact.errMessage"])
+      .max(5000),
+    // Honeypot: real users never fill this hidden field.
+    website: z.string().max(500).optional().default(""),
+  });
+
   const parsed = contactSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -42,12 +46,12 @@ export async function sendContact(
       const field = String(issue.path[0] ?? "form");
       (errors[field] ??= []).push(issue.message);
     }
-    return { status: "error", message: "Please fix the fields below.", errors };
+    return { status: "error", message: copy["contact.errFix"], errors };
   }
 
   // Honeypot filled → silently pretend success (bot gets no feedback).
   if (parsed.data.website) {
-    return { status: "ok", message: "Thanks! Your message is on its way." };
+    return { status: "ok", message: copy["contact.sentBot"] };
   }
 
   const headerList = await headers();
@@ -57,7 +61,7 @@ export async function sendContact(
   if (!allowed) {
     return {
       status: "error",
-      message: "You have sent a few messages already. Give it a few minutes.",
+      message: copy["contact.errRate"],
     };
   }
 
@@ -73,7 +77,7 @@ export async function sendContact(
     console.error("Message insert failed:", err);
     return {
       status: "error",
-      message: "I could not save your message. Please try again or email me.",
+      message: copy["contact.errSave"],
     };
   }
 
@@ -94,7 +98,7 @@ export async function sendContact(
 
   return {
     status: "ok",
-    message: "Thanks! Your message is in my inbox. I will reply within a day.",
+    message: copy["contact.sentOk"],
   };
 }
 

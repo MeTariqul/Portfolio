@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { Analytics } from "@/components/analytics";
 import { site } from "@/lib/site";
+import { getCopy } from "@/lib/content";
 import "./globals.css";
 
 // Headings only ever render at weight 500 (see h1-h4 in globals.css), so we
@@ -53,16 +54,21 @@ function go(){ping(true);setInterval(function(){ping(false)},60000)}
 if(document.readyState==="complete")go();else window.addEventListener("load",go);
 })();`;
 
-export const metadata: Metadata = {
-  metadataBase: new URL(site.url),
-  title: {
-    default: `${site.name} · Web developer`,
-    template: `%s · ${site.name}`,
-  },
-  description:
-    "Portfolio and blog of Md. Tariqul Islam, a web developer from Savar, Dhaka, Bangladesh.",
-  robots: { index: true, follow: true },
-};
+// Root metadata. The default title and description come from the admin
+// Copy screen; the title template keeps the site name from lib/site.ts,
+// so "About · Md. Tariqul Islam" style titles stay consistent.
+export async function generateMetadata(): Promise<Metadata> {
+  const copy = await getCopy();
+  return {
+    metadataBase: new URL(site.url),
+    title: {
+      default: copy["seo.home.title"],
+      template: `%s · ${site.name}`,
+    },
+    description: copy["seo.home.description"],
+    robots: { index: true, follow: true },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: [

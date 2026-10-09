@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { PostRow } from "@/components/post-row";
-import { getPosts, getAllTags } from "@/lib/content";
-import { cn } from "@/lib/utils";
+import { getPosts, getAllTags, getCopy } from "@/lib/content";
+import { cn, fill } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Blog",
-  description:
-    "Notes on web development, Python and AI by Md. Tariqul Islam.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const copy = await getCopy();
+  return {
+    title: copy["blog.title"],
+    description: copy["blog.metaDescription"],
+  };
+}
 
 type Props = {
   searchParams: Promise<{ q?: string; tag?: string; page?: string }>;
@@ -31,19 +33,19 @@ export default async function BlogPage({ searchParams }: Props) {
   const page = Math.max(1, Number(sp.page) || 1);
   const perPage = 6;
 
-  const [{ posts, total }, tags] = await Promise.all([
+  const [{ posts, total }, tags, copy] = await Promise.all([
     getPosts({ q: q || undefined, tag: tag || undefined, page, perPage }),
     getAllTags(),
+    getCopy(),
   ]);
   const totalPages = Math.max(1, Math.ceil(total / perPage));
 
   return (
     <Container>
       <section className="py-20 md:py-24">
-        <h1 className="text-4xl">Blog</h1>
+        <h1 className="text-4xl">{copy["blog.title"]}</h1>
         <p className="mt-6 max-w-[680px] text-lg text-soft">
-          Notes on things I learn while building. No schedule, no newsletter
-          pressure. Read whichever one looks useful.
+          {copy["blog.intro"]}
         </p>
 
         <form
@@ -53,14 +55,14 @@ export default async function BlogPage({ searchParams }: Props) {
           role="search"
         >
           <label htmlFor="q" className="sr-only">
-            Search posts
+            {copy["blog.search"]}
           </label>
           <input
             id="q"
             name="q"
             type="search"
             defaultValue={q}
-            placeholder="Search posts"
+            placeholder={copy["blog.search"]}
             className="h-11 w-full rounded-full border border-line bg-surface px-5 text-[0.95rem] placeholder:text-soft focus:border-accent focus:outline-none"
           />
           {tag && <input type="hidden" name="tag" value={tag} />}
@@ -68,12 +70,12 @@ export default async function BlogPage({ searchParams }: Props) {
             type="submit"
             className="h-11 shrink-0 rounded-full bg-accent px-5 text-[0.95rem] font-medium text-accent-contrast transition-opacity hover:opacity-90"
           >
-            Search
+            {copy["blog.searchBtn"]}
           </button>
         </form>
 
         {tags.length > 0 && (
-          <div className="mt-6 flex flex-wrap gap-2" aria-label="Filter by tag">
+          <div className="mt-6 flex flex-wrap gap-2" aria-label={copy["blog.tagAria"]}>
             <Link
               href={pageHref({ q: q || undefined, page: 1 })}
               prefetch={false}
@@ -84,7 +86,7 @@ export default async function BlogPage({ searchParams }: Props) {
                   : "border-line text-soft hover:text-ink",
               )}
             >
-              All
+              {copy["ui.all"]}
             </Link>
             {tags.map((t) => (
               <Link
@@ -115,7 +117,7 @@ export default async function BlogPage({ searchParams }: Props) {
               prefetch={false}
               className="link-underline text-accent hover:text-ink"
             >
-              clear
+              {copy["blog.clear"]}
             </Link>
           </p>
         )}
@@ -128,13 +130,13 @@ export default async function BlogPage({ searchParams }: Props) {
 
         {posts.length === 0 && (
           <p className="mt-8 border-t border-line pt-8 text-soft">
-            No posts found. Try a different search.
+            {copy["blog.noPosts"]}
           </p>
         )}
 
         {totalPages > 1 && (
           <nav
-            aria-label="Pagination"
+            aria-label={copy["blog.pageAria"]}
             className="mt-10 flex items-center justify-between border-t border-line pt-6"
           >
             {page > 1 ? (
@@ -147,13 +149,13 @@ export default async function BlogPage({ searchParams }: Props) {
                 prefetch={false}
                 className="link-underline text-accent"
               >
-                ← Newer posts
+                {copy["blog.newer"]}
               </Link>
             ) : (
               <span />
             )}
             <span className="text-sm text-soft">
-              Page {page} of {totalPages}
+              {fill(copy["blog.pageOf"], { page, total: totalPages })}
             </span>
             {page < totalPages ? (
               <Link
@@ -165,7 +167,7 @@ export default async function BlogPage({ searchParams }: Props) {
                 prefetch={false}
                 className="link-underline text-accent"
               >
-                Older posts →
+                {copy["blog.older"]}
               </Link>
             ) : (
               <span />

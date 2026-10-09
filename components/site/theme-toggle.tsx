@@ -2,7 +2,7 @@
 
 // Light/dark toggle. Initial theme is applied before paint by the inline
 // script in the root layout, so the icon is pure CSS (no JS state, no flash).
-export function ThemeToggle() {
+export function ThemeToggle({ label }: { label: string }) {
   function toggle() {
     const root = document.documentElement;
     const isDark = root.classList.toggle("dark");
@@ -17,7 +17,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      aria-label="Switch color theme"
+      aria-label={label}
       className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-soft transition-colors hover:text-accent"
     >
       {/* Sun: shown in dark mode. Moon: shown in light mode. */}

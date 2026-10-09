@@ -5,7 +5,7 @@ import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
 import { Tag } from "@/components/ui/tag";
 import { Markdown } from "@/components/markdown";
-import { getProject } from "@/lib/content";
+import { getProject, getCopy } from "@/lib/content";
 
 export const revalidate = 60;
 
@@ -14,7 +14,10 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const project = await getProject(slug);
-  if (!project) return { title: "Project not found" };
+  if (!project) {
+    const copy = await getCopy();
+    return { title: copy["projects.notFound"] };
+  }
   return {
     title: project.title,
     description: project.summary,
@@ -43,7 +46,7 @@ function Screenshot({ url, alt }: { url: string; alt: string }) {
 
 export default async function ProjectPage({ params }: Props) {
   const { slug } = await params;
-  const project = await getProject(slug);
+  const [project, copy] = await Promise.all([getProject(slug), getCopy()]);
   if (!project) notFound();
 
   return (
@@ -55,7 +58,7 @@ export default async function ProjectPage({ params }: Props) {
             prefetch={false}
             className="link-underline hover:text-ink"
           >
-            Projects
+            {copy["projects.title"]}
           </Link>
           <span aria-hidden> / </span>
           {project.category}
@@ -69,7 +72,7 @@ export default async function ProjectPage({ params }: Props) {
         <div className="mt-7 flex flex-wrap items-center gap-3">
           {project.liveUrl && (
             <ButtonLink href={project.liveUrl} size="sm">
-              Live site
+              {copy["project.live"]}
             </ButtonLink>
           )}
           {project.githubUrl && (
@@ -78,7 +81,7 @@ export default async function ProjectPage({ params }: Props) {
               variant="secondary"
               size="sm"
             >
-              GitHub
+              {copy["ui.github"]}
             </ButtonLink>
           )}
           <div className="flex flex-wrap gap-2 sm:ml-2">
@@ -89,12 +92,12 @@ export default async function ProjectPage({ params }: Props) {
         </div>
 
         <section className="mt-14 max-w-[680px]">
-          <h2 className="text-2xl">The problem</h2>
+          <h2 className="text-2xl">{copy["project.problemHeading"]}</h2>
           <p className="mt-4">{project.problem}</p>
         </section>
 
         <section className="mt-12 max-w-[680px]">
-          <h2 className="text-2xl">What I built</h2>
+          <h2 className="text-2xl">{copy["project.builtHeading"]}</h2>
           <div className="mt-4">
             <Markdown>{project.solutionMD}</Markdown>
           </div>
@@ -102,7 +105,7 @@ export default async function ProjectPage({ params }: Props) {
 
         {project.screenshots.length > 0 && (
           <section className="mt-12">
-            <h2 className="text-2xl">Screenshots</h2>
+            <h2 className="text-2xl">{copy["project.screenshotsHeading"]}</h2>
             <div className="mt-6 grid gap-8 md:grid-cols-2">
               {project.screenshots.map((s) => (
                 <Screenshot key={s.url} url={s.url} alt={s.alt} />
@@ -112,7 +115,7 @@ export default async function ProjectPage({ params }: Props) {
         )}
 
         <section className="mt-12 max-w-[680px]">
-          <h2 className="text-2xl">What I learned</h2>
+          <h2 className="text-2xl">{copy["project.learnedHeading"]}</h2>
           <div className="mt-4">
             <Markdown>{project.learnedMD}</Markdown>
           </div>
@@ -124,7 +127,7 @@ export default async function ProjectPage({ params }: Props) {
             prefetch={false}
             className="link-underline text-accent"
           >
-            Back to all projects
+            {copy["project.backLink"]}
           </Link>
         </p>
       </article>

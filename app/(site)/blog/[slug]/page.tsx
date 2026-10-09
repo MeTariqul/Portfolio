@@ -10,8 +10,10 @@ import {
   getPost,
   getRelatedPosts,
   getAdjacentPosts,
+  getCopy,
 } from "@/lib/content";
 import { extractToc, formatDate, readingTime } from "@/lib/markdown";
+import { fill } from "@/lib/utils";
 
 export const revalidate = 60;
 
@@ -20,7 +22,10 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPost(slug);
-  if (!post) return { title: "Post not found" };
+  if (!post) {
+    const copy = await getCopy();
+    return { title: copy["blog.notFound"] };
+  }
   return {
     title: post.seoTitle || post.title,
     description: post.seoDescription || post.excerpt,
@@ -34,11 +39,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-function TocList({ toc }: { toc: ReturnType<typeof extractToc> }) {
+function TocList({
+  toc,
+  labels,
+}: {
+  toc: ReturnType<typeof extractToc>;
+  labels: { nav: string; heading: string };
+}) {
   if (toc.length < 2) return null;
   return (
-    <nav aria-label="Table of contents">
-      <p className="mb-3 text-sm text-soft">On this page</p>
+    <nav aria-label={labels.nav}>
+      <p className="mb-3 text-sm text-soft">{labels.heading}</p>
       <ul className="space-y-2 text-sm">
         {toc.map((item) => (
           <li
@@ -60,7 +71,7 @@ function TocList({ toc }: { toc: ReturnType<typeof extractToc> }) {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
-  const post = await getPost(slug);
+  const [post, copy] = await Promise.all([getPost(slug), getCopy()]);
   if (!post) notFound();
 
   const [toc, related, adjacent] = await Promise.all([
@@ -69,6 +80,7 @@ export default async function BlogPostPage({ params }: Props) {
     getAdjacentPosts(slug),
   ]);
   const url = `${site.url}/blog/${post.slug}`;
+  const tocLabels = { nav: copy["blog.tocAria"], heading: copy["blog.onThisPage"] };
 
   return (
     <Container>
@@ -77,7 +89,7 @@ export default async function BlogPostPage({ params }: Props) {
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-soft">
             <time dateTime={post.date}>{formatDate(post.date)}</time>
             <span aria-hidden>·</span>
-            <span>{readingTime(post.contentMD)} min read</span>
+            <span>{fill(copy["post.readTime"], { n: readingTime(post.contentMD) })}</span>
             {post.category && (
               <>
                 <span aria-hidden>·</span>
@@ -93,17 +105,21 @@ export default async function BlogPostPage({ params }: Props) {
         {toc.length >= 2 && (
           <details className="mt-8 max-w-[680px] rounded-lg border border-line p-4 lg:hidden">
             <summary className="cursor-pointer text-sm text-soft">
-              On this page
+              {copy["blog.onThisPage"]}
             </summary>
             <div className="mt-3">
-              <TocList toc={toc} />
+              <TocList toc={toc} labels={tocLabels} />
             </div>
           </details>
         )}
 
         <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,680px)_240px]">
           <div className="min-w-0">
-            <Markdown>{post.contentMD}</Markdown>
+            <Markdown
+              codeLabels={{ copy: copy["code.copy"], copied: copy["code.copied"] }}
+            >
+              {post.contentMD}
+            </Markdown>
 
             {post.attachments.length > 0 && (
               <section
@@ -111,7 +127,7 @@ export default async function BlogPostPage({ params }: Props) {
                 aria-labelledby="attachments-heading"
               >
                 <h2 id="attachments-heading" className="text-xl">
-                  Attachments
+                  {copy["blog.attachments"]}
                 </h2>
                 {post.attachments.some((a) => a.kind === "IMAGE") && (
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -157,14 +173,24 @@ export default async function BlogPostPage({ params }: Props) {
             )}
 
             <div className="mt-12 border-t border-line pt-6">
-              <ShareLinks title={post.title} url={url} />
+              <ShareLinks
+                title={post.title}
+                url={url}
+                labels={{
+                  share: copy["share.label"],
+                  x: copy["share.x"],
+                  linkedin: copy["ui.linkedin"],
+                  copy: copy["share.copy"],
+                  copied: copy["share.copied"],
+                }}
+              />
             </div>
           </div>
 
           {/* Desktop table of contents */}
           <aside className="hidden lg:block">
             <div className="sticky top-24">
-              <TocList toc={toc} />
+              <TocList toc={toc} labels={tocLabels} />
             </div>
           </aside>
         </div>
@@ -172,7 +198,7 @@ export default async function BlogPostPage({ params }: Props) {
         {related.length > 0 && (
           <section className="mt-16" aria-labelledby="related-heading">
             <h2 id="related-heading" className="text-2xl">
-              Related posts
+              {copy["blog.related"]}
             </h2>
             <div className="mt-4">
               {related.map((p) => (
@@ -183,7 +209,7 @@ export default async function BlogPostPage({ params }: Props) {
         )}
 
         <nav
-          aria-label="Post navigation"
+          aria-label={copy["blog.postNavAria"]}
           className="mt-12 flex flex-col justify-between gap-4 border-t border-line pt-8 sm:flex-row"
         >
           {adjacent.prev ? (
@@ -192,7 +218,7 @@ export default async function BlogPostPage({ params }: Props) {
               prefetch={false}
               className="link-underline max-w-[45%] text-soft hover:text-ink"
             >
-              ← Newer: {adjacent.prev.title}
+              {fill(copy["blog.postNewer"], { title: adjacent.prev.title })}
             </Link>
           ) : (
             <span />
@@ -203,7 +229,7 @@ export default async function BlogPostPage({ params }: Props) {
               prefetch={false}
               className="link-underline max-w-[45%] text-right text-soft hover:text-ink sm:text-right"
             >
-              Older: {adjacent.next.title} →
+              {fill(copy["blog.postOlder"], { title: adjacent.next.title })}
             </Link>
           ) : (
             <span />

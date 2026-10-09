@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { site } from "@/lib/site";
+import { getCopy } from "@/lib/content";
+import { fill } from "@/lib/utils";
 
-export function Footer() {
+export async function Footer() {
+  const copy = await getCopy();
   const year = new Date().getFullYear();
 
   return (
@@ -12,16 +15,19 @@ export function Footer() {
             {site.name} · {site.location}
           </p>
           <p className="mt-1">
-            © {year}. Built by me, in plain Next.js.
+            {fill(copy["footer.copyright"], { year })}
           </p>
         </div>
 
-        <nav aria-label="Footer" className="flex flex-wrap items-center gap-5 text-sm">
+        <nav
+          aria-label={copy["footer.nav"]}
+          className="flex flex-wrap items-center gap-5 text-sm"
+        >
           <a
             href={`mailto:${site.email}`}
             className="link-underline text-soft hover:text-ink"
           >
-            Email
+            {copy["footer.email"]}
           </a>
           <a
             href={site.github}
@@ -29,7 +35,7 @@ export function Footer() {
             rel="noopener noreferrer"
             className="link-underline text-soft hover:text-ink"
           >
-            GitHub
+            {copy["ui.github"]}
           </a>
           <a
             href={site.linkedin}
@@ -37,21 +43,21 @@ export function Footer() {
             rel="noopener noreferrer"
             className="link-underline text-soft hover:text-ink"
           >
-            LinkedIn
+            {copy["ui.linkedin"]}
           </a>
           <Link
             href="/uses"
             prefetch={false}
             className="link-underline text-soft hover:text-ink"
           >
-            Uses
+            {copy["footer.uses"]}
           </Link>
           <Link
             href="/rss.xml"
             prefetch={false}
             className="link-underline text-soft hover:text-ink"
           >
-            RSS
+            {copy["footer.rss"]}
           </Link>
         </nav>
       </div>

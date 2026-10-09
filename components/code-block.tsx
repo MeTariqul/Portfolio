@@ -17,8 +17,11 @@ function textOf(node: React.ReactNode): string {
 export function CodeBlock({
   children,
   className,
+  labels,
   ...props
-}: React.HTMLAttributes<HTMLPreElement>) {
+}: React.HTMLAttributes<HTMLPreElement> & {
+  labels: { copy: string; copied: string };
+}) {
   const [copied, setCopied] = useState(false);
   const code = textOf(children).replace(/\n$/, "");
   const codeEl = Array.isArray(children) ? children[0] : children;
@@ -58,7 +61,7 @@ export function CodeBlock({
           onClick={copy}
           className="rounded border border-line bg-bg px-2 py-1 text-[0.7rem] text-soft transition-colors hover:text-ink"
         >
-          {copied ? "Copied" : "Copy"}
+          {copied ? labels.copied : labels.copy}
         </button>
       </div>
     </div>

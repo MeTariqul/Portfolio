@@ -8,15 +8,14 @@ import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
 
-const LINKS = [
-  { href: "/about", label: "About" },
-  { href: "/projects", label: "Projects" },
-  { href: "/blog", label: "Blog" },
-  { href: "/services", label: "Services" },
-  { href: "/contact", label: "Contact" },
-];
+// Links and labels come from the server (lib/copy.ts via the site layout),
+// so every word here stays editable from the admin Copy screen.
+type HeaderProps = {
+  links: { href: string; label: string }[];
+  labels: { main: string; menuOpen: string; menuClose: string; theme: string };
+};
 
-export function Header() {
+export function Header({ links, labels }: HeaderProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -49,8 +48,8 @@ export function Header() {
           {site.shortName}
         </Link>
 
-        <nav aria-label="Main" className="hidden items-center gap-7 md:flex">
-          {LINKS.map((l) => (
+        <nav aria-label={labels.main} className="hidden items-center gap-7 md:flex">
+          {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
@@ -63,11 +62,11 @@ export function Header() {
               {l.label}
             </Link>
           ))}
-          <ThemeToggle />
+          <ThemeToggle label={labels.theme} />
         </nav>
 
         <div className="flex items-center gap-3 md:hidden">
-          <ThemeToggle />
+          <ThemeToggle label={labels.theme} />
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
@@ -75,7 +74,9 @@ export function Header() {
             aria-controls="mobile-menu"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-soft"
           >
-            <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
+            <span className="sr-only">
+              {open ? labels.menuClose : labels.menuOpen}
+            </span>
             <svg
               width="16"
               height="16"
@@ -98,11 +99,11 @@ export function Header() {
       {open && (
         <nav
           id="mobile-menu"
-          aria-label="Main"
+          aria-label={labels.main}
           className="border-t border-line bg-bg md:hidden"
         >
           <div className="mx-auto flex max-w-[1120px] flex-col px-6 py-3">
-            {LINKS.map((l) => (
+            {links.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}

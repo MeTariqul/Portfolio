@@ -34,6 +34,11 @@ export default async function AdminDashboardLayout({
           <NavLink href="/admin" label="Dashboard" />
           <NavLink href="/admin/posts" label="Posts" />
           <NavLink href="/admin/projects" label="Projects" />
+          <NavLink href="/admin/content/services" label="Services" />
+          <NavLink href="/admin/content/experience" label="Experience" />
+          <NavLink href="/admin/content/skills" label="Skills" />
+          <NavLink href="/admin/content/uses" label="Uses" />
+          <NavLink href="/admin/copy" label="Copy" />
           <NavLink href="/admin/messages" label="Messages" badge={unread} />
           <NavLink href="/admin/media" label="Media" />
           <NavLink href="/admin/settings" label="Settings" />

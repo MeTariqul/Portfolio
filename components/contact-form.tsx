@@ -9,7 +9,18 @@ const initialState: ContactState = { status: "idle" };
 const inputClass =
   "w-full rounded-lg border border-line bg-surface px-4 py-3 text-[0.95rem] placeholder:text-soft focus:border-accent focus:outline-none";
 
-export function ContactForm() {
+// Labels come from the server (the admin Copy screen); validation and
+// success messages arrive with the action's result.
+type FormLabels = {
+  name: string;
+  email: string;
+  message: string;
+  send: string;
+  sending: string;
+  sentHeading: string;
+};
+
+export function ContactForm({ labels }: { labels: FormLabels }) {
   const [state, formAction, pending] = useActionState(
     sendContact,
     initialState,
@@ -18,7 +29,7 @@ export function ContactForm() {
   if (state.status === "ok") {
     return (
       <div className="rounded-xl border border-line bg-surface p-6">
-        <h2 className="text-xl">Message sent</h2>
+        <h2 className="text-xl">{labels.sentHeading}</h2>
         <p className="mt-2 text-soft">{state.message}</p>
       </div>
     );
@@ -30,7 +41,7 @@ export function ContactForm() {
     <form action={formAction} className="space-y-5" noValidate>
       <div>
         <label htmlFor="name" className="mb-1.5 block text-sm text-soft">
-          Your name
+          {labels.name}
         </label>
         <input
           id="name"
@@ -53,7 +64,7 @@ export function ContactForm() {
 
       <div>
         <label htmlFor="email" className="mb-1.5 block text-sm text-soft">
-          Email
+          {labels.email}
         </label>
         <input
           id="email"
@@ -75,7 +86,7 @@ export function ContactForm() {
 
       <div>
         <label htmlFor="message" className="mb-1.5 block text-sm text-soft">
-          Message
+          {labels.message}
         </label>
         <textarea
           id="message"
@@ -118,7 +129,7 @@ export function ContactForm() {
         disabled={pending}
         className="inline-flex h-11 items-center rounded-full bg-accent px-6 text-[0.95rem] font-medium text-accent-contrast transition-opacity hover:opacity-90 disabled:opacity-50"
       >
-        {pending ? "Sending…" : "Send message"}
+        {pending ? labels.sending : labels.send}
       </button>
     </form>
   );

@@ -3,27 +3,46 @@
 import { useMemo, useState } from "react";
 import type { Project } from "@/lib/content";
 import { ProjectTile } from "@/components/project-tile";
-import { cn } from "@/lib/utils";
+import { cn, fill } from "@/lib/utils";
 
 // Client-side filter for the projects page: category chips + tech chips.
 // No page reloads, keyboard accessible, results announced politely.
-export function ProjectFilter({ projects }: { projects: Project[] }) {
-  const [category, setCategory] = useState<string>("All");
-  const [tech, setTech] = useState<string>("All");
+// Every label arrives as a prop so the admin Copy screen can reword them.
+type FilterLabels = {
+  all: string;
+  categoryAria: string;
+  techAria: string;
+  shownSr: string;
+  empty: string;
+  noMatch: string;
+};
+
+export function ProjectFilter({
+  projects,
+  labels,
+}: {
+  projects: Project[];
+  labels: FilterLabels;
+}) {
+  // "" is the internal "no filter" sentinel; it renders as labels.all, so a
+  // real category called "All" can never collide with it.
+  const ALL = "";
+  const [category, setCategory] = useState<string>(ALL);
+  const [tech, setTech] = useState<string>(ALL);
 
   const categories = useMemo(
-    () => ["All", ...Array.from(new Set(projects.map((p) => p.category)))],
+    () => [ALL, ...Array.from(new Set(projects.map((p) => p.category)))],
     [projects],
   );
   const techs = useMemo(
-    () => ["All", ...Array.from(new Set(projects.flatMap((p) => p.stack)))],
+    () => [ALL, ...Array.from(new Set(projects.flatMap((p) => p.stack)))],
     [projects],
   );
 
   const visible = projects.filter(
     (p) =>
-      (category === "All" || p.category === category) &&
-      (tech === "All" || p.stack.includes(tech)),
+      (category === ALL || p.category === category) &&
+      (tech === ALL || p.stack.includes(tech)),
   );
 
   const chip = (active: boolean) =>
@@ -37,42 +56,42 @@ export function ProjectFilter({ projects }: { projects: Project[] }) {
   // No projects at all is different from no matches, and saying "try clearing
   // a filter" when there is nothing to filter would be a lie.
   if (projects.length === 0) {
-    return <p className="text-soft">No projects to show yet.</p>;
+    return <p className="text-soft">{labels.empty}</p>;
   }
 
   return (
     <div>
       <div className="space-y-3">
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by category">
+        <div className="flex flex-wrap gap-2" role="group" aria-label={labels.categoryAria}>
           {categories.map((c) => (
             <button
-              key={c}
+              key={c || "all"}
               type="button"
               onClick={() => setCategory(c)}
               aria-pressed={category === c}
               className={chip(category === c)}
             >
-              {c}
+              {c === ALL ? labels.all : c}
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by technology">
+        <div className="flex flex-wrap gap-2" role="group" aria-label={labels.techAria}>
           {techs.map((t) => (
             <button
-              key={t}
+              key={t || "all"}
               type="button"
               onClick={() => setTech(t)}
               aria-pressed={tech === t}
               className={chip(tech === t)}
             >
-              {t}
+              {t === ALL ? labels.all : t}
             </button>
           ))}
         </div>
       </div>
 
       <p aria-live="polite" className="sr-only">
-        {visible.length} projects shown
+        {fill(labels.shownSr, { n: visible.length })}
       </p>
 
       <div className="mt-10 grid grid-cols-12 gap-6">
@@ -82,9 +101,7 @@ export function ProjectFilter({ projects }: { projects: Project[] }) {
       </div>
 
       {visible.length === 0 && (
-        <p className="mt-10 text-soft">
-          Nothing matches that combination. Try clearing a filter.
-        </p>
+        <p className="mt-10 text-soft">{labels.noMatch}</p>
       )}
     </div>
   );

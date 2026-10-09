@@ -1,4 +1,4 @@
-import { getPosts } from "@/lib/content";
+import { getPosts, getCopy } from "@/lib/content";
 import { site } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -12,7 +12,10 @@ const escapeXml = (s: string) =>
     .replace(/'/g, "&apos;");
 
 export async function GET() {
-  const { posts } = await getPosts({ perPage: 50 });
+  const [{ posts }, copy] = await Promise.all([
+    getPosts({ perPage: 50 }),
+    getCopy(),
+  ]);
 
   const items = posts
     .map((p) => {
@@ -32,9 +35,9 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>${escapeXml(site.name)} | Blog</title>
+    <title>${escapeXml(site.name)} | ${escapeXml(copy["blog.title"])}</title>
     <link>${site.url}/blog</link>
-    <description>Notes on web development, Python and AI by ${escapeXml(site.name)}.</description>
+    <description>${escapeXml(copy["rss.description"])}</description>
     <language>en</language>
 ${items}
   </channel>

@@ -1,19 +1,22 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
-import { getUses } from "@/lib/content";
+import { getUses, getCopy } from "@/lib/content";
 
-export const metadata: Metadata = {
-  title: "Uses",
-  description: "The tools and setup I use day to day.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const copy = await getCopy();
+  return {
+    title: copy["uses.title"],
+    description: copy["uses.metaDescription"],
+  };
+}
 
 export const revalidate = 60;
 
 export default async function UsesPage() {
-  const items = await getUses();
+  const [items, copy] = await Promise.all([getUses(), getCopy()]);
   const groups = new Map<string, typeof items>();
   for (const item of items) {
-    const key = item.group ?? "Other";
+    const key = item.group ?? copy["uses.otherGroup"];
     const list = groups.get(key) ?? [];
     list.push(item);
     groups.set(key, list);
@@ -22,10 +25,9 @@ export default async function UsesPage() {
   return (
     <Container>
       <section className="py-20 md:py-24">
-        <h1 className="text-4xl">Uses</h1>
+        <h1 className="text-4xl">{copy["uses.title"]}</h1>
         <p className="mt-6 max-w-[680px] text-lg text-soft">
-          The tools I reach for daily. This page changes whenever I switch
-          something out.
+          {copy["uses.intro"]}
         </p>
 
         <div className="mt-12 grid gap-12 md:grid-cols-2">
