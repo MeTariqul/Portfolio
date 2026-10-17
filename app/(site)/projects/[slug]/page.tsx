@@ -5,6 +5,13 @@ import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
 import { Tag } from "@/components/ui/tag";
 import { Markdown } from "@/components/markdown";
+import { JsonLd } from "@/components/seo/json-ld";
+import {
+  breadcrumbJsonLd,
+  creativeWorkJsonLd,
+  defaultOgImage,
+} from "@/lib/seo";
+import { site } from "@/lib/site";
 import { getProject, getCopy } from "@/lib/content";
 
 export const revalidate = 60;
@@ -18,9 +25,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const copy = await getCopy();
     return { title: copy["projects.notFound"] };
   }
+  const title = project.title;
+  const description = project.summary;
+  const path = `/projects/${project.slug}`;
+  const image = project.screenshots[0]?.url || defaultOgImage;
   return {
-    title: project.title,
-    description: project.summary,
+    title,
+    description,
+    // Pins every parameter/trailing-slash variant to one URL so the
+    // project's ranking signals are not split across duplicates.
+    alternates: { canonical: path },
+    keywords: [project.title, project.category, ...project.stack],
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url: path,
+      siteName: site.name,
+      locale: "en_US",
+      images: [{ url: image, alt: project.screenshots[0]?.alt || project.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
   };
 }
 
@@ -49,8 +79,25 @@ export default async function ProjectPage({ params }: Props) {
   const [project, copy] = await Promise.all([getProject(slug), getCopy()]);
   if (!project) notFound();
 
+  const jsonLd = [
+    creativeWorkJsonLd({
+      title: project.title,
+      description: project.summary,
+      path: `/projects/${project.slug}`,
+      image: project.screenshots[0]?.url,
+      keywords: [...project.stack, project.category],
+      sameAs: project.liveUrl || project.githubUrl || null,
+    }),
+    breadcrumbJsonLd([
+      { name: site.name, path: "/" },
+      { name: copy["projects.title"], path: "/projects" },
+      { name: project.title, path: `/projects/${project.slug}` },
+    ]),
+  ];
+
   return (
     <Container>
+      <JsonLd data={jsonLd} />
       <article className="py-20 md:py-24">
         <p className="text-sm text-soft">
           <Link

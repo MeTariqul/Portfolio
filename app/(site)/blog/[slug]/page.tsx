@@ -6,6 +6,8 @@ import { Markdown } from "@/components/markdown";
 import { PostRow } from "@/components/post-row";
 import { ShareLinks } from "@/components/share-links";
 import { site } from "@/lib/site";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbJsonLd, blogPostingJsonLd, defaultOgImage } from "@/lib/seo";
 import {
   getPost,
   getRelatedPosts,
@@ -26,15 +28,36 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const copy = await getCopy();
     return { title: copy["blog.notFound"] };
   }
+  const title = post.seoTitle || post.title;
+  const description = post.seoDescription || post.excerpt;
+  const path = `/blog/${post.slug}`;
   return {
-    title: post.seoTitle || post.title,
-    description: post.seoDescription || post.excerpt,
+    title,
+    description,
+    // Without a canonical, /blog/slug, /blog/slug/ and every tracking
+    // parameter compete as separate pages and split the ranking signals
+    // between them.
+    alternates: { canonical: path },
     openGraph: {
       type: "article",
-      title: post.seoTitle || post.title,
-      description: post.seoDescription || post.excerpt,
+      title,
+      description,
       publishedTime: post.date,
-      url: `${site.url}/blog/${post.slug}`,
+      url: path,
+      siteName: site.name,
+      locale: "en_US",
+      images: [
+        {
+          url: post.coverImage || defaultOgImage,
+          alt: post.coverAlt || post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [post.coverImage || defaultOgImage],
     },
   };
 }
@@ -82,8 +105,27 @@ export default async function BlogPostPage({ params }: Props) {
   const url = `${site.url}/blog/${post.slug}`;
   const tocLabels = { nav: copy["blog.tocAria"], heading: copy["blog.onThisPage"] };
 
+  // Structured data: tells Google this is an article by a real person rather
+  // than an anonymous page, which is what earns article rich results.
+  const jsonLd = [
+    blogPostingJsonLd({
+      title: post.title,
+      description: post.seoDescription || post.excerpt,
+      path: `/blog/${post.slug}`,
+      date: post.date,
+      image: post.coverImage,
+      tags: post.tags,
+      category: post.category,
+    }),
+    breadcrumbJsonLd([
+      { name: copy["nav.blog"], path: "/blog" },
+      { name: post.title, path: `/blog/${post.slug}` },
+    ]),
+  ];
+
   return (
     <Container>
+      <JsonLd data={jsonLd} />
       <article className="py-20 md:py-24">
         <header className="max-w-[680px]">
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-soft">

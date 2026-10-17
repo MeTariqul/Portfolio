@@ -1,7 +1,28 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
 import { ToastProvider } from "@/components/ui/toast";
+import { JsonLd } from "@/components/seo/json-ld";
+import { defaultOgImage, websiteJsonLd } from "@/lib/seo";
+import { site } from "@/lib/site";
 import { getCopy } from "@/lib/content";
+
+// Fallback social cards for every public page that does not describe its own
+// (the home page, /uses, /services...). Deliberately no `url`: a fixed og:url
+// inherited by every child would advertise the wrong address, and each page
+// that cares sets its own.
+export const metadata: Metadata = {
+  openGraph: {
+    type: "website",
+    siteName: site.name,
+    locale: "en_US",
+    images: [{ url: defaultOgImage, alt: site.name }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: [defaultOgImage],
+  },
+};
 
 export default async function SiteLayout({
   children,
@@ -14,6 +35,7 @@ export default async function SiteLayout({
 
   return (
     <ToastProvider>
+      <JsonLd data={websiteJsonLd()} />
       <div className="flex min-h-dvh flex-col">
         <Header
           links={[

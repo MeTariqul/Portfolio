@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
@@ -14,6 +15,13 @@ import {
 } from "@/lib/content";
 
 export const revalidate = 60;
+
+// Canonical home URL, plus an og:url the inherited defaults deliberately
+// skip (see app/(site)/layout.tsx).
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: { url: "/" },
+};
 
 export default async function HomePage() {
   const [settings, projects, posts, copy] = await Promise.all([

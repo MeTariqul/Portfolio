@@ -8,6 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: copy["projects.title"],
     description: copy["projects.metaDescription"],
+    alternates: { canonical: "/projects" },
   };
 }
 
