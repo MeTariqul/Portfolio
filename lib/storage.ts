@@ -132,3 +132,16 @@ export async function deleteObjectByUrl(url: string): Promise<boolean> {
   if (!storage || !path) return false;
   return deleteObject(storage, path);
 }
+
+// Builds the href behind a project's Download button.
+//
+// Supabase answers `?download=name` with Content-Disposition: attachment, so
+// the browser saves the file instead of trying to render it. The `download`
+// attribute cannot do that on its own: it is ignored on any other origin,
+// which every stored file is. Links we do not host (a GitHub release, say)
+// already send their own disposition header and are passed through as-is.
+export function downloadHref(url: string, filename?: string | null): string {
+  if (!filename || !storagePathFromUrl(url)) return url;
+  const sep = url.includes("?") ? "&" : "?";
+  return `${url}${sep}download=${encodeURIComponent(filename)}`;
+}

@@ -90,6 +90,7 @@ export const COPY_FIELDS = [
   { key: "projects.noMatch", group: "Projects", label: "Shown when a filter matches nothing", def: "Nothing matches that combination. Try clearing a filter.", long: true },
   { key: "projects.notFound", group: "Projects", label: "Missing project, page title", def: "Project not found" },
   { key: "project.live", group: "Projects", label: "\"Live site\" button", def: "Live site" },
+  { key: "project.download", group: "Projects", label: "\"Download\" button", def: "Download" },
   { key: "project.problemHeading", group: "Projects", label: "\"The problem\" heading", def: "The problem" },
   { key: "project.builtHeading", group: "Projects", label: "\"What I built\" heading", def: "What I built" },
   { key: "project.screenshotsHeading", group: "Projects", label: "\"Screenshots\" heading", def: "Screenshots" },

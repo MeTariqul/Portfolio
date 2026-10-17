@@ -2,8 +2,11 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
+import { classifyUpload, UPLOAD_LIMITS } from "@/lib/uploads";
 import {
   saveProject,
+  requestProjectDownload,
+  discardProjectDownload,
   type ProjectFormState,
 } from "@/app/admin/(dashboard)/projects/actions";
 
@@ -20,6 +23,8 @@ type ProjectLike = {
   screenshots: { url: string; alt: string }[];
   liveUrl: string | null;
   githubUrl: string | null;
+  downloadUrl?: string | null;
+  downloadFilename?: string | null;
   featured: boolean;
   order: number;
 };
@@ -57,6 +62,15 @@ export function ProjectForm({ project }: { project?: ProjectLike }) {
   const [title, setTitle] = useState(project?.title ?? "");
   const [slugEdited, setSlugEdited] = useState(!!project);
   const [slugValue, setSlugValue] = useState(project?.slug ?? "");
+  // The download is one pair of values: paste a link, or upload a file, which
+  // fills the same URL field. Kept in state rather than as a live input so an
+  // upload can set both halves at once.
+  const [downloadUrl, setDownloadUrl] = useState(project?.downloadUrl ?? "");
+  const [downloadFilename, setDownloadFilename] = useState(
+    project?.downloadFilename ?? "",
+  );
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState("");
   // Slug follows the title until it is edited by hand.
   const slug = slugEdited
     ? slugValue
@@ -64,6 +78,81 @@ export function ProjectForm({ project }: { project?: ProjectLike }) {
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-|-$/g, "");
+
+  // Uploads the picked file straight to storage, then points the form at it.
+  async function handleDownloadPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const inputEl = e.currentTarget;
+    const file = inputEl.files?.[0];
+    if (!file) return;
+    setDownloadError("");
+
+    // Same rule the server enforces — failing here just saves a round trip.
+    if (classifyUpload(file.type, file.name) !== "FILE") {
+      setDownloadError(
+        "Upload an archive or document: zip, pdf, Office or text files.",
+      );
+      inputEl.value = "";
+      return;
+    }
+    if (file.size > UPLOAD_LIMITS.FILE) {
+      setDownloadError(
+        `Files must be under ${Math.round(UPLOAD_LIMITS.FILE / (1024 * 1024))} MB.`,
+      );
+      inputEl.value = "";
+      return;
+    }
+
+    setDownloading(true);
+    try {
+      const signed = await requestProjectDownload(
+        file.name,
+        file.type,
+        file.size,
+      );
+      if (!signed.uploadUrl || !signed.publicUrl) {
+        setDownloadError(signed.error ?? "Upload failed.");
+        return;
+      }
+      const headers: Record<string, string> = {
+        "Content-Type": file.type || "application/octet-stream",
+      };
+      // Supabase rejects a signed PUT carrying only one of these headers.
+      const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (anon) {
+        headers.Authorization = `Bearer ${anon}`;
+        headers.apikey = anon;
+      }
+      const res = await fetch(signed.uploadUrl, {
+        method: "PUT",
+        headers,
+        body: file,
+      });
+      if (!res.ok) {
+        setDownloadError(`Upload failed (storage returned ${res.status}).`);
+        return;
+      }
+      setDownloadUrl(signed.publicUrl);
+      setDownloadFilename(file.name);
+    } catch {
+      setDownloadError("Upload failed. Check your connection and try again.");
+    } finally {
+      setDownloading(false);
+      inputEl.value = "";
+    }
+  }
+
+  // Clears the field. Only a file uploaded during this edit is deleted right
+  // away; the one already saved is left for saveProject to retire, so
+  // pressing Remove and then Cancel cannot break a live Download button.
+  function removeDownload() {
+    const current = downloadUrl;
+    setDownloadUrl("");
+    setDownloadFilename("");
+    setDownloadError("");
+    if (current && current !== (project?.downloadUrl ?? "")) {
+      void discardProjectDownload(current).catch(() => {});
+    }
+  }
 
   return (
     <form action={action} className="space-y-6">
@@ -203,6 +292,71 @@ export function ProjectForm({ project }: { project?: ProjectLike }) {
           />
         </Field>
       </div>
+
+      <div className="grid gap-5 md:grid-cols-2">
+        <Field
+          label="Download file (optional)"
+          htmlFor="downloadFile"
+          hint="Adds a Download button to the project page. Archives and documents up to 20 MB — zip your build, not the executable itself."
+        >
+          <input
+            id="downloadFile"
+            type="file"
+            accept=".zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.csv"
+            onChange={handleDownloadPick}
+            disabled={downloading}
+            className="block w-full text-sm text-soft file:mr-3 file:rounded-full file:border file:border-line file:bg-surface file:px-4 file:py-2 file:text-sm file:text-ink hover:file:border-accent/50"
+          />
+        </Field>
+        <Field
+          label="…or paste a download link"
+          htmlFor="downloadUrl"
+          hint="A GitHub release or any direct file URL."
+        >
+          <input
+            id="downloadUrl"
+            name="downloadUrl"
+            type="url"
+            placeholder="https://…"
+            value={downloadUrl}
+            onChange={(e) => setDownloadUrl(e.target.value)}
+            className={input}
+          />
+        </Field>
+      </div>
+
+      <input type="hidden" name="downloadFilename" value={downloadFilename} />
+
+      {(downloading || downloadError || (downloadUrl && downloadFilename)) && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          {downloading && <span className="text-soft">Uploading…</span>}
+          {downloadError && (
+            <span role="alert" className="text-accent">
+              {downloadError}
+            </span>
+          )}
+          {!downloading && downloadFilename && (
+            <>
+              <span className="text-soft">{downloadFilename}</span>
+              <a
+                href={downloadUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="link-underline text-soft hover:text-ink"
+              >
+                Test
+              </a>
+              <button
+                type="button"
+                onClick={removeDownload}
+                className="link-underline text-accent"
+              >
+                Remove
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       <Field
         label="Screenshots (optional)"

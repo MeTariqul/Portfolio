@@ -11,6 +11,7 @@ import {
   creativeWorkJsonLd,
   defaultOgImage,
 } from "@/lib/seo";
+import { downloadHref } from "@/lib/storage";
 import { site } from "@/lib/site";
 import { getProject, getCopy } from "@/lib/content";
 
@@ -117,6 +118,23 @@ export default async function ProjectPage({ params }: Props) {
         </p>
 
         <div className="mt-7 flex flex-wrap items-center gap-3">
+          {project.downloadUrl && (
+            // Plain anchor semantics via ButtonLink: a download is a file
+            // fetch, not a route change, so the new tab keeps the portfolio
+            // page open if the file host hands back a page instead of bytes.
+            <ButtonLink
+              href={downloadHref(
+                project.downloadUrl,
+                project.downloadFilename,
+              )}
+              size="sm"
+              download
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {copy["project.download"]}
+            </ButtonLink>
+          )}
           {project.liveUrl && (
             <ButtonLink href={project.liveUrl} size="sm">
               {copy["project.live"]}

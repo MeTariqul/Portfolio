@@ -85,6 +85,11 @@ model Project {
   screenshots Json // [{ url, alt }] — alt required by admin validation
   liveUrl     String?
   githubUrl   String?
+  // Direct file URL behind the public "Download" button, plus the original
+  // filename (it names the file in Content-Disposition). Null = no button.
+  // Uploaded files live in Supabase Storage under `projects/`.
+  downloadUrl      String?
+  downloadFilename String?
   featured    Boolean  @default(false)
   order       Int      @default(0)
   createdAt   DateTime @default(now())

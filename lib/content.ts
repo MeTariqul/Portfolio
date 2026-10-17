@@ -49,6 +49,10 @@ export type Project = {
   screenshots: { url: string; alt: string }[];
   liveUrl: string | null;
   githubUrl: string | null;
+  /** File URL behind the public Download button; absent = no button. */
+  downloadUrl?: string | null;
+  /** Original filename, so the browser saves it under the right name. */
+  downloadFilename?: string | null;
   featured: boolean;
   order: number;
 };
@@ -444,6 +448,9 @@ const mapProject = (p: {
   screenshots: unknown;
   liveUrl: string | null;
   githubUrl: string | null;
+  // Optional: the sample-content projects predate the download field.
+  downloadUrl?: string | null;
+  downloadFilename?: string | null;
   featured: boolean;
   order: number;
 }): Project => ({
@@ -458,6 +465,8 @@ const mapProject = (p: {
   screenshots: (p.screenshots as Project["screenshots"]) ?? [],
   liveUrl: p.liveUrl,
   githubUrl: p.githubUrl,
+  downloadUrl: p.downloadUrl ?? null,
+  downloadFilename: p.downloadFilename ?? null,
   featured: p.featured,
   order: p.order,
 });
