@@ -6,7 +6,10 @@ import {
 } from "next/server";
 import { authConfig } from "@/lib/auth.config";
 
-// Edge entry for every matched route. Two jobs:
+// Edge entry for every matched route. Three jobs:
+//
+//  0. Legacy paths from the pre-rebuild site — answer 410 Gone (see
+//     LEGACY_PATHS below) instead of falling through to a 404.
 //
 //  1. /admin — the session check and redirect to /admin/login, via the same
 //     bare `auth(request, event)` call the old `export default auth` made.
@@ -20,6 +23,37 @@ import { authConfig } from "@/lib/auth.config";
 //     components/analytics.tsx until the visitor interacts.
 //
 // Keep this file free of database/Node-only imports: it runs on the edge.
+
+// Routes that only existed before commit cdb69da rebuilt the site on a new
+// app directory (the old ones lived under src/app/[locale]/...). Google
+// indexed them against the previous deployment, so the crawler still asks for
+// them. A 404 says "not here right now" and keeps them in the crawl queue;
+// 410 says "deleted for good", which is what actually gets them dropped from
+// the index.
+//
+// Deliberately prefixes rather than exact paths, so /crazy-time/1 and
+// /en/blog/some-slug are covered by the same rule as their index pages.
+const LEGACY_PATHS: RegExp[] = [
+  /^\/crazy-time(\/|$)/, // old case-study showcase, no successor page
+  /^\/en(\/|$)/, // next-intl locale prefix; the rebuild dropped i18n routing
+  /^\/admin\/reset-password(\/|$)/, // password-reset flow removed with the rebuild
+];
+
+const GONE_PAGE =
+  '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
+  '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+  '<meta name="robots" content="noindex"><title>Gone</title></head>' +
+  '<body><h1>410 Gone</h1>' +
+  "<p>This page was permanently removed. " +
+  '<a href="/">Back to the homepage</a>.</p></body></html>';
+
+const GONE_HEADERS = {
+  "content-type": "text/html; charset=utf-8",
+  "x-robots-tag": "noindex",
+  // Short-lived on purpose: if a legacy path is ever re-used (a future page
+  // under /en/, say), the rule and its cache expire together.
+  "cache-control": "public, max-age=3600",
+};
 
 const { auth } = NextAuth(authConfig);
 
@@ -117,6 +151,20 @@ export default async function proxy(
   req: NextRequest,
   event: NextFetchEvent,
 ): Promise<Response> {
+  // 0. Routes the rebuild deleted: 410 Gone. Before the admin gate so
+  //    /admin/reset-password reports "gone" instead of redirecting to login.
+  const { pathname } = req.nextUrl;
+  if (
+    (req.method === "GET" || req.method === "HEAD") &&
+    LEGACY_PATHS.some((pattern) => pattern.test(pathname))
+  ) {
+    return new Response(req.method === "HEAD" ? null : GONE_PAGE, {
+      status: 410,
+      statusText: "Gone",
+      headers: GONE_HEADERS,
+    });
+  }
+
   // 1. Admin: session check and login redirect, same as before.
   if (req.nextUrl.pathname.startsWith("/admin")) return adminGate(req, event);
 
