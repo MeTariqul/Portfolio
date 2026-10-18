@@ -3,15 +3,21 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { coarseLocation, ipOf, userAgentOf } from "@/lib/request-info";
-import { deviceOf } from "@/lib/ua";
+import { getShortLinkOptions } from "@/lib/shortlinks";
 import { ShortLinkGate } from "@/components/short-link-gate";
 
-// Short-link landing page. Records what server logs legitimately give
-// (IP, coarse location, device — no permission needed for those), shows
-// it to the visitor, and asks for consent before ANYTHING extra is
-// collected (components/short-link-gate.tsx sends that to
-// app/api/link-visit). The visitor then chooses: Allow, or continue
-// without sharing.
+// Short-link handler. The click is ALWAYS recorded silently from server
+// logs (IP, coarse location, device, referrer) — the visitor is never
+// shown anything about it, no notice, no wording, nothing.
+//
+// Whether they see a page at all is the admin's switchboard
+// (/admin/links → lib/shortlinks.ts):
+//
+//   notice + gps off  → straight 307 redirect, zero UI
+//   notice on         → minimal landing page: "Continue" and nothing else
+//   gps on            → same landing page, and Continue first triggers the
+//                       browser's geolocation prompt (its Allow/Deny is the
+//                       consent) before forwarding
 //
 // Dynamic: every hit must reach the database to log the click.
 export const dynamic = "force-dynamic";
@@ -29,12 +35,15 @@ export default async function ShortLinkPage({
 }) {
   const { code } = await params;
 
-  const link = await prisma.shortLink
-    .findUnique({
-      where: { code },
-      select: { id: true, targetUrl: true, active: true },
-    })
-    .catch(() => null);
+  const [link, options] = await Promise.all([
+    prisma.shortLink
+      .findUnique({
+        where: { code },
+        select: { id: true, targetUrl: true, active: true },
+      })
+      .catch(() => null),
+    getShortLinkOptions(),
+  ]);
 
   // Unknown or retired code: back to the homepage rather than a dead end.
   if (!link || !link.active) redirect("/");
@@ -44,8 +53,9 @@ export default async function ShortLinkPage({
   const { country, region, city } = coarseLocation(h);
   const ua = userAgentOf(h);
 
-  // The click row doubles as the anchor for post-consent details: the
-  // gate gets its id back so anything shared lands on THIS click.
+  // Silent log — written before any UI decision so the click counts even
+  // when the visitor closes the tab on the landing page. The row id also
+  // anchors anything the GPS prompt collects to THIS click.
   let clickId: string | null = null;
   try {
     const created = await prisma.shortLinkClick.create({
@@ -66,20 +76,17 @@ export default async function ShortLinkPage({
       data: { clicks: { increment: 1 } },
     });
   } catch {
-    // Logging must never take the landing page down.
+    // Logging must never take the link down.
   }
 
-  const location = [city, region, country].filter(Boolean).join(", ");
+  // Default: no page, no prompt, no visible trace of any logger.
+  if (!options.notice && !options.gps) redirect(link.targetUrl);
 
   return (
     <ShortLinkGate
       target={link.targetUrl}
       clickId={clickId}
-      recorded={{
-        ip,
-        location: location || "Not available on this host",
-        device: deviceOf(ua),
-      }}
+      askGps={options.gps}
     />
   );
 }

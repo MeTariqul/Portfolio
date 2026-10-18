@@ -82,17 +82,24 @@ Nothing on the site is hardcoded in a page file:
 ## Short links with click logging
 
 `/admin/links` turns any URL into a short link of the form `https://<site>/go/<code>`
-(custom code optional, auto-generated otherwise). A hit lands on a landing page that
-first shows what was recorded automatically — IP address, country/region/city, device
-and referrer (standard server logs, no permission needed) — then asks consent before
-anything more is collected: **Allow & continue** shares precise coordinates, language,
-timezone and screen size for that click (via the browser's own geolocation prompt),
-while **Continue without sharing** records nothing extra. Coarse location comes from
-Vercel's request headers (`x-vercel-ip-*`), so outside Vercel those columns stay empty.
-"View log" on a link shows the latest 500 clicks with a country roll-up and a Shared
-column for the consented details (declined when the visitor opted out). Pausing a link
-sends visitors to the homepage instead of the target; deleting a link deletes its click
-history.
+(custom code optional, auto-generated otherwise). Every hit is recorded silently from
+server logs — IP address, country/region/city, device, referrer — and the visitor is
+never shown anything about it: no notice, no wording, nothing. Coarse location comes
+from Vercel's request headers (`x-vercel-ip-*`), so outside Vercel those columns stay
+empty.
+
+The **Visitor flow** switches on `/admin/links` control what happens before the
+redirect (both off by default → instant, silent forward):
+
+- **Landing page** — a single "Continue" button; nothing else is displayed.
+- **Ask for GPS location** — pressing Continue first triggers the browser's own
+  Allow/Deny location prompt; coordinates (and browser details) are recorded only
+  for clicks where the visitor allowed it. Implies the landing page.
+
+"View log" on a link shows the latest 500 clicks with a country roll-up and a
+Shared column for consented details (declined when the visitor opted out).
+Pausing a link sends visitors to the homepage instead of the target; deleting a
+link deletes its click history.
 
 ## How to add a content type
 

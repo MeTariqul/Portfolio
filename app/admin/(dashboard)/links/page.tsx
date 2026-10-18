@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { site } from "@/lib/site";
+import { getShortLinkOptions } from "@/lib/shortlinks";
 import { LinkForm } from "@/components/admin/link-form";
+import { LinkOptions } from "@/components/admin/link-options";
 import { LinkActions } from "@/components/admin/link-actions";
 import { CopyUrl } from "@/components/admin/copy-url";
 
@@ -19,9 +21,10 @@ const formatDate = (d: Date) =>
   });
 
 export default async function LinksPage() {
-  const [links, totalClicks] = await Promise.all([
+  const [links, totalClicks, options] = await Promise.all([
     prisma.shortLink.findMany({ orderBy: { createdAt: "desc" } }),
     prisma.shortLinkClick.count(),
+    getShortLinkOptions(),
   ]);
 
   return (
@@ -39,6 +42,10 @@ export default async function LinksPage() {
 
       <div className="mt-6">
         <LinkForm />
+      </div>
+
+      <div className="mt-4">
+        <LinkOptions notice={options.notice} gps={options.gps} />
       </div>
 
       {links.length === 0 && (
