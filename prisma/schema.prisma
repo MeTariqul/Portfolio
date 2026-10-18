@@ -252,10 +252,9 @@ model ShortLink {
 
 // One row per short-link click. The IP plus the platform's geolocation
 // request headers (Vercel sets x-vercel-ip-country/region/city) — no
-// cookies, no fingerprinting. City arrives URL-encoded, decoded on write.
-// `extra` is filled only after the visitor presses Allow on the landing
-// page (app/go/[code]): precise coordinates and browser details the
-// visitor explicitly agreed to share.
+// cookies, no fingerprinting, no prompts. City arrives URL-encoded,
+// decoded on write. Short links redirect immediately, so this is the
+// whole record: nothing is ever shown to the visitor.
 model ShortLinkClick {
   id          String    @id @default(cuid())
   shortLinkId String
@@ -266,7 +265,6 @@ model ShortLinkClick {
   city        String?
   userAgent   String?
   referer     String?
-  extra       Json?
   createdAt   DateTime  @default(now())
 
   @@index([shortLinkId, createdAt])

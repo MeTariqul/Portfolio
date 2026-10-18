@@ -7,10 +7,6 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { site } from "@/lib/site";
-import {
-  getShortLinkOptions,
-  type ShortLinkOptions,
-} from "@/lib/shortlinks";
 
 export type LinkFormState = {
   error?: string;
@@ -122,22 +118,6 @@ export async function createShortLink(
 export async function toggleShortLink(id: string, active: boolean) {
   await requireAdmin();
   await prisma.shortLink.update({ where: { id }, data: { active } });
-  revalidatePath("/admin/links");
-}
-
-// Flips one visitor-flow option (landing page / GPS asking) on or off.
-export async function setShortLinkOption(
-  option: keyof ShortLinkOptions,
-  enabled: boolean,
-) {
-  await requireAdmin();
-  if (option !== "notice" && option !== "gps") return;
-  const current = await getShortLinkOptions();
-  await prisma.setting.upsert({
-    where: { key: "shortlinks" },
-    create: { key: "shortlinks", value: { ...current, [option]: enabled } },
-    update: { value: { ...current, [option]: enabled } },
-  });
   revalidatePath("/admin/links");
 }
 

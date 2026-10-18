@@ -1,9 +1,9 @@
 // Reads the visitor's coarse identity from request headers.
 //
 // This is the "no asking needed" set: ordinary server-log data every web
-// server records. Anything beyond it (precise coordinates, browser
-// details) is collected only after the visitor consents on the landing
-// page — see components/short-link-gate.tsx.
+// server records. Short links (app/go/[code]) redirect immediately, so
+// this is everything that ever gets recorded — nothing is shown to the
+// visitor and nothing else is collected.
 
 // Vercel puts the visitor's geolocation in these headers; on any other
 // host (local dev included) they are absent and the fields stay null.

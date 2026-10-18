@@ -84,20 +84,11 @@ Nothing on the site is hardcoded in a page file:
 `/admin/links` turns any URL into a short link of the form `https://<site>/go/<code>`
 (custom code optional, auto-generated otherwise). Every hit is recorded silently from
 server logs — IP address, country/region/city, device, referrer — and the visitor is
-never shown anything about it: no notice, no wording, nothing. Coarse location comes
-from Vercel's request headers (`x-vercel-ip-*`), so outside Vercel those columns stay
-empty.
+forwarded to the target **immediately**: no landing page, no notice, no prompt, ever.
+Coarse location comes from Vercel's request headers (`x-vercel-ip-*`), so outside
+Vercel those columns stay empty.
 
-The **Visitor flow** switches on `/admin/links` control what happens before the
-redirect (both off by default → instant, silent forward):
-
-- **Landing page** — a single "Continue" button; nothing else is displayed.
-- **Ask for GPS location** — pressing Continue first triggers the browser's own
-  Allow/Deny location prompt; coordinates (and browser details) are recorded only
-  for clicks where the visitor allowed it. Implies the landing page.
-
-"View log" on a link shows the latest 500 clicks with a country roll-up and a
-Shared column for consented details (declined when the visitor opted out).
+"View log" on a link shows the latest 500 clicks with a country roll-up.
 Pausing a link sends visitors to the homepage instead of the target; deleting a
 link deletes its click history.
 
