@@ -18,6 +18,7 @@ export default async function AdminDashboardPage() {
     messagesTotal,
     messagesUnread,
     media,
+    linkClicks,
     visitorStats,
   ] = await Promise.all([
     prisma.post.count({ where: { status: "PUBLISHED" } }),
@@ -26,6 +27,7 @@ export default async function AdminDashboardPage() {
     prisma.message.count(),
     prisma.message.count({ where: { read: false } }),
     prisma.media.count(),
+    prisma.shortLinkClick.count(),
     getVisitorStats(),
   ]);
 
@@ -39,6 +41,7 @@ export default async function AdminDashboardPage() {
     { label: "Drafts", value: postsDrafts, href: "/admin/posts" },
     { label: "Projects", value: projects, href: "/admin/projects" },
     { label: "Unread messages", value: messagesUnread, href: "/admin/messages" },
+    { label: "Short link clicks", value: linkClicks, href: "/admin/links" },
     { label: "Media files", value: media, href: "/admin/media" },
   ];
 
@@ -52,7 +55,7 @@ export default async function AdminDashboardPage() {
         initialVisits={visitorStats.visits}
       />
 
-      <div className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-5">
+      <div className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-6">
         {stats.map((s, i) => (
           <Link
             key={s.label}

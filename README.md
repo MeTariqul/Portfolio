@@ -79,6 +79,17 @@ Nothing on the site is hardcoded in a page file:
 - **Posts** and **Projects**: writing and case studies, with drafts, SEO fields and attachments.
 - **Services, Experience, Skills, Uses** (`/admin/content/...`): the list-based content types.
 
+## Short links with click logging
+
+`/admin/links` turns any URL into a short link of the form `https://<site>/go/<code>`
+(custom code optional, auto-generated otherwise). Each visit to a short link is
+redirected (307) to the target and logged: IP address, country/region/city, device
+and referrer. Location comes from Vercel's request headers (`x-vercel-ip-*`), so
+outside Vercel the location columns stay empty. "View log" on a link shows the
+latest 500 clicks with a country roll-up. Pausing a link stops the redirect target
+from working (visitors land on the homepage); deleting a link deletes its click
+history.
+
 ## How to add a content type
 
 The dashboard routes under `app/admin/(dashboard)/content/[kind]` serve every content type, so a new type is four small steps (also documented in the `lib/content-specs.ts` header):

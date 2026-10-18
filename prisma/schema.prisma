@@ -231,3 +231,39 @@ model Stat {
   value     Int      @default(0)
   updatedAt DateTime @updatedAt
 }
+
+// Short links created in the admin (/admin/links). The public URL is
+// /go/{code}; every hit is logged (IP + coarse location) in ShortLinkClick
+// and then the visitor is redirected to `targetUrl`.
+model ShortLink {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  targetUrl String
+  title     String?
+  active    Boolean  @default(true)
+  clicks    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  logs ShortLinkClick[]
+
+  @@index([createdAt])
+}
+
+// One row per short-link click. The IP plus the platform's geolocation
+// request headers (Vercel sets x-vercel-ip-country/region/city) — no
+// cookies, no fingerprinting. City arrives URL-encoded, decoded on write.
+model ShortLinkClick {
+  id          String    @id @default(cuid())
+  shortLinkId String
+  shortLink   ShortLink @relation(fields: [shortLinkId], references: [id], onDelete: Cascade)
+  ip          String    @default("unknown")
+  country     String?
+  region      String?
+  city        String?
+  userAgent   String?
+  referer     String?
+  createdAt   DateTime  @default(now())
+
+  @@index([shortLinkId, createdAt])
+}

@@ -211,6 +211,9 @@ export default async function proxy(
 export const config = {
   matcher: [
     "/admin/:path*",
-    "/((?!_next/static|_next/image|_vercel|api|fonts|cv|rss.xml|robots.txt|sitemap.xml|icon.svg|profile.jpg|favicon.ico).*)",
+    // `go` is excluded too: short links (app/go/[code]) answer with a
+    // redirect, and running them through the HTML rewrite would only add
+    // a wasted sub-request before the visitor leaves the site.
+    "/((?!_next/static|_next/image|_vercel|api|go|fonts|cv|rss.xml|robots.txt|sitemap.xml|icon.svg|profile.jpg|favicon.ico).*)",
   ],
 };
