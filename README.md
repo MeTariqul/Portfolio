@@ -82,12 +82,16 @@ Nothing on the site is hardcoded in a page file:
 ## Short links with click logging
 
 `/admin/links` turns any URL into a short link of the form `https://<site>/go/<code>`
-(custom code optional, auto-generated otherwise). Each visit to a short link is
-redirected (307) to the target and logged: IP address, country/region/city, device
-and referrer. Location comes from Vercel's request headers (`x-vercel-ip-*`), so
-outside Vercel the location columns stay empty. "View log" on a link shows the
-latest 500 clicks with a country roll-up. Pausing a link stops the redirect target
-from working (visitors land on the homepage); deleting a link deletes its click
+(custom code optional, auto-generated otherwise). A hit lands on a landing page that
+first shows what was recorded automatically — IP address, country/region/city, device
+and referrer (standard server logs, no permission needed) — then asks consent before
+anything more is collected: **Allow & continue** shares precise coordinates, language,
+timezone and screen size for that click (via the browser's own geolocation prompt),
+while **Continue without sharing** records nothing extra. Coarse location comes from
+Vercel's request headers (`x-vercel-ip-*`), so outside Vercel those columns stay empty.
+"View log" on a link shows the latest 500 clicks with a country roll-up and a Shared
+column for the consented details (declined when the visitor opted out). Pausing a link
+sends visitors to the homepage instead of the target; deleting a link deletes its click
 history.
 
 ## How to add a content type

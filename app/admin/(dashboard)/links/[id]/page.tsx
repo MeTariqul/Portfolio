@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { site } from "@/lib/site";
+import { deviceOf } from "@/lib/ua";
 import { CopyUrl } from "@/components/admin/copy-url";
 
 export const metadata: Metadata = {
@@ -23,26 +24,23 @@ const formatWhen = (d: Date) =>
     minute: "2-digit",
   });
 
-// Shortens a user agent to something readable in a table row.
-function deviceOf(ua: string | null): string {
-  if (!ua) return "—";
-  const os =
-    /Windows/i.test(ua) ? "Windows"
-    : /Mac OS X|Macintosh/i.test(ua) ? "macOS"
-    : /Android/i.test(ua) ? "Android"
-    : /iPhone|iPad|iOS/i.test(ua) ? "iOS"
-    : /Linux/i.test(ua) ? "Linux"
-    : null;
-  const browser =
-    /Edg\//i.test(ua) ? "Edge"
-    : /OPR\/|Opera/i.test(ua) ? "Opera"
-    : /Firefox\//i.test(ua) ? "Firefox"
-    : /Chrome\//i.test(ua) ? "Chrome"
-    : /Safari\//i.test(ua) ? "Safari"
-    : /bot|crawler|spider/i.test(ua) ? "Bot"
-    : null;
-  if (!os && !browser) return ua.slice(0, 40);
-  return [browser, os].filter(Boolean).join(" · ");
+// Renders what the visitor consented to share on the landing page (the
+// `extra` JSON): precise coordinates first, then browser details.
+function sharedOf(extra: unknown): string | null {
+  if (!extra || typeof extra !== "object" || Array.isArray(extra)) return null;
+  const e = extra as Record<string, unknown>;
+  const parts: string[] = [];
+  if (typeof e.lat === "number" && typeof e.lng === "number") {
+    parts.push(
+      `${e.lat.toFixed(4)}, ${e.lng.toFixed(4)}` +
+        (typeof e.accuracy === "number" ? ` (±${Math.round(e.accuracy)} m)` : ""),
+    );
+  }
+  for (const key of ["screen", "platform", "timezone", "language"]) {
+    const value = e[key];
+    if (typeof value === "string" && value) parts.push(value);
+  }
+  return parts.length > 0 ? parts.join(" · ") : null;
 }
 
 export default async function LinkLogPage({
@@ -138,6 +136,7 @@ export default async function LinkLogPage({
                 <th className="py-2 pr-4 font-medium">IP address</th>
                 <th className="py-2 pr-4 font-medium">Location</th>
                 <th className="py-2 pr-4 font-medium">Device</th>
+                <th className="py-2 pr-4 font-medium">Shared</th>
                 <th className="py-2 font-medium">Came from</th>
               </tr>
             </thead>
@@ -155,6 +154,14 @@ export default async function LinkLogPage({
                   </td>
                   <td className="whitespace-nowrap py-3 pr-4 text-soft">
                     {deviceOf(log.userAgent)}
+                  </td>
+                  <td
+                    className="max-w-[240px] py-3 pr-4 text-soft"
+                    title={sharedOf(log.extra) ?? ""}
+                  >
+                    {sharedOf(log.extra) ?? (
+                      <span className="text-soft/60">declined</span>
+                    )}
                   </td>
                   <td
                     className="max-w-[220px] truncate py-3 text-soft"
