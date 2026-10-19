@@ -45,14 +45,15 @@ const license = await prisma.license.create({
   },
 });
 
-// A second app, for the request flow (its key prefix differs too).
+// A second app, for the request flow (its key prefix differs too). Created
+// with no requestMode on purpose: the default is what the first check below
+// is asserting.
 const reqKey = `appk_test_${randomBytes(12).toString("hex")}`;
 const reqApp = await prisma.app.create({
   data: {
     name: `Request App ${tag}`,
     slug: `reqapp-${tag}`,
     apiKey: reqKey,
-    requestMode: "AUTO",
   },
 });
 // The three addresses this run touches. Each is unique to the run.
@@ -179,7 +180,14 @@ check("public key stable", publicKeyAgain.publicKey === publicKeyResponse.public
 
 console.log(`\n── Key requests ─────────────────────────────────────`);
 
-// 14. AUTO: the request creates a single-device license for that address.
+// 14. A fresh app defaults to Auto, and one request is all it takes to get a
+// single-device key for that address — no admin action needed.
+const freshMode = await prisma.app.findUnique({
+  where: { id: reqApp.id },
+  select: { requestMode: true },
+});
+check("new app defaults to Auto", freshMode?.requestMode, "AUTO");
+
 const autoRequest = await post("/api/license/request", { email: emailA }, reqKey);
 check("request (auto) returns 200", autoRequest.code, 200);
 check(

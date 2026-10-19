@@ -189,7 +189,8 @@ standard HTTP + crypto libraries.
 ## Notes for the server side (nothing to do in the app)
 
 * A request that arrives while the app is in `Review` waits in **Requests**
-  until you approve it; approving emails the key.
+  until you approve it; approving emails the key. A new app starts in `Auto`,
+  so requests are answered by email without you touching anything.
 * The request email is sent by the server itself (Brevo). If the send fails
   the request shows as **Failed** and **Retry send** re-sends the same key —
   a key is never minted twice for one address.
