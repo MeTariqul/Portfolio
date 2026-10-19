@@ -20,8 +20,9 @@ export const site = {
   linkedin: "https://www.linkedin.com/in/metariqul",
   // Shown publicly on the home page, contact page and footer. Deliberately a
   // fixed address rather than CONTACT_EMAIL: that variable is the inbox
-  // contact-form notifications go to (and the From address), and in
-  // production it holds something you would not want printed on a public page.
+  // contact-form notifications go to, and in production it holds something you
+  // would not want printed on a public page. Mail goes out *from* GMAIL_USER,
+  // which is a separate setting again (lib/email.ts).
   email: "tarif_me@outlook.com",
   url: env?.NEXT_PUBLIC_SITE_URL ?? (deployed ? `https://${deployed}` : "http://localhost:3000"),
   cvPath: "/cv/Md-Tariqul-Islam-CV.pdf",

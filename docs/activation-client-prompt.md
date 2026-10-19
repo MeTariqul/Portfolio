@@ -191,9 +191,9 @@ standard HTTP + crypto libraries.
 * A request that arrives while the app is in `Review` waits in **Requests**
   until you approve it; approving emails the key. A new app starts in `Auto`,
   so requests are answered by email without you touching anything.
-* The request email is sent by the server itself (Brevo). If the send fails
-  the request shows as **Failed** and **Retry send** re-sends the same key —
-  a key is never minted twice for one address.
+* The request email is sent by the server itself (Gmail SMTP). If the send
+  fails the request shows as **Failed** and **Retry send** re-sends the same
+  key — a key is never minted twice for one address.
 * **Bans** are global and reversible: banning an email blocks new requests
   and every key on that address; banning a device blocks that machine on
   every app.

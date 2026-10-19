@@ -11,7 +11,7 @@ Repo: https://github.com/MeTariqul/Portfolio
 - Prisma 6 + Postgres (Supabase)
 - NextAuth v5 (credentials login at `/admin/login`)
 - Supabase Storage for media uploads (bucket `portfolio-media`)
-- Brevo for contact-form notification email
+- Gmail SMTP via nodemailer for contact-form and licence-key email
 - Deployed on Vercel
 
 ## Local setup
@@ -54,8 +54,10 @@ Sign in at `http://localhost:3000/admin/login` with the `ADMIN_EMAIL` and `ADMIN
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL (media) |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client-side upload token |
 | `SUPABASE_SERVICE_ROLE_KEY` | server-side upload/delete (never expose to the browser) |
-| `BREVO_API_KEY` | sending contact notification email |
-| `CONTACT_EMAIL` | sender address for that email (must be verified in Brevo) |
+| `GMAIL_USER` | Gmail account mail is sent from, and the SMTP login |
+| `GMAIL_APP_PASSWORD` | App Password for that account (needs 2-Step Verification on) |
+| `CONTACT_EMAIL` | where contact-form notifications are delivered |
+| `GMAIL_SMTP_PORT` | optional. 465 by default; 587 is the fallback |
 | `KV_REST_API_URL`, `KV_REST_API_TOKEN` | optional. Upstash Redis rate limiting; without them the app falls back to in-memory limiting |
 
 `RESEND_API_KEY`, `GROQ_API_KEY` and `CLOUDINARY_*` are not read by the current code.
@@ -113,7 +115,7 @@ what happens next is the app's **request mode** on its dashboard page:
 New apps start `Auto`, so a request gets a key by email without you touching
 anything; switch an app to `Review` when you want to vet each request, or
 `Off` to close it completely.
-Keys are mailed through Brevo (`lib/license-mail.ts`); if the send fails the
+Keys are mailed over Gmail SMTP (`lib/license-mail.ts`); if the send fails the
 request is logged as **Failed** and **Retry send** sends the same key again —
 a key is never minted twice for one address, and asking twice only resends.
 

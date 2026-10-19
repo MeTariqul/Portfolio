@@ -93,7 +93,7 @@ export async function sendContact(
     `,
   });
   if (!notified) {
-    console.warn("Contact email not sent (Brevo key missing or invalid).");
+    console.warn("Contact email not sent (Gmail credentials missing or rejected).");
   }
 
   return {

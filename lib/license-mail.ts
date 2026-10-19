@@ -2,7 +2,7 @@ import { sendMail } from "@/lib/email";
 import { site } from "@/lib/site";
 
 // The email that carries an activation key. Kept apart from lib/email.ts
-// (which is a thin Brevo wrapper) so the wording lives with the licensing
+// (which is the Gmail SMTP wrapper) so the wording lives with the licensing
 // feature, and so tests can call the HTML builder on its own.
 
 function escapeHtml(value: string): string {

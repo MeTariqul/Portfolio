@@ -5,10 +5,12 @@
 //
 // Run with the dev server up: node scripts/verify-license.mjs
 //
-// Note on email: the request flow really does try to send through Brevo.
-// The script uses @example.invalid addresses, which the provider refuses,
-// so it exercises the "key created but not delivered" path — the one the
-// admin's Retry button exists for — without mailing a human.
+// Note on email: the request flow really does try to send. The script uses
+// @example.invalid addresses, which no mail server can deliver, so it
+// exercises the "key created but not delivered" path — the one the admin's
+// Retry button exists for — without mailing a human. Gmail may accept such a
+// message and bounce it afterwards rather than refusing it up front, in which
+// case the row is SENT instead of FAILED; both are allowed below.
 import { createPublicKey, randomBytes, verify as edVerify } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 
@@ -205,8 +207,9 @@ const autoRequestRow = await prisma.keyRequest.findFirst({
   where: { appId: reqApp.id, email: emailA },
   orderBy: { createdAt: "desc" },
 });
-// Brevo refuses @example.invalid, so this lands as FAILED unless the
-// provider accepts everything — both are valid outcomes of the same path.
+// @example.invalid cannot be delivered, but Gmail either refuses it at the
+// door (FAILED) or takes it and bounces later (SENT), so accept either —
+// both are the same code path from here.
 check(
   "request (auto) logged as SENT or FAILED",
   ["SENT", "FAILED"].includes(autoRequestRow?.status),
