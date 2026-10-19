@@ -269,3 +269,73 @@ model ShortLinkClick {
 
   @@index([shortLinkId, createdAt])
 }
+
+// ─── App licensing ──────────────────────────────────────────────────────
+// The admin panel doubles as a license server for apps you build and ship.
+// An app registers itself here, gets an API key, and its end users activate
+// license keys through app/api/license/* — see lib/licensing.ts.
+
+// One app you ship (desktop, mobile, web…). `apiKey` authenticates the app
+// to the activation API. It travels in the app's own configuration, never
+// in anything an end user sees, and can be rotated from the dashboard.
+model App {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique // used as the key prefix: MYAPP-XXXX-…
+  description String?
+  apiKey      String   @unique // "appk_…"
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  licenses License[]
+
+  @@index([createdAt])
+}
+
+enum LicenseStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+// One license key sold/given to a customer. Configurable per key: how many
+// devices may activate it, and whether it expires (null = lifetime).
+model License {
+  id         String        @id @default(cuid())
+  appId      String
+  app        App           @relation(fields: [appId], references: [id], onDelete: Cascade)
+  key        String        @unique // MYAPP-XXXX-XXXX-XXXX, shown in the dashboard
+  label      String? // customer name / order reference
+  email      String?
+  notes      String?       @db.Text
+  maxDevices Int           @default(1)
+  expiresAt  DateTime? // null = lifetime
+  status     LicenseStatus @default(ACTIVE)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  activations LicenseActivation[]
+
+  @@index([appId, status])
+  @@index([createdAt])
+}
+
+// One device that activated a license. `deviceId` is a fingerprint the app
+// computes locally (see the snippet in the dashboard) — the server never
+// stores anything more identifying than that plus the request IP.
+// `revoked` lets a single device be kicked without killing the whole key.
+model LicenseActivation {
+  id          String    @id @default(cuid())
+  licenseId   String
+  license     License   @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  deviceId    String
+  deviceName  String?
+  platform    String?
+  ip          String?
+  revoked     Boolean   @default(false)
+  firstSeenAt DateTime  @default(now())
+  lastSeenAt  DateTime  @updatedAt
+
+  @@unique([licenseId, deviceId])
+  @@index([licenseId, lastSeenAt])
+}

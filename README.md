@@ -79,6 +79,30 @@ Nothing on the site is hardcoded in a page file:
 - **Posts** and **Projects**: writing and case studies, with drafts, SEO fields and attachments.
 - **Services, Experience, Skills, Uses** (`/admin/content/...`): the list-based content types.
 
+## Apps: activation server for your own software
+
+`/admin/apps` turns the dashboard into a license server for apps you build and ship —
+desktop, mobile or web. Register an app, get its API key, issue license keys, and its
+users activate against `POST /api/license/activate`; the app re-checks with
+`POST /api/license/verify` and verifies tokens offline with the public key from
+`GET /api/license/pubkey` (Ed25519, so shipped apps can verify but never mint).
+
+Per-key controls: device slots (1–100, enforced with a transaction so two devices
+cannot race for the last seat), optional expiry (empty = lifetime), suspend/resume,
+per-device revoke/restore, reset activations, custom or generated keys
+(`MYAPP-7QK4-2XP9-MZ34`). Tokens stay valid offline for `RECHECK_DAYS` (7) in
+`lib/licensing.ts`, so a suspension, expiry or revoked device takes effect at the
+next online re-check. Everything is stored in the dashboard: no third-party service,
+and the signing keys live in the `Setting` table (`license_keys`), generated on first
+use. Each app page carries the endpoint list, the public key and a copy-paste client
+snippet.
+
+`npm run verify:license` (with `npm run dev` running) exercises the whole
+activation flow against a throwaway app it creates and deletes: seat limits,
+suspension, per-device revocation, expiry, and offline token verification
+including a tampered-token check. Alternatively point it at production with
+`TEST_BASE=https://metariqul.vercel.app` — it only touches its own temp rows.
+
 ## Short links with click logging
 
 `/admin/links` turns any URL into a short link of the form `https://<site>/go/<code>`
