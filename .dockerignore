@@ -1,0 +1,44 @@
+# Everything the image does not need. Keeping this list tight is most of
+# what makes the image small: without it, the whole working tree (including
+# .next, node_modules and the local .env) is copied into the build context
+# and sent to the daemon on every build.
+
+# Dependencies are installed inside the image, not copied in.
+node_modules
+npm-debug.log*
+
+# Build output: the image builds its own.
+.next
+out
+build
+dist
+
+# Secrets. The image is built without them and gets them at run time.
+.env
+.env.*
+!.env.example
+
+# Version control and editor noise
+.git
+.gitignore
+.github
+.vscode
+.idea
+*.swp
+.DS_Store
+
+# Logs and caches
+*.log
+.cache
+coverage
+.turbo
+
+# Docker's own files
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Not needed to serve the site
+docs
+scripts
+README.md

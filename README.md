@@ -58,7 +58,7 @@ Sign in at `http://localhost:3000/admin/login` with the `ADMIN_EMAIL` and `ADMIN
 | `GMAIL_APP_PASSWORD` | App Password for that account (needs 2-Step Verification on) |
 | `CONTACT_EMAIL` | where contact-form notifications are delivered |
 | `GMAIL_SMTP_PORT` | optional. 465 by default; 587 is the fallback |
-| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | optional. Upstash Redis rate limiting; without them the app falls back to in-memory limiting |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | optional. Upstash Redis rate limiting. Without them the limits that matter (license keys, sign-in) run on the database instead, so they are still global; see [Rate limiting](#rate-limiting) |
 
 `RESEND_API_KEY`, `GROQ_API_KEY` and `CLOUDINARY_*` are not read by the current code.
 
@@ -71,6 +71,61 @@ Sign in at `http://localhost:3000/admin/login` with the `ADMIN_EMAIL` and `ADMIN
 5. Deploy. Every push to `main` builds and goes live.
 
 Pages revalidate every 60 seconds, RSS and sitemap every hour, so content edits reach the site without a redeploy.
+
+Post and project pages are prerendered at build time (`generateStaticParams`), so
+a visit is served from the cache instead of re-reading the database. A post
+published after the build is generated on its first request and cached from
+then on.
+
+## Deploy (Docker)
+
+The repository builds into a small production image as well:
+
+```bash
+docker build -t portfolio .
+docker run -p 3000:3000 --env-file .env portfolio
+```
+
+Three stages: dependencies, build, runtime. The runtime image carries only
+the standalone server, the static assets and Prisma's query engine — no
+source, no dev dependencies. `NEXT_STANDALONE=1` is set in the build stage
+only, which is what turns on Next's standalone output; everywhere else the
+app builds the way Vercel expects and `npm run start` keeps working.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every push to `main` and every pull
+request:
+
+- the Prisma schema is validated, checked for formatting drift, and applied
+  to a clean Postgres — the project deploys with `db push` rather than
+  migrations, so this is the equivalent of "the migration applies"
+- type-check, ESLint, and a full production build
+- the Docker image is built and checked that it answers requests
+- a non-blocking job compares the schema with the production database and
+  prints the difference, so drift is visible before it becomes a surprise
+
+Set a `PRODUCTION_DATABASE_URL` repository secret to turn the drift check on.
+
+## Rate limiting
+
+`lib/rate-limit.ts` has two scopes:
+
+- **instance** — a counter in the process's memory. Cheap, and it is what the
+  page-view beacon uses, because that fires on every page view and must not
+  write to the database.
+- **global** — one counter for the whole site, which is what the license
+  endpoints, the sign-in and the contact form use. A counter in memory counts
+  per instance, so on serverless a limit of 10 is really 10 times the number
+  of instances; that is fine for a beacon and useless as a security
+  boundary.
+
+A global counter uses Upstash Redis when `KV_REST_API_URL` and
+`KV_REST_API_TOKEN` are set (one round trip, nothing written to the main
+database). Without them it uses the `RateLimit` table instead — a single
+atomic upsert, so two requests arriving together cannot both see the same
+count. Only if both are unavailable does it fall back to memory, and the
+security-sensitive callers refuse the request instead of allowing it.
 
 ## Editing content
 
@@ -97,12 +152,12 @@ per-device revoke/restore, reset activations, custom or generated keys
 different key releases it from the key it held before, so a user can change keys
 without a support step and the old key gets its device slot back (the release
 happens in the same transaction as the new seat, so a swap onto a full key fails
-as a whole). Tokens stay valid offline for `RECHECK_DAYS` (7) in
-`lib/licensing.ts`, so a block, ban, expiry or revoked device takes effect at the
-next online re-check. Everything is stored in the dashboard: no third-party service,
-and the signing keys live in the `Setting` table (`license_keys`), generated on first
-use. Each app page carries the endpoint list, the public key and a copy-paste client
-snippet.
+as a whole). Tokens stay valid offline for the app's own re-check window (7 days
+by default) in `lib/licensing.ts`, so a block, ban, expiry or revoked device takes
+effect at the next online re-check. Everything is stored in the dashboard: no
+third-party service, and the signing keys live in the `Setting` table
+(`license_keys`), generated on first use. Each app page carries the endpoint list,
+the public key and a copy-paste client snippet.
 
 ### Self-service keys (the request window inside your app)
 
@@ -139,6 +194,20 @@ re-checks; a banned device is refused whatever key it presents. Nothing is
 deleted, so lifting a ban restores access immediately. Bans can be added by
 hand or with one click from a license, a device row or a request row.
 
+**Device ids are never stored.** A device id is a fingerprint the app computes
+on the user's machine, so it identifies the person as much as the machine. The
+server validates it, lowercases it, and keeps only its SHA-256 digest; the
+token carries the fingerprint itself (the app has to check it) and a `h` claim
+with the digest. The admin screens show the first twelve characters of the
+digest, which is enough to tell two machines apart and not enough to
+identify one. A device ban is stored against the same digest, so a ban still
+matches after a change of firmware.
+
+**The offline window is per app.** Each app sets how long its token stays
+valid without checking in (7 days by default, 1–90). It is the longest a
+blocked licence or a revoked device keeps working offline, so shorten it when
+that matters and lengthen it when the app should not phone home too often.
+
 `docs/activation-client-prompt.md` is a paste-ready prompt that describes this
 whole contract for the agent working on the software itself.
 
@@ -146,11 +215,47 @@ whole contract for the agent working on the software itself.
 activation flow against throwaway apps it creates and deletes: seat limits,
 suspension, per-device revocation, expiry, offline token verification including
 a tampered-token check, all three request modes, the no-duplicate-key rule,
-key swaps that release the old device without touching another app, and
-email/device bans with a lift. It uses `@example.invalid` addresses, which the
-mail provider refuses, so it never mails a person. Alternatively point it at
-production with `TEST_BASE=https://metariqul.vercel.app` — it only touches its
-own temp rows.
+key swaps that release the old device without touching another app, the
+device-digest rules, and email/device bans with a lift. It uses
+`@example.invalid` addresses, which the mail provider refuses, so it never
+mails a person. Alternatively point it at production with
+`TEST_BASE=https://metariqul.vercel.app` — it only touches its own temp rows.
+
+## Who may do what in the dashboard
+
+One admin account is the norm here, but the account carries a role:
+
+- **Owner** — everything.
+- **Editor** — content: posts, projects, copy, media, messages, and the
+  normal key-request queue.
+
+Owner-only: deleting an app, a licence or a request; banning or unbanning an
+email or a device; blocking or unblocking a licence; revoking a device;
+resetting a licence's activations; rotating an app's API key; and switching
+an app's request mode. Those are the actions that remove data or lock a
+customer out.
+
+Enforcement is `requireOwner()` in `lib/auth.ts`, which reads the role from the
+database rather than from the session token, so a demotion takes effect at
+once instead of when the token happens to expire.
+
+## Being found by search engines, including AI ones
+
+- `/sitemap.xml` reports the date each page really changed, not the date the
+  file was generated — a sitemap that says every page is new on every fetch
+  is one a crawler learns to ignore.
+- `/robots.txt` keeps the admin and the API out of the index, keeps the
+  short-link redirector out of it, and splits the AI crawlers by what they
+  do: the search and answer agents (OAI-SearchBot, ClaudeBot, PerplexityBot
+  and the rest) are welcome, the model-training crawlers (GPTBot, CCBot,
+  Bytespider and the rest) are declined. The writing can be cited without
+  being scraped into a training set.
+- `/llms.txt` is a plain-markdown summary of the site for a language model:
+  what it is, what it offers, and which pages are worth reading. It is
+  generated from the same database as the site, so it cannot go stale.
+- JSON-LD covers the person, the profile page, the site (with a search
+  action), each project, each service, each post, and the breadcrumbs. The
+  post markup carries the real last-edit date and the article body.
 
 ## Short links with click logging
 

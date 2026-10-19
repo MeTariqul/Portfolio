@@ -1,0 +1,154 @@
+name: CI
+
+# Runs on every push to main and on every pull request. The checks are the
+# ones that are cheap to run and expensive to discover late: a type error, a
+# lint error, or a schema change that no longer applies.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# A new push to the same branch makes the previous run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck, lint, schema, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # A real Postgres, so the schema can be applied to a clean database and
+    # the build can prerender the pages the way it does in production.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: portfolio
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/portfolio?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/portfolio?schema=public
+      # Not a real secret: this job never signs in. It is here so a build
+      # that happens to read it does not fail.
+      AUTH_SECRET: ci-only-not-a-real-secret
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate the Prisma schema
+        run: npx prisma validate
+
+      - name: Check the schema is formatted
+        run: |
+          npx prisma format
+          git diff --exit-code prisma/schema.prisma
+
+      - name: Apply the schema to a clean database
+        # The project deploys with `prisma db push` rather than migrations,
+        # so this is the equivalent of "the migration applies": it proves
+        # the schema is valid SQL and that it can be pushed to an empty
+        # database without a manual step.
+        run: npx prisma db push --skip-generate
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npx eslint app components lib scripts types
+
+      - name: Build
+        run: npm run build
+
+  drift:
+    name: Schema drift against production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Informational. The production database is ahead of the schema whenever
+    # a schema change is waiting to be deployed, so this must not fail the
+    # build — it reports the difference for a human to look at.
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compare the schema with the live database
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "No PRODUCTION_DATABASE_URL secret configured — skipping the drift check."
+            exit 0
+          fi
+          npx prisma migrate diff \
+            --from-url "$DATABASE_URL" \
+            --to-schema-datamodel prisma/schema.prisma \
+            --script
+          echo "::notice::The SQL above is what the live database is still missing."
+
+  docker:
+    name: Build the image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: check
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: portfolio:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Check the image
+        run: |
+          docker run -d --name portfolio -p 3000:3000 portfolio:ci
+          # Give the server a moment to bind the port.
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/robots.txt > /dev/null; then
+              echo "The image serves requests."
+              docker rm -f portfolio
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "The image did not answer in time."
+          docker logs portfolio
+          docker rm -f portfolio
+          exit 1

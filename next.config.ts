@@ -44,6 +44,14 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   allowedDevOrigins: ["192.168.0.10"],
+  // The Docker image runs the standalone server, which needs a traced
+  // build with its own server.js. The flag is read at build time and is
+  // deliberately off by default: `next start` does not work with the
+  // standalone output, so leaving it on would break local production runs
+  // and change what Vercel builds. Only the image sets it.
+  ...(process.env.NEXT_STANDALONE === "1"
+    ? { output: "standalone" as const }
+    : {}),
   // Inline the stylesheet into the HTML so first paint has no render-blocking
   // request to wait for (measured by PageSpeed/Lighthouse).
   experimental: {
