@@ -10,6 +10,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbJsonLd, blogPostingJsonLd, defaultOgImage } from "@/lib/seo";
 import {
   getPost,
+  getPostSlugs,
   getRelatedPosts,
   getAdjacentPosts,
   getCopy,
@@ -20,6 +21,16 @@ import { fill } from "@/lib/utils";
 export const revalidate = 60;
 
 type Props = { params: Promise<{ slug: string }> };
+
+// Prerender every published post at build time. Without this the route is
+// fully dynamic: every visit re-reads the post, its neighbours and its
+// related posts from the database, and the response is never cacheable.
+// dynamicParams stays on (the default), so a post published after the build
+// is generated on first request and cached from then on.
+export async function generateStaticParams() {
+  const slugs = await getPostSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -113,9 +124,13 @@ export default async function BlogPostPage({ params }: Props) {
       description: post.seoDescription || post.excerpt,
       path: `/blog/${post.slug}`,
       date: post.date,
+      updatedAt: post.updatedAt ?? null,
       image: post.coverImage,
       tags: post.tags,
       category: post.category,
+      // The post's own text, so a search engine that reads the article body
+      // has it without having to fetch and parse the page.
+      body: post.contentMD,
     }),
     breadcrumbJsonLd([
       { name: copy["nav.blog"], path: "/blog" },

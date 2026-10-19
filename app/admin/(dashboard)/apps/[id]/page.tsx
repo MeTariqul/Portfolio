@@ -12,6 +12,7 @@ import {
   rotateAppKey,
   setLicenseStatus,
   setRequestMode,
+  setRecheckDays,
   toggleApp,
 } from "../actions";
 import { AppsTabs } from "@/components/admin/apps-tabs";
@@ -98,10 +99,14 @@ export default async function AppDetailPage({
   if (!app) notFound();
 
   const base = site.url.replace(/\/$/, "");
-  const publicKey = await publicKeyPem();
-  const pendingRequests = await prisma.keyRequest.count({
-    where: { appId: app.id, status: "PENDING" },
-  });
+  // The public key and the pending count do not depend on each other, so they
+  // are fetched together instead of one after the other.
+  const [publicKey, pendingRequests] = await Promise.all([
+    publicKeyPem(),
+    prisma.keyRequest.count({
+      where: { appId: app.id, status: "PENDING" },
+    }),
+  ]);
 
   return (
     <div>
@@ -291,6 +296,39 @@ export default async function AppDetailPage({
               </form>
             );
           })}
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-end gap-3 border-t border-line pt-4">
+          <form
+            action={setRecheckDays.bind(null, app.id, app.recheckDays)}
+            className="flex items-end gap-3"
+          >
+            <label className="text-sm">
+              <span className="block text-xs text-soft">
+                Offline window (days)
+              </span>
+              <input
+                type="number"
+                name="days"
+                defaultValue={app.recheckDays}
+                min={1}
+                max={90}
+                className="mt-1 w-24 rounded-md border border-line bg-surface px-2 py-1 text-sm"
+              />
+            </label>
+            <button
+              type="submit"
+              className="rounded-md border border-line px-3 py-1.5 text-sm hover:border-accent"
+            >
+              Save
+            </button>
+          </form>
+          <p className="max-w-[520px] text-xs text-soft">
+            How long the app may run on its stored token before it has to check
+            in. A blocked key or a revoked device keeps working offline until
+            this window runs out — 1 day bites almost immediately, 30 days
+            gives a customer a long grace period.
+          </p>
         </div>
       </section>
 

@@ -31,6 +31,8 @@ export type Post = {
   category: string | null;
   tags: string[];
   date: string;
+  /** Last edit, as a date string. Absent on the sample fallback content. */
+  updatedAt?: string;
   featured: boolean;
   seoTitle: string | null;
   seoDescription: string | null;
@@ -55,6 +57,25 @@ export type Project = {
   downloadFilename?: string | null;
   featured: boolean;
   order: number;
+};
+
+/**
+ * The fields a project *card* needs — deliberately a subset of Project.
+ *
+ * The projects page hands its whole list to a client component (the filter),
+ * so every column it carries is serialized into the RSC payload and sent to
+ * the browser. The full Project adds the three markdown case-study bodies
+ * (problem, solutionMD, learnedMD) — kilobytes per project that no card ever
+ * reads. Selecting only these columns keeps the payload to what is rendered.
+ */
+export type ProjectSummary = {
+  slug: string;
+  title: string;
+  summary: string;
+  category: string;
+  stack: string[];
+  screenshots: { url: string; alt: string }[];
+  featured: boolean;
 };
 
 export type Skill = { name: string; group: string; order: number };
@@ -186,6 +207,7 @@ function mapPost(p: {
   category: string | null;
   tags: string[];
   publishedAt: Date | null;
+  updatedAt?: Date | null;
   featured: boolean;
   seoTitle: string | null;
   seoDescription: string | null;
@@ -201,6 +223,7 @@ function mapPost(p: {
     category: p.category,
     tags: p.tags,
     date: p.publishedAt ? p.publishedAt.toISOString().slice(0, 10) : "",
+    updatedAt: p.updatedAt ? p.updatedAt.toISOString().slice(0, 10) : undefined,
     featured: p.featured,
     seoTitle: p.seoTitle,
     seoDescription: p.seoDescription,
@@ -471,18 +494,63 @@ const mapProject = (p: {
   order: p.order,
 });
 
-export const getProjects = cache(async (): Promise<Project[]> =>
-  table<Project>(
+// The columns a project card reads. Everything else on the row — the three
+// markdown case-study bodies above all — is left in the database instead of
+// being sent to the browser.
+const PROJECT_SUMMARY_SELECT = {
+  slug: true,
+  title: true,
+  summary: true,
+  category: true,
+  stack: true,
+  screenshots: true,
+  featured: true,
+} as const;
+
+const mapProjectSummary = (p: {
+  slug: string;
+  title: string;
+  summary: string;
+  category: string;
+  stack: string[];
+  screenshots: unknown;
+  featured: boolean;
+}): ProjectSummary => ({
+  slug: p.slug,
+  title: p.title,
+  summary: p.summary,
+  category: p.category,
+  stack: p.stack,
+  screenshots: (p.screenshots as ProjectSummary["screenshots"]) ?? [],
+  featured: p.featured,
+});
+
+export const getProjects = cache(async (): Promise<ProjectSummary[]> =>
+  table<ProjectSummary>(
     async () => {
-      const rows = await prisma.project.findMany({ orderBy: { order: "asc" } });
-      return rows.map(mapProject);
+      const rows = await prisma.project.findMany({
+        orderBy: { order: "asc" },
+        select: PROJECT_SUMMARY_SELECT,
+      });
+      return rows.map(mapProjectSummary);
     },
-    () => [...sample.projects].sort(byOrder),
+    () =>
+      [...sample.projects].sort(byOrder).map((p) =>
+        mapProjectSummary({
+          slug: p.slug,
+          title: p.title,
+          summary: p.summary,
+          category: p.category,
+          stack: p.stack,
+          screenshots: p.screenshots,
+          featured: p.featured,
+        }),
+      ),
   ),
 );
 
 export const getFeaturedProjects = cache(
-  async (limit = 3): Promise<Project[]> => {
+  async (limit = 3): Promise<ProjectSummary[]> => {
     const all = await getProjects();
     const featured = all.filter((p) => p.featured);
     return (featured.length > 0 ? featured : all).slice(0, limit);
@@ -533,3 +601,80 @@ export const getUses = cache(async (): Promise<UsesItem[]> =>
     () => sample.uses,
   ),
 );
+
+// ── Slugs for static generation ──────────────────────────────────────────
+//
+// generateStaticParams() turns every post and project page into a prerendered
+// route at build time, so the common visit is served from the cache instead
+// of re-reading the database. dynamicParams stays on (the default), so a post
+// published after the build is still generated on first request and cached
+// from then on.
+
+export const getPostSlugs = cache(async (): Promise<string[]> => {
+  const rows = await safe<{ slug: string }[] | undefined>(
+    async () =>
+      prisma.post.findMany({
+        where: { status: "PUBLISHED" },
+        select: { slug: true },
+      }),
+    undefined,
+  );
+  if (rows === undefined) return samplePublished.map((p) => p.slug);
+  return rows.map((r) => r.slug);
+});
+
+export const getProjectSlugs = cache(async (): Promise<string[]> => {
+  const rows = await safe<{ slug: string }[] | undefined>(
+    async () => prisma.project.findMany({ select: { slug: true } }),
+    undefined,
+  );
+  if (rows === undefined) return sample.projects.map((p) => p.slug);
+  return rows.map((r) => r.slug);
+});
+
+// ── Sitemap entries ─────────────────────────────────────────────────────
+//
+// The sitemap needs two things per page: its address and when it last
+// changed. Reading the whole row to get them would pull every markdown body
+// out of the database for a file that never shows any of it, so these are
+// selected directly.
+export type SitemapEntry = { slug: string; updatedAt: string | null };
+
+export const getSitemapEntries = cache(async (): Promise<{
+  posts: SitemapEntry[];
+  projects: SitemapEntry[];
+}> => {
+  const [posts, projects] = await Promise.all([
+    safe<SitemapEntry[] | undefined>(
+      async () =>
+        prisma.post.findMany({
+          where: { status: "PUBLISHED" },
+          select: { slug: true, updatedAt: true, publishedAt: true },
+        }).then((rows) =>
+          rows.map((r) => ({
+            slug: r.slug,
+            updatedAt: (r.updatedAt ?? r.publishedAt)?.toISOString() ?? null,
+          })),
+        ),
+      undefined,
+    ),
+    safe<SitemapEntry[] | undefined>(
+      async () =>
+        prisma.project.findMany({
+          select: { slug: true, updatedAt: true },
+        }).then((rows) =>
+          rows.map((r) => ({
+            slug: r.slug,
+            updatedAt: r.updatedAt?.toISOString() ?? null,
+          })),
+        ),
+      undefined,
+    ),
+  ]);
+
+  return {
+    posts: posts ?? samplePublished.map((p) => ({ slug: p.slug, updatedAt: p.date })),
+    projects:
+      projects ?? sample.projects.map((p) => ({ slug: p.slug, updatedAt: null })),
+  };
+});

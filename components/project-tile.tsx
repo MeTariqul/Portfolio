@@ -1,9 +1,13 @@
 import Link from "next/link";
-import type { Project } from "@/lib/content";
+import type { ProjectSummary } from "@/lib/content";
 import { Tag } from "@/components/ui/tag";
 
 // Project tile for the 12-column projects grid.
-export function ProjectTile({ project }: { project: Project }) {
+//
+// Takes a ProjectSummary, not a full Project: this component is rendered by
+// the client-side filter, so anything extra on the type would be serialized
+// into the browser's payload for every card.
+export function ProjectTile({ project }: { project: ProjectSummary }) {
   return (
     <article className="col-span-12 flex flex-col rounded-xl border border-line bg-surface p-6 md:col-span-6 lg:col-span-4">
       {project.screenshots[0] && (
@@ -42,7 +46,7 @@ export function ProjectRow({
   project,
   index,
 }: {
-  project: Project;
+  project: ProjectSummary;
   index: number;
 }) {
   return (

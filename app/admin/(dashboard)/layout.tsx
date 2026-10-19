@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { pendingKeyRequestCount, unreadMessageCount } from "@/lib/admin-counts";
 import { doSignOut } from "@/app/admin/actions";
 import { NavLink } from "@/components/admin/nav-link";
 import { SessionWatch } from "@/components/admin/session-watch";
@@ -17,8 +17,8 @@ export default async function AdminDashboardLayout({
   if (!session?.user) redirect("/admin/login");
 
   const [unread, pendingKeys] = await Promise.all([
-    prisma.message.count({ where: { read: false } }),
-    prisma.keyRequest.count({ where: { status: "PENDING" } }),
+    unreadMessageCount(),
+    pendingKeyRequestCount(),
   ]);
 
   // One list, so the rail and the active-state rule can't drift apart.

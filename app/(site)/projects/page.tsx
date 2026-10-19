@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
 import { ProjectFilter } from "@/components/project-filter";
+import { JsonLd } from "@/components/seo/json-ld";
+import { itemListJsonLd } from "@/lib/seo";
 import { getProjects, getCopy } from "@/lib/content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -17,8 +19,21 @@ export const revalidate = 60;
 export default async function ProjectsPage() {
   const [projects, copy] = await Promise.all([getProjects(), getCopy()]);
 
+  // The list, in order, as structured data — so a search engine can see
+  // which project is which instead of only a page of links.
+  const jsonLd = itemListJsonLd({
+    name: copy["projects.title"],
+    path: "/projects",
+    items: projects.map((p) => ({
+      name: p.title,
+      path: `/projects/${p.slug}`,
+      description: p.summary,
+    })),
+  });
+
   return (
     <Container>
+      <JsonLd data={jsonLd} />
       <section className="py-20 md:py-24">
         <h1 className="max-w-[680px] text-4xl">{copy["projects.title"]}</h1>
         <p className="mt-6 max-w-[680px] text-lg text-soft">

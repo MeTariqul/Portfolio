@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
-import { ToastProvider } from "@/components/ui/toast";
 import { JsonLd } from "@/components/seo/json-ld";
 import { defaultOgImage, websiteJsonLd } from "@/lib/seo";
 import { site } from "@/lib/site";
@@ -34,7 +33,7 @@ export default async function SiteLayout({
   const copy = await getCopy();
 
   return (
-    <ToastProvider>
+    <>
       <JsonLd data={websiteJsonLd()} />
       <div className="flex min-h-dvh flex-col">
         <Header
@@ -55,6 +54,6 @@ export default async function SiteLayout({
         <main className="flex-1">{children}</main>
         <Footer />
       </div>
-    </ToastProvider>
+    </>
   );
 }

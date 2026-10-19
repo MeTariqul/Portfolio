@@ -19,8 +19,40 @@ export const personJsonLd = () => ({
   name: site.name,
   url: site.url,
   image: defaultOgImage,
+  jobTitle: site.role,
+  description: `${site.name} — ${site.role} based in ${site.location}.`,
   sameAs: [site.github, site.linkedin],
+  knowsAbout: [
+    "Web development",
+    "TypeScript",
+    "React",
+    "Next.js",
+    "Node.js",
+    "PostgreSQL",
+  ],
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: site.location,
+  },
 });
+
+/**
+ * The person as a profile page, for /about.
+ *
+ * A Person node on its own says "somebody exists"; a ProfilePage says "this
+ * page is about that person", which is what lets a search engine attach the
+ * page to a knowledge panel.
+ */
+export function profilePageJsonLd(input: { path: string; headline: string; description: string }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    name: input.headline,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    mainEntity: personJsonLd(),
+  };
+}
 
 export type BreadcrumbItem = { name: string; path: string };
 
@@ -51,6 +83,69 @@ export function websiteJsonLd() {
     inLanguage: "en",
     publisher: personJsonLd(),
     sameAs: [site.github, site.linkedin],
+    // The blog is searchable, and the search action is what tells a search
+    // engine the site can answer a question directly instead of only
+    // returning links.
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${site.url}/blog?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+}
+
+/**
+ * A list of the things on a page, for the index pages (projects, services,
+ * blog). An ItemList with positions is how a search engine decides which
+ * entry in a list is the top one.
+ */
+export function itemListJsonLd(input: {
+  name: string;
+  path: string;
+  items: { name: string; path: string; description?: string }[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: input.name,
+    url: absoluteUrl(input.path),
+    numberOfItems: input.items.length,
+    itemListElement: input.items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      url: absoluteUrl(item.path),
+      ...(item.description ? { description: item.description } : {}),
+    })),
+  };
+}
+
+/**
+ * A service on offer, for /services.
+ *
+ * Deliberately not given a price: the schema allows a range, but inventing
+ * one that does not match what is written on the page is the kind of
+ * mismatch that gets a page flagged.
+ */
+export function serviceJsonLd(input: {
+  name: string;
+  description: string;
+  path: string;
+  priceNote?: string | null;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: input.name,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    provider: personJsonLd(),
+    serviceType: input.name,
+    areaServed: "Worldwide",
+    ...(input.priceNote ? { description: `${input.description} ${input.priceNote}` } : {}),
   };
 }
 
@@ -59,9 +154,13 @@ type BlogPostingInput = {
   description: string;
   path: string;
   date: string;
+  /** Last edit, as a date string. Falls back to the publish date. */
+  updatedAt?: string | null;
   image?: string | null;
   tags?: string[];
   category?: string | null;
+  /** The post's own words, for the engines that read the article body. */
+  body?: string;
 };
 
 /**
@@ -82,12 +181,17 @@ export function blogPostingJsonLd(input: BlogPostingInput) {
     },
     image: absoluteUrl(input.image || defaultOgImage),
     datePublished: input.date,
-    dateModified: input.date,
+    // The real last edit, when there is one. Claiming a post was modified on
+    // the day it was published is the kind of thing that makes a search
+    // engine distrust the other dates on the page.
+    dateModified: input.updatedAt || input.date,
     inLanguage: "en",
     author: personJsonLd(),
     publisher: personJsonLd(),
     ...(input.category ? { articleSection: input.category } : {}),
     ...(input.tags?.length ? { keywords: input.tags.join(", ") } : {}),
+    // The words of the post, in full, for the search engines that read them.
+    ...(input.body ? { articleBody: input.body } : {}),
   };
 }
 

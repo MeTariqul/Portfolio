@@ -1,13 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Project } from "@/lib/content";
+import type { ProjectSummary } from "@/lib/content";
 import { ProjectTile } from "@/components/project-tile";
 import { cn, fill } from "@/lib/utils";
 
 // Client-side filter for the projects page: category chips + tech chips.
 // No page reloads, keyboard accessible, results announced politely.
 // Every label arrives as a prop so the admin Copy screen can reword them.
+//
+// The list it receives is a ProjectSummary — the card fields only. This
+// component is a client boundary, so the full case-study markdown of every
+// project would be downloaded by the browser without ever being rendered.
 type FilterLabels = {
   all: string;
   categoryAria: string;
@@ -21,7 +25,7 @@ export function ProjectFilter({
   projects,
   labels,
 }: {
-  projects: Project[];
+  projects: ProjectSummary[];
   labels: FilterLabels;
 }) {
   // "" is the internal "no filter" sentinel; it renders as labels.all, so a

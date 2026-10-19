@@ -13,11 +13,18 @@ import {
 } from "@/lib/seo";
 import { downloadHref } from "@/lib/storage";
 import { site } from "@/lib/site";
-import { getProject, getCopy } from "@/lib/content";
+import { getProject, getProjectSlugs, getCopy } from "@/lib/content";
 
 export const revalidate = 60;
 
 type Props = { params: Promise<{ slug: string }> };
+
+// Prerender every project at build time, so a case study is served from the
+// cache instead of re-reading the row and its markdown on every visit.
+export async function generateStaticParams() {
+  const slugs = await getProjectSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

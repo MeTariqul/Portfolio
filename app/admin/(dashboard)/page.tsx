@@ -22,6 +22,7 @@ export default async function AdminDashboardPage() {
     visitorStats,
     licenseKeys,
     pendingKeyRequests,
+    latest,
   ] = await Promise.all([
     prisma.post.count({ where: { status: "PUBLISHED" } }),
     prisma.post.count({ where: { status: "DRAFT" } }),
@@ -33,12 +34,10 @@ export default async function AdminDashboardPage() {
     getVisitorStats(),
     prisma.license.count(),
     prisma.keyRequest.count({ where: { status: "PENDING" } }),
+    // The five most recent messages. It was a second round-trip after the
+    // counts above; nothing about it depends on them, so it rides along.
+    prisma.message.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
   ]);
-
-  const latest = await prisma.message.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 5,
-  });
 
   const stats = [
     { label: "Published posts", value: postsPublished, href: "/admin/posts" },
