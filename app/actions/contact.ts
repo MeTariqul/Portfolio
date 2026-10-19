@@ -57,7 +57,7 @@ export async function sendContact(
   const headerList = await headers();
   const ip =
     headerList.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const allowed = await rateLimit(`contact:${ip}`, 5, 10 * 60 * 1000);
+  const allowed = await rateLimit(`contact:${ip}`, 5, 10 * 60 * 1000, { scope: "global" });
   if (!allowed) {
     return {
       status: "error",

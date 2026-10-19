@@ -3,9 +3,10 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireOwner } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { newAppApiKey, normalizeEmail, uniqueLicenseKey } from "@/lib/licensing";
+import { digestDeviceId } from "@/lib/device";
 import { issueKeyForEmail } from "@/lib/license-requests";
 
 export type AppFormState = { error?: string; apiKey?: string; slug?: string };
@@ -66,7 +67,7 @@ export async function createApp(
 }
 
 export async function rotateAppKey(id: string) {
-  await requireAdmin();
+  await requireOwner();
   await prisma.app.update({ where: { id }, data: { apiKey: newAppApiKey() } });
   revalidatePath(`/admin/apps/${id}`);
   revalidatePath("/admin/apps");
@@ -80,7 +81,7 @@ export async function toggleApp(id: string, active: boolean) {
 }
 
 export async function deleteApp(id: string) {
-  await requireAdmin();
+  await requireOwner();
   // Cascades to licenses and their activations.
   await prisma.app.delete({ where: { id } });
   revalidatePath("/admin/apps");
@@ -170,7 +171,7 @@ export async function setLicenseStatus(
   id: string,
   status: "ACTIVE" | "SUSPENDED",
 ) {
-  await requireAdmin();
+  await requireOwner();
   const license = await prisma.license.update({
     where: { id },
     data: { status },
@@ -212,7 +213,7 @@ export async function updateLicense(id: string, formData: FormData) {
 
 // Clears every device, so the key can be re-activated on new machines.
 export async function resetLicenseActivations(id: string) {
-  await requireAdmin();
+  await requireOwner();
   const license = await prisma.license.findUnique({
     where: { id },
     select: { appId: true },
@@ -222,7 +223,7 @@ export async function resetLicenseActivations(id: string) {
 }
 
 export async function deleteLicense(id: string) {
-  await requireAdmin();
+  await requireOwner();
   const license = await prisma.license.findUnique({
     where: { id },
     select: { appId: true },
@@ -234,7 +235,7 @@ export async function deleteLicense(id: string) {
 
 // Kicks a single device off a license (or lets it back on).
 export async function setActivationRevoked(id: string, revoked: boolean) {
-  await requireAdmin();
+  await requireOwner();
   const activation = await prisma.licenseActivation.update({
     where: { id },
     data: { revoked },
@@ -259,10 +260,21 @@ export async function setRequestMode(
   id: string,
   mode: "OFF" | "AUTO" | "REVIEW",
 ) {
-  await requireAdmin();
+  await requireOwner();
   if (!["OFF", "AUTO", "REVIEW"].includes(mode)) return;
   await prisma.app.update({ where: { id }, data: { requestMode: mode } });
   revalidateRequestViews(id);
+}
+
+// How long a token stays valid offline before the app must check in again.
+// Shorter means a revoked licence stops working sooner; longer means the app
+// talks to the server less often.
+export async function setRecheckDays(id: string, days: number) {
+  await requireOwner();
+  const value = Math.min(Math.max(Math.trunc(days), 1), 90);
+  await prisma.app.update({ where: { id }, data: { recheckDays: value } });
+  revalidatePath(`/admin/apps/${id}`);
+  revalidatePath("/admin/apps");
 }
 
 // Issues (or re-sends) the key for a waiting request. Used by both
@@ -313,7 +325,7 @@ export async function rejectKeyRequest(id: string) {
 }
 
 export async function deleteKeyRequest(id: string) {
-  await requireAdmin();
+  await requireOwner();
   const request = await prisma.keyRequest.delete({
     where: { id },
     select: { appId: true },
@@ -341,12 +353,19 @@ function revalidateBanViews() {
 // One place where a ban is written, shared by the hand-typed form and the
 // one-click buttons on license, device and request rows. Emails are stored
 // lowercased, matching banHit()'s lookup.
+//
+// A device ban stores the *digest* of the device id, because that is what
+// the activations table holds and what the activation API compares against.
+// A device id typed by hand is hashed here so it matches; a device id that
+// came from an activation row is already a digest and is stored as it is.
 async function addBan(
   kind: "EMAIL" | "DEVICE",
   rawValue: string,
   reason: string | null,
 ): Promise<"created" | "exists"> {
-  const value = kind === "EMAIL" ? normalizeEmail(rawValue) : rawValue;
+  const value =
+    kind === "EMAIL" ? normalizeEmail(rawValue) : deviceValueForBan(rawValue);
+  if (!value) return "exists";
   try {
     await prisma.ban.create({ data: { kind, value, reason } });
     return "created";
@@ -358,12 +377,21 @@ async function addBan(
   }
 }
 
+// Turns what the admin typed into the value a device ban is stored under.
+// A 64-character hex string is already a digest (it came from an activation
+// row); anything else is a raw device id and gets hashed.
+function deviceValueForBan(raw: string): string | null {
+  const value = raw.trim();
+  if (/^[0-9a-f]{64}$/.test(value)) return value;
+  return digestDeviceId(value);
+}
+
 // Adds a ban by hand from the Bans screen.
 export async function createBan(
   _prev: BanFormState,
   formData: FormData,
 ): Promise<BanFormState> {
-  await requireAdmin();
+  await requireOwner();
   const parsed = banSchema.safeParse({
     kind: formData.get("kind") ?? "EMAIL",
     value: formData.get("value") ?? "",
@@ -389,7 +417,7 @@ export async function createBan(
 }
 
 export async function removeBan(id: string) {
-  await requireAdmin();
+  await requireOwner();
   await prisma.ban.delete({ where: { id } });
   revalidateBanViews();
 }
@@ -397,7 +425,7 @@ export async function removeBan(id: string) {
 // Bans an address without touching a license — used from the request queue,
 // where the point is to stop that email asking again.
 export async function banEmailValue(email: string, reason?: string) {
-  await requireAdmin();
+  await requireOwner();
   await addBan("EMAIL", email, reason ?? null);
   revalidateBanViews();
 }
@@ -405,7 +433,7 @@ export async function banEmailValue(email: string, reason?: string) {
 // One-click ban from a license row: blocks that email everywhere — new key
 // requests as well as activation and re-checks on every app.
 export async function banLicenseEmail(licenseId: string) {
-  await requireAdmin();
+  await requireOwner();
   const license = await prisma.license.findUnique({
     where: { id: licenseId },
     select: { email: true, appId: true },
@@ -417,9 +445,10 @@ export async function banLicenseEmail(licenseId: string) {
 }
 
 // One-click ban from a device row: that machine is refused on every app,
-// whatever key it presents.
+// whatever key it presents. The activation row already holds the device
+// digest, so it is stored as it is.
 export async function banActivationDevice(activationId: string) {
-  await requireAdmin();
+  await requireOwner();
   const activation = await prisma.licenseActivation.findUnique({
     where: { id: activationId },
     select: {

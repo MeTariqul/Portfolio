@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { ipOf } from "@/lib/request-info";
 import { banHit, isLicenseUsable } from "@/lib/licensing";
+import { digestDeviceId, normalizeDeviceId } from "@/lib/device";
 import { deny, grant, readApp } from "@/lib/license-api";
 
 // POST /api/license/verify
@@ -30,7 +31,9 @@ const bodySchema = z.object({
 export async function POST(req: Request) {
   const ip = ipOf(new Headers(req.headers));
   // Apps poll on their own schedule; the ceiling is generous but finite.
-  if (!(await rateLimit(`lic-ver:${ip}`, 240, 60_000))) {
+  // failClosed: a shared counter is the only way to hold the limit across
+  // instances, so the request is refused when it cannot be reached.
+  if (!(await rateLimit(`lic-ver:${ip}`, 240, 60_000, { scope: "global", failClosed: true }))) {
     return NextResponse.json(
       { ok: false, status: "invalid", error: "Too many checks. Try again shortly." },
       { status: 429 },
@@ -47,16 +50,22 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  const { key, deviceId } = parsed.data;
+  const { key, deviceId: rawDeviceId } = parsed.data;
+
+  // Same rule as the activate route: the id is validated, canonicalised and
+  // hashed before it is used for anything. The database stores the digest.
+  const deviceId = normalizeDeviceId(rawDeviceId);
+  if (deviceId === null) return deny("invalid");
+  const deviceHash = digestDeviceId(rawDeviceId) as string;
 
   const license = await prisma.license.findFirst({
     where: { key: key.toUpperCase(), appId: app.id },
-    include: { activations: { where: { deviceId } } },
+    include: { activations: { where: { deviceId: deviceHash } } },
   });
   if (!license) return deny("invalid");
 
   // Bans outrank suspension and expiry — see the note in the activate route.
-  const ban = await banHit({ email: license.email, deviceId });
+  const ban = await banHit({ email: license.email, deviceId: deviceHash });
   if (ban?.kind === "EMAIL") return deny("banned");
   if (ban) return deny("banned_device");
 
@@ -76,6 +85,8 @@ export async function POST(req: Request) {
     licenseId: license.id,
     appSlug: app.slug,
     deviceId,
+    deviceHash,
+    recheckDays: app.recheckDays,
     expiresAt: license.expiresAt,
     label: license.label,
   });

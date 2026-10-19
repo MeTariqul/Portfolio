@@ -15,7 +15,14 @@ export async function readApp(req: Request) {
   if (!apiKey || apiKey.length > 200) return null;
   const app = await prisma.app.findUnique({
     where: { apiKey },
-    select: { id: true, slug: true, name: true, active: true, requestMode: true },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      active: true,
+      requestMode: true,
+      recheckDays: true,
+    },
   });
   if (!app || !app.active) return null;
   return app;
@@ -60,6 +67,8 @@ export async function grant(input: {
   licenseId: string;
   appSlug: string;
   deviceId: string;
+  deviceHash: string;
+  recheckDays?: number;
   expiresAt: Date | null;
   label?: string | null;
 }) {

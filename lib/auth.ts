@@ -49,7 +49,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!user || !verifyPassword(password, user.passwordHash)) {
           return null;
         }
-        return { id: user.id, email: user.email, name: user.name };
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        };
       },
     }),
   ],
@@ -64,6 +69,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // path in @auth/core), so the check is only there for TypeScript.
       if (user?.id) {
         token.sid = await registerSession(user.id);
+        token.role = user.role;
         return token;
       }
 
@@ -77,6 +83,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         select: { id: true },
       });
       return row ? token : null;
+    },
+    // Puts the role and the id on the session so the dashboard can show
+    // what this account may do. Enforcement lives in requireOwner().
+    async session({ session, token }) {
+      if (session.user) {
+        if (token.sub) session.user.id = token.sub;
+        session.user.role = token.role;
+      }
+      return session;
     },
   },
   events: {
@@ -97,4 +112,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 export async function requireAdmin() {
   const session = await auth();
   if (!session?.user) redirect("/admin/login");
+  return session;
+}
+
+// Guard for the destructive half of the dashboard: deletes, bans, key
+// rotation. An EDITOR can write content but cannot remove data or lock
+// users out, so those actions ask for this instead.
+//
+// It reads the role from the database rather than the session token. The
+// role is the one thing that must take effect immediately: a demotion that
+// waited for the token to expire would still allow the work in between.
+export async function requireOwner() {
+  const session = await requireAdmin();
+  const email = session.user?.email;
+  if (!email) throw new Error("This action needs an owner account.");
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { role: true },
+  });
+  if (user?.role !== "OWNER") {
+    throw new Error("This action needs an owner account.");
+  }
+  return session;
 }

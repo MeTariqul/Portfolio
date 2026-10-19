@@ -29,9 +29,19 @@ model User {
   email        String         @unique
   passwordHash String
   name         String
+  // What this account may do. OWNER is the full set; EDITOR can work on
+  // content but cannot delete things, ban a user, or change an app's keys.
+  // One account is the norm here, but the role is what makes a second
+  // account safe to add later.
+  role         AdminRole      @default(OWNER)
   sessions     AdminSession[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+}
+
+enum AdminRole {
+  OWNER // everything, including deletes, bans and key rotation
+  EDITOR // content only
 }
 
 // One row per signed-in admin device. At most two rows exist per user:
@@ -232,6 +242,20 @@ model Stat {
   updatedAt DateTime @updatedAt
 }
 
+// Rate-limit counters. Kept in the database so the limit is the same on
+// every instance of the app: a serverless function's memory is not shared,
+// so a counter that lives in memory counts per instance and not per user.
+// Used for the limits that are a security boundary (license keys, sign-in)
+// — the page-view beacon deliberately uses the cheaper in-memory counter.
+model RateLimit {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([updatedAt])
+}
+
 // Short links created in the admin (/admin/links). The public URL is
 // /go/{code}; every hit is logged (IP + coarse location) in ShortLinkClick
 // and then the visitor is redirected to `targetUrl`.
@@ -290,6 +314,10 @@ model App {
   // request until the admin approves it, OFF closes the door. Switch it to
   // OFF or REVIEW per app from the app's dashboard page.
   requestMode RequestMode @default(AUTO)
+  // How long a token stays valid offline before the app must re-check with
+  // the server. Shorter = a revoked licence stops working sooner, at the
+  // cost of the app talking to the server more often. 1–90 days.
+  recheckDays Int         @default(7)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 

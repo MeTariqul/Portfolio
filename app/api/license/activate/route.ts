@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { ipOf, userAgentOf } from "@/lib/request-info";
 import { banHit, isLicenseUsable } from "@/lib/licensing";
+import { digestDeviceId, normalizeDeviceId } from "@/lib/device";
 import { deny, grant, readApp } from "@/lib/license-api";
 
 // POST /api/license/activate
@@ -35,7 +36,10 @@ const bodySchema = z.object({
 export async function POST(req: Request) {
   const h = new Headers(req.headers);
   const ip = ipOf(h);
-  if (!(await rateLimit(`lic-act:${ip}`, 60, 60_000))) {
+  // failClosed: this limit is a security boundary, not a courtesy. If the
+  // shared counter cannot be reached there is no way to enforce the limit
+  // across instances, so the request is refused rather than allowed.
+  if (!(await rateLimit(`lic-act:${ip}`, 60, 60_000, { scope: "global", failClosed: true }))) {
     return NextResponse.json(
       { ok: false, status: "invalid", error: "Too many attempts. Try again shortly." },
       { status: 429 },
@@ -52,18 +56,26 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  const { key, deviceId } = parsed.data;
+  const { key, deviceId: rawDeviceId } = parsed.data;
+
+  // The device id is attacker-controlled input, so it is validated and
+  // canonicalised before it is used for anything. The digest is what the
+  // database stores and compares; the raw value only ever travels back to
+  // the app inside the signed token.
+  const deviceId = normalizeDeviceId(rawDeviceId);
+  if (deviceId === null) return deny("invalid");
+  const deviceHash = digestDeviceId(rawDeviceId) as string;
 
   const license = await prisma.license.findFirst({
     where: { key: key.toUpperCase(), appId: app.id },
-    include: { activations: { where: { deviceId } } },
+    include: { activations: { where: { deviceId: deviceHash } } },
   });
   if (!license) return deny("invalid");
 
   // A ban is checked before suspension and expiry: it is the admin's last
   // word, and it applies to the email on the license as well as the device
   // asking, so a banned address cannot activate on a fresh machine either.
-  const ban = await banHit({ email: license.email, deviceId });
+  const ban = await banHit({ email: license.email, deviceId: deviceHash });
   if (ban?.kind === "EMAIL") return deny("banned");
   if (ban) return deny("banned_device");
 
@@ -84,7 +96,7 @@ export async function POST(req: Request) {
   // old one — the slot goes back and the old key can be used again. Scoped to
   // the app: the same machine may legitimately hold a key for another app.
   const releaseOtherKeys = {
-    deviceId,
+    deviceId: deviceHash,
     licenseId: { not: license.id },
     license: { appId: app.id },
   };
@@ -98,6 +110,8 @@ export async function POST(req: Request) {
       licenseId: license.id,
       appSlug: app.slug,
       deviceId,
+      deviceHash,
+      recheckDays: app.recheckDays,
       expiresAt: license.expiresAt,
       label: license.label,
     });
@@ -113,7 +127,7 @@ export async function POST(req: Request) {
     });
     if (used >= license.maxDevices) return null;
     const row = await tx.licenseActivation.create({
-      data: { licenseId: license.id, deviceId, ...details },
+      data: { licenseId: license.id, deviceId: deviceHash, ...details },
     });
     await tx.licenseActivation.deleteMany({ where: releaseOtherKeys });
     return row;
@@ -125,6 +139,8 @@ export async function POST(req: Request) {
     licenseId: license.id,
     appSlug: app.slug,
     deviceId,
+    deviceHash,
+    recheckDays: app.recheckDays,
     expiresAt: license.expiresAt,
     label: license.label,
   });

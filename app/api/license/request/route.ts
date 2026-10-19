@@ -136,9 +136,11 @@ export async function POST(req: Request) {
 
   // Two buckets: one per network, one per address. The first stops a machine
   // from sweeping many addresses, the second stops one inbox being hammered.
+  // failClosed: this is the endpoint that hands out keys, so the limit has to
+  // hold across instances or it holds nowhere.
   const [withinIp, withinEmail] = await Promise.all([
-    rateLimit(`lic-req-ip:${ip}`, 10, 3_600_000),
-    rateLimit(`lic-req-mail:${email}`, 3, 3_600_000),
+    rateLimit(`lic-req-ip:${ip}`, 10, 3_600_000, { scope: "global", failClosed: true }),
+    rateLimit(`lic-req-mail:${email}`, 3, 3_600_000, { scope: "global", failClosed: true }),
   ]);
   if (!withinIp || !withinEmail) {
     return NextResponse.json(

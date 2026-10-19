@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { licenseStateLabel, normalizeEmail } from "@/lib/licensing";
+import { shortDeviceDigest } from "@/lib/device";
 import { AppsTabs } from "@/components/admin/apps-tabs";
 import { CopyText } from "@/components/admin/copy-text";
 import { ConfirmForm } from "@/components/admin/confirm-form";
@@ -265,7 +266,7 @@ export default async function KeysPage({
                           className="mt-1 block max-w-[180px] truncate font-mono text-[0.7rem] text-soft"
                           title={bound.deviceId}
                         >
-                          {bound.deviceId}
+                          {shortDeviceDigest(bound.deviceId)}
                         </code>
                       </>
                     ) : (
@@ -328,7 +329,7 @@ export default async function KeysPage({
                         (deviceBanId ? (
                           <ConfirmForm
                             action={removeBan.bind(null, deviceBanId)}
-                            confirmText={`Unban ${bound.deviceId}? That machine can activate again on any app.`}
+                            confirmText={`Unban ${shortDeviceDigest(bound.deviceId)}? That machine can activate again on any app.`}
                           >
                             <button
                               type="submit"

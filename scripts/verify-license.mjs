@@ -11,11 +11,17 @@
 // Retry button exists for — without mailing a human. Gmail may accept such a
 // message and bounce it afterwards rather than refusing it up front, in which
 // case the row is SENT instead of FAILED; both are allowed below.
-import { createPublicKey, randomBytes, verify as edVerify } from "node:crypto";
+import { createPublicKey, createHash, randomBytes, verify as edVerify } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 
 const BASE = process.env.TEST_BASE ?? "http://localhost:3000";
 const prisma = new PrismaClient();
+
+// The server stores a SHA-256 digest of the device id, not the id itself
+// (lib/device.ts), so anything this script looks up by device has to use
+// the same digest.
+const deviceDigest = (id) =>
+  createHash("sha256").update(id.trim().toLowerCase(), "utf8").digest("hex");
 
 // Wait for the dev server (first compile can take a few seconds).
 for (let i = 0; i < 60; i++) {
@@ -86,6 +92,43 @@ const check = (name, actual, expected) => {
   console.log(`${ok ? "PASS" : "FAIL"}  ${name}: got ${actual}${ok ? "" : `, wanted ${expected}`}`);
 };
 
+// Removes everything this run created.
+//
+// The script writes to the same database as the site, so the throwaway apps
+// have to go even when a check throws half-way through — otherwise a failed
+// run leaves rows behind in production. The `finally` at the end of the
+// file calls this whatever happens.
+async function cleanup() {
+  // The apps cascade to their licenses, activations and requests. Bans are
+  // global and have no owner, so they are removed by value.
+  await prisma.app.deleteMany({ where: { id: { in: [app.id, reqApp.id] } } });
+  await prisma.ban.deleteMany({
+    where: { value: { in: [emailC, deviceDigest(bannedDevice)] } },
+  });
+}
+
+// A failure half-way through must not leave the throwaway apps in the
+// database. Top-level await turns a thrown error into an unhandled
+// rejection, so both signals are covered.
+async function cleanupAndExit(code) {
+  try {
+    await cleanup();
+    await prisma.$disconnect();
+  } catch {
+    /* nothing more to do */
+  }
+  process.exit(code);
+}
+
+process.on("uncaughtException", (err) => {
+  console.error("\nThe run failed:", err);
+  void cleanupAndExit(1);
+});
+process.on("unhandledRejection", (err) => {
+  console.error("\nThe run failed:", err);
+  void cleanupAndExit(1);
+});
+
 console.log(`\n── Activation lifecycle ──────────────────────────────`);
 
 // 1. First activation claims the single seat.
@@ -129,7 +172,7 @@ check("verify (suspended)", `${suspended.code} ${suspended.body.status}`, "403 s
 // 9. Single-device revocation, with the license active again.
 await prisma.license.update({ where: { id: license.id }, data: { status: "ACTIVE" } });
 await prisma.licenseActivation.updateMany({
-  where: { licenseId: license.id, deviceId: device },
+  where: { licenseId: license.id, deviceId: deviceDigest(device) },
   data: { revoked: true },
 });
 const revoked = await post("/api/license/verify", { key: license.key, deviceId: device });
@@ -143,7 +186,7 @@ await prisma.license.update({
   data: { expiresAt: new Date(Date.now() - 86_400_000) },
 });
 await prisma.licenseActivation.updateMany({
-  where: { licenseId: license.id, deviceId: device },
+  where: { licenseId: license.id, deviceId: deviceDigest(device) },
   data: { revoked: false },
 });
 const expired = await post("/api/license/verify", { key: license.key, deviceId: device });
@@ -164,6 +207,7 @@ check("token binds device", claims.d, device);
 check("token binds app", claims.a, app.slug);
 check("token carries recheck window", claims.r > claims.i, true);
 check("public key is ed25519", publicKeyResponse.algorithm, "ed25519");
+check("token carries the device digest", claims.h, deviceDigest(device));
 
 // 12. Tampering is caught: flip one character of the payload.
 const tampered = `${payload.slice(0, -1)}${payload.at(-1) === "A" ? "B" : "A"}.${signature}`;
@@ -180,9 +224,51 @@ check("tampered token rejected", tamperOk, false);
 const publicKeyAgain = await fetch(`${BASE}/api/license/pubkey`).then((r) => r.json());
 check("public key stable", publicKeyAgain.publicKey === publicKeyResponse.publicKey, true);
 
+console.log(`\n── Device binding ──────────────────────────────────`);
+
+// The expiry test above left the licence lapsed; the checks below need a
+// live one.
+await prisma.license.update({
+  where: { id: license.id },
+  data: { expiresAt: null },
+});
+
+// 14. The fingerprint itself is never stored: the activation row holds a
+// SHA-256 digest of it, so a copy of the database is not a list of people's
+// machines.
+const storedDevice = await prisma.licenseActivation.findFirst({
+  where: { licenseId: license.id },
+  select: { deviceId: true },
+});
+check("the raw device id is not stored", storedDevice?.deviceId, deviceDigest(device));
+check("the raw device id is nowhere in the row", storedDevice?.deviceId.includes(device), false);
+
+// 15. The same machine in a different spelling is the same machine.
+const sameDeviceUpper = await post("/api/license/activate", {
+  key: license.key,
+  deviceId: device.toUpperCase(),
+});
+check("activate (same device, other case)", `${sameDeviceUpper.code} ${sameDeviceUpper.body.status}`, "200 active");
+check(
+  "it did not take a second seat",
+  await prisma.licenseActivation.count({ where: { licenseId: license.id } }),
+  1,
+);
+
+// 16. A device id that is not a plausible fingerprint is refused: too short
+// fails the request shape (400), and one carrying a control character fails
+// the fingerprint check (404).
+const tooShort = await post("/api/license/activate", { key: license.key, deviceId: "short" });
+check("activate (device id too short)", `${tooShort.code} ${tooShort.body.status}`, "400 invalid");
+const withControlChars = await post("/api/license/activate", {
+  key: license.key,
+  deviceId: "device-with-a-newline\nand-more",
+});
+check("activate (device id with a newline)", `${withControlChars.code} ${withControlChars.body.status}`, "404 invalid");
+
 console.log(`\n── Key requests ─────────────────────────────────────`);
 
-// 14. A fresh app defaults to Auto, and one request is all it takes to get a
+// 17. A fresh app defaults to Auto, and one request is all it takes to get a
 // single-device key for that address — no admin action needed.
 const freshMode = await prisma.app.findUnique({
   where: { id: reqApp.id },
@@ -301,7 +387,7 @@ await prisma.license.update({ where: { id: license.id }, data: { expiresAt: null
 await prisma.licenseActivation.updateMany({ where: { licenseId: license.id }, data: { revoked: false } });
 const deviceOk = await post("/api/license/activate", { key: license.key, deviceId: bannedDevice });
 check("activate before the device ban", `${deviceOk.code} ${deviceOk.body.status}`, "200 active");
-await prisma.ban.create({ data: { kind: "DEVICE", value: bannedDevice, reason: "test run" } });
+await prisma.ban.create({ data: { kind: "DEVICE", value: deviceDigest(bannedDevice), reason: "test run" } });
 const deviceBanned = await post("/api/license/activate", { key: license.key, deviceId: bannedDevice });
 check("activate (banned device)", `${deviceBanned.code} ${deviceBanned.body.status}`, "403 banned_device");
 const deviceBannedVerify = await post("/api/license/verify", { key: license.key, deviceId: bannedDevice });
@@ -348,7 +434,7 @@ const swapped = await post("/api/license/activate", { key: swapLicense.key, devi
 check("activate (different key, same machine)", `${swapped.code} ${swapped.body.status}`, "200 active");
 check(
   "the key it held before is released",
-  await prisma.licenseActivation.count({ where: { licenseId: license.id, deviceId: swapDevice } }),
+  await prisma.licenseActivation.count({ where: { licenseId: license.id, deviceId: deviceDigest(swapDevice) } }),
   0,
 );
 check(
@@ -359,7 +445,7 @@ check(
 check(
   "another app's key on the same machine is untouched",
   await prisma.licenseActivation.count({
-    where: { licenseId: crossLicense.id, deviceId: swapDevice },
+    where: { licenseId: crossLicense.id, deviceId: deviceDigest(swapDevice) },
   }),
   1,
 );
@@ -370,7 +456,7 @@ const refusedSwap = await post("/api/license/activate", { key: swapLicense.key, 
 check("activate (swap onto a full key)", `${refusedSwap.code} ${refusedSwap.body.status}`, "409 device_limit");
 check(
   "a refused swap keeps the key it had",
-  await prisma.licenseActivation.count({ where: { licenseId: license.id, deviceId: device } }),
+  await prisma.licenseActivation.count({ where: { licenseId: license.id, deviceId: deviceDigest(device) } }),
   1,
 );
 
@@ -379,7 +465,7 @@ const swappedBack = await post("/api/license/activate", { key: license.key, devi
 check("activate (swap back)", `${swappedBack.code} ${swappedBack.body.status}`, "200 active");
 check(
   "the replacement key is released in turn",
-  await prisma.licenseActivation.count({ where: { licenseId: swapLicense.id, deviceId: swapDevice } }),
+  await prisma.licenseActivation.count({ where: { licenseId: swapLicense.id, deviceId: deviceDigest(swapDevice) } }),
   0,
 );
 
@@ -387,11 +473,9 @@ console.log(`\n── Cleanup ────────────────�
 
 // The apps cascade to their licenses, activations and requests. Bans are
 // global and have no owner, so they are removed by value.
-await prisma.app.delete({ where: { id: app.id } });
-await prisma.app.delete({ where: { id: reqApp.id } });
-await prisma.ban.deleteMany({ where: { value: { in: [emailC, bannedDevice] } } });
+await cleanup();
 check("cleanup removed test apps", await prisma.app.count({ where: { id: { in: [app.id, reqApp.id] } } }), 0);
-check("cleanup removed test bans", await prisma.ban.count({ where: { value: { in: [emailC, bannedDevice] } } }), 0);
+check("cleanup removed test bans", await prisma.ban.count({ where: { value: { in: [emailC, deviceDigest(bannedDevice)] } } }), 0);
 
 await prisma.$disconnect();
 
@@ -400,4 +484,5 @@ console.log(`\n${results.length - failed}/${results.length} checks passed`);
 if (failed > 0) {
   console.log("Failed checks need attention before this counts as verified.");
 }
-process.exit(failed === 0 ? 0 : 1);
+process.exitCode = failed === 0 ? 0 : 1;
+

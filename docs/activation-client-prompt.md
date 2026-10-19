@@ -113,6 +113,7 @@ Payload claims:
   l = license id
   a = app slug          must equal APP_SLUG
   d = device id         must equal the fingerprint computed here
+  h = device digest     SHA-256 hex of the lowercased device id
   e = expiry (ms), 0 = lifetime
   i = issued at (ms)
   r = re-check by (ms)  start the app offline until this time
@@ -120,6 +121,9 @@ Payload claims:
 Rules:
   • Signature must verify against the public key, or refuse to start.
   • `a` and `d` must match this app and this machine, or refuse.
+  • `h` is the digest of `d`: SHA-256 of the device id, lowercased, hex.
+    The server keeps only this digest, never the fingerprint itself. Check
+    it if you want - it proves the token was issued for the id you hold.
   • If now > `e` (and `e` != 0) → expired, refuse.
   • If now <= `r` → run offline, no network needed.
   • If now > `r` → re-check online before/while starting (section 6). If
@@ -127,6 +131,11 @@ Rules:
     rather than locking a paying customer out, then require the network.
   • Verifying must never require the API key; the public key alone is
     enough, so the app can be checked by anyone.
+
+  The `r` window is set per app by the server (7 days by default, 1-90).
+  It is the longest the app may run without talking to the server, so a
+  blocked licence or a revoked device keeps working offline until `r`
+  passes. Do not extend it yourself.
 
 ────────────────────────────────────────────────────────────────────
 6. ONLINE RE-CHECK

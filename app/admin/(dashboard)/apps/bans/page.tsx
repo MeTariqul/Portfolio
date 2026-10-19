@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
+import { shortDeviceDigest } from "@/lib/device";
 import { AppsTabs } from "@/components/admin/apps-tabs";
 import { BanForm } from "@/components/admin/ban-form";
 import { CopyText } from "@/components/admin/copy-text";
@@ -70,9 +71,14 @@ export default async function BansPage() {
                     </span>
                   </td>
                   <td className="py-4 pr-4">
-                    <code className="font-mono text-xs">{ban.value}</code>
+                    <code className="font-mono text-xs">
+                      {ban.kind === "DEVICE" ? shortDeviceDigest(ban.value) : ban.value}
+                    </code>
                     <div className="mt-1">
-                      <CopyText text={ban.value} label="Copy" />
+                      <CopyText
+                        text={ban.kind === "DEVICE" ? ban.value : ban.value}
+                        label="Copy"
+                      />
                     </div>
                   </td>
                   <td className="py-4 pr-4 text-soft">{ban.reason ?? "—"}</td>
@@ -80,7 +86,7 @@ export default async function BansPage() {
                   <td className="py-4">
                     <ConfirmForm
                       action={removeBan.bind(null, ban.id)}
-                      confirmText={`Unban ${ban.value}? It can request keys and activate again immediately.`}
+                      confirmText={`Unban ${ban.kind === "DEVICE" ? shortDeviceDigest(ban.value) : ban.value}? It can request keys and activate again immediately.`}
                     >
                       <button
                         type="submit"

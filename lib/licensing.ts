@@ -27,13 +27,21 @@ const KEYS_SETTING = "license_keys";
 
 // How long a token stays valid offline before the app must re-check
 // online. Shorter = revocation bites sooner, but apps nag the server more.
+// This is the default; each app can set its own window (App.recheckDays).
 export const RECHECK_DAYS = 7;
+
+// The bounds for a per-app re-check window. Below a day the app would be
+// talking to the server on every launch; above a month a revoked licence
+// would keep working offline for a month.
+export const MIN_RECHECK_DAYS = 1;
+export const MAX_RECHECK_DAYS = 90;
 
 export type LicenseClaims = {
   v: 1;
   l: string; // license id
   a: string; // app slug
   d: string; // device id (fingerprint the app computed)
+  h: string; // digest of that device id — see lib/device.ts
   e: number; // expires at (ms since epoch), 0 = lifetime
   i: number; // issued at (ms)
   r: number; // recheck at (ms) — offline grace ends here
@@ -95,16 +103,28 @@ export function buildClaims(input: {
   licenseId: string;
   appSlug: string;
   deviceId: string;
+  deviceHash: string;
   expiresAt: Date | null;
+  recheckDays?: number;
 }): LicenseClaims {
   const issuedAt = Date.now();
   const expires = input.expiresAt ? input.expiresAt.getTime() : 0;
-  const graceEnd = issuedAt + RECHECK_DAYS * 24 * 60 * 60_000;
+
+  // The re-check window is per app: a short one makes a revoked licence
+  // stop working sooner, at the cost of the app talking to the server more
+  // often. The window never runs past the licence's own expiry.
+  const days = Math.min(
+    Math.max(Math.trunc(input.recheckDays ?? RECHECK_DAYS), MIN_RECHECK_DAYS),
+    MAX_RECHECK_DAYS,
+  );
+  const graceEnd = issuedAt + days * 24 * 60 * 60_000;
+
   return {
     v: 1,
     l: input.licenseId,
     a: input.appSlug,
     d: input.deviceId,
+    h: input.deviceHash,
     e: expires,
     i: issuedAt,
     r: expires > 0 ? Math.min(graceEnd, expires) : graceEnd,
@@ -207,8 +227,8 @@ export function licenseStateLabel(license: {
 
 // ── Bans ────────────────────────────────────────────────────────────────
 
-// Emails are matched case-insensitively; device ids are opaque strings the
-// app generates, so they are compared exactly.
+// Emails are matched case-insensitively; device ids are matched as digests
+// (lib/device.ts), so the same machine always produces the same value.
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
@@ -228,6 +248,10 @@ export async function banHit(input: {
 }): Promise<BanHit | null> {
   const values: { kind: "EMAIL" | "DEVICE"; value: string }[] = [];
   if (input.email) values.push({ kind: "EMAIL", value: normalizeEmail(input.email) });
+  // The device id is compared as a digest: the database stores digests
+  // (lib/device.ts), so the value passed in here must already be digested.
+  // The caller hashes once, at the edge of the request, and passes the same
+  // digest everywhere.
   if (input.deviceId) values.push({ kind: "DEVICE", value: input.deviceId });
   if (values.length === 0) return null;
 

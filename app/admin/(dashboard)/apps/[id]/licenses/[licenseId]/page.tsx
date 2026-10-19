@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CopyText } from "@/components/admin/copy-text";
 import { ConfirmForm } from "@/components/admin/confirm-form";
 import { licenseStateLabel, normalizeEmail } from "@/lib/licensing";
+import { shortDeviceDigest } from "@/lib/device";
 import {
   banActivationDevice,
   banLicenseEmail,
@@ -260,7 +261,7 @@ export default async function LicensePage({
                   <td className="py-4 pr-4">
                     <p>{a.deviceName ?? "Unnamed device"}</p>
                     <code className="mt-1 block max-w-[220px] truncate font-mono text-[0.7rem] text-soft" title={a.deviceId}>
-                      {a.deviceId}
+                      {shortDeviceDigest(a.deviceId)}
                     </code>
                   </td>
                   <td className="py-4 pr-4 text-soft">{a.platform ?? "—"}</td>
@@ -298,7 +299,7 @@ export default async function LicensePage({
                       {bannedDevices.has(a.deviceId) ? (
                         <ConfirmForm
                           action={removeBan.bind(null, deviceBans.get(a.deviceId)!)}
-                          confirmText={`Unban ${a.deviceId}? That machine can activate again on any app.`}
+                          confirmText={`Unban ${shortDeviceDigest(a.deviceId)}? That machine can activate again on any app.`}
                         >
                           <button
                             type="submit"
