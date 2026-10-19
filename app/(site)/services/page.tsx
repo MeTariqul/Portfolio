@@ -3,6 +3,8 @@ import { Container } from "@/components/ui/container";
 import { ButtonLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { Markdown } from "@/components/markdown";
+import { JsonLd } from "@/components/seo/json-ld";
+import { itemListJsonLd, serviceJsonLd } from "@/lib/seo";
 import { getServices, getCopy } from "@/lib/content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -24,8 +26,28 @@ export default async function ServicesPage() {
     { n: "03", title: copy["services.step3Title"], body: copy["services.step3Body"] },
   ];
 
+  // Each service as its own node, plus the list they belong to. A service
+  // without a list is just a page; a service inside an ItemList is something
+  // a search engine can quote as an offering.
+  const jsonLd = [
+    ...services.map((s) =>
+      serviceJsonLd({
+        name: s.title,
+        description: s.descriptionMD.replace(/[#*_`>\[\]]/g, " ").replace(/\s+/g, " ").trim(),
+        path: "/services",
+        priceNote: s.priceNote,
+      }),
+    ),
+    itemListJsonLd({
+      name: copy["services.title"],
+      path: "/services",
+      items: services.map((s) => ({ name: s.title, path: "/services" })),
+    }),
+  ];
+
   return (
     <Container>
+      <JsonLd data={jsonLd} />
       <section className="py-20 md:py-24">
         <h1 className="max-w-[680px] text-4xl">{copy["services.title"]}</h1>
         <p className="mt-6 max-w-[680px] text-lg text-soft">

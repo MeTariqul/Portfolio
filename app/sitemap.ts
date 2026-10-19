@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getPosts, getProjects } from "@/lib/content";
+import { getSitemapEntries } from "@/lib/content";
 import { site } from "@/lib/site";
 
 // /sitemap.xml — otherwise it 404s and crawlers have no map of the site.
@@ -18,10 +18,7 @@ const staticPages = [
 ] as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [posts, projects] = await Promise.all([
-    getPosts({ perPage: 100 }),
-    getProjects(),
-  ]);
+  const { posts, projects } = await getSitemapEntries();
   const now = new Date();
 
   return [
@@ -31,15 +28,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: p.changeFrequency,
       priority: p.priority,
     })),
-    ...posts.posts.map((p) => ({
+    // The date a page really changed. Reporting "now" for everything tells a
+    // crawler that every page on the site is new on every fetch, which makes
+    // it discount the whole sitemap instead of trusting the entries.
+    ...posts.map((p) => ({
       url: `${site.url}/blog/${p.slug}`,
-      lastModified: p.date ? new Date(p.date) : now,
+      lastModified: p.updatedAt ? new Date(p.updatedAt) : now,
       changeFrequency: "monthly" as const,
       priority: 0.6,
     })),
     ...projects.map((p) => ({
       url: `${site.url}/projects/${p.slug}`,
-      lastModified: now,
+      lastModified: p.updatedAt ? new Date(p.updatedAt) : now,
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),

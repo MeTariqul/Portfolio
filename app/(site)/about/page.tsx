@@ -5,6 +5,8 @@ import { ButtonLink } from "@/components/ui/button";
 import { Tag } from "@/components/ui/tag";
 import { Reveal } from "@/components/ui/reveal";
 import { site } from "@/lib/site";
+import { JsonLd } from "@/components/seo/json-ld";
+import { profilePageJsonLd } from "@/lib/seo";
 import {
   getSettings,
   getSkills,
@@ -40,6 +42,13 @@ export default async function AboutPage() {
 
   return (
     <Container>
+      <JsonLd
+        data={profilePageJsonLd({
+          path: "/about",
+          headline: copy["about.h1"],
+          description: copy["about.metaDescription"],
+        })}
+      />
       <section className="py-20 md:py-24">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           <div>
