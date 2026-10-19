@@ -109,7 +109,9 @@ what happens next is the app's **request mode** on its dashboard page:
 | `Auto` | a single-device key is created (or the existing one reused) and emailed at once |
 | `Review` | the request waits in **Requests** until you approve or reject it |
 
-New apps start `Off`, so shipping an app never silently opens a key faucet.
+New apps start `Auto`, so a request gets a key by email without you touching
+anything; switch an app to `Review` when you want to vet each request, or
+`Off` to close it completely.
 Keys are mailed through Brevo (`lib/license-mail.ts`); if the send fails the
 request is logged as **Failed** and **Retry send** sends the same key again —
 a key is never minted twice for one address, and asking twice only resends.

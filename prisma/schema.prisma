@@ -286,10 +286,10 @@ model App {
   apiKey      String      @unique // "appk_…"
   active      Boolean     @default(true)
   // What happens when the software asks for a key for someone's email:
-  // OFF closes the door, AUTO emails a fresh key immediately, REVIEW parks
-  // the request until the admin approves it. Off by default, so shipping
-  // an app never silently turns the endpoint into a public key faucet.
-  requestMode RequestMode @default(OFF)
+  // AUTO emails a fresh key immediately (the default), REVIEW parks the
+  // request until the admin approves it, OFF closes the door. Switch it to
+  // OFF or REVIEW per app from the app's dashboard page.
+  requestMode RequestMode @default(AUTO)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 

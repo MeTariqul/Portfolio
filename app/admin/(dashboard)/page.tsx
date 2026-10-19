@@ -20,6 +20,8 @@ export default async function AdminDashboardPage() {
     media,
     linkClicks,
     visitorStats,
+    licenseKeys,
+    pendingKeyRequests,
   ] = await Promise.all([
     prisma.post.count({ where: { status: "PUBLISHED" } }),
     prisma.post.count({ where: { status: "DRAFT" } }),
@@ -29,6 +31,8 @@ export default async function AdminDashboardPage() {
     prisma.media.count(),
     prisma.shortLinkClick.count(),
     getVisitorStats(),
+    prisma.license.count(),
+    prisma.keyRequest.count({ where: { status: "PENDING" } }),
   ]);
 
   const latest = await prisma.message.findMany({
@@ -42,6 +46,12 @@ export default async function AdminDashboardPage() {
     { label: "Projects", value: projects, href: "/admin/projects" },
     { label: "Unread messages", value: messagesUnread, href: "/admin/messages" },
     { label: "Short link clicks", value: linkClicks, href: "/admin/links" },
+    { label: "License keys", value: licenseKeys, href: "/admin/apps/licenses" },
+    {
+      label: "Key requests waiting",
+      value: pendingKeyRequests,
+      href: "/admin/apps/requests",
+    },
     { label: "Media files", value: media, href: "/admin/media" },
   ];
 
@@ -55,7 +65,7 @@ export default async function AdminDashboardPage() {
         initialVisits={visitorStats.visits}
       />
 
-      <div className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-6">
+      <div className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-4">
         {stats.map((s, i) => (
           <Link
             key={s.label}

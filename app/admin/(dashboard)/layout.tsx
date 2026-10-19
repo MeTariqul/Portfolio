@@ -16,7 +16,10 @@ export default async function AdminDashboardLayout({
   const session = await auth();
   if (!session?.user) redirect("/admin/login");
 
-  const unread = await prisma.message.count({ where: { read: false } });
+  const [unread, pendingKeys] = await Promise.all([
+    prisma.message.count({ where: { read: false } }),
+    prisma.keyRequest.count({ where: { status: "PENDING" } }),
+  ]);
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
@@ -41,6 +44,11 @@ export default async function AdminDashboardLayout({
           <NavLink href="/admin/copy" label="Copy" />
           <NavLink href="/admin/links" label="Links" />
           <NavLink href="/admin/apps" label="Apps" />
+          <NavLink
+            href="/admin/apps/licenses"
+            label="Keys"
+            badge={pendingKeys}
+          />
           <NavLink href="/admin/messages" label="Messages" badge={unread} />
           <NavLink href="/admin/media" label="Media" />
           <NavLink href="/admin/settings" label="Settings" />
