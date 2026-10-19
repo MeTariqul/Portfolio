@@ -7,6 +7,7 @@ import {
   banEmailValue,
   deleteKeyRequest,
   rejectKeyRequest,
+  removeBan,
   sendKeyRequest,
 } from "../actions";
 
@@ -47,7 +48,7 @@ export default async function RequestsPage({
   const wanted = params.status?.trim().toUpperCase() || "";
   const statusFilter = STATUSES.find((s) => s === wanted);
 
-  const [apps, grouped, requests] = await Promise.all([
+  const [apps, grouped, requests, bans] = await Promise.all([
     prisma.app.findMany({
       orderBy: { name: "asc" },
       select: { id: true, name: true, slug: true },
@@ -66,12 +67,20 @@ export default async function RequestsPage({
         license: { select: { id: true, key: true } },
       },
     }),
+    prisma.ban.findMany({
+      where: { kind: "EMAIL" },
+      select: { id: true, kind: true, value: true },
+    }),
   ]);
 
   const counts = Object.fromEntries(
     grouped.map((g) => [g.status, g._count._all]),
   ) as Partial<Record<Status, number>>;
   const total = grouped.reduce((sum, g) => sum + g._count._all, 0);
+  // email -> ban row id, so a blocked requester can be unbanned right here.
+  const emailBans = new Map(
+    bans.filter((b) => b.kind === "EMAIL").map((b) => [b.value, b.id]),
+  );
   const base = "/admin/apps/requests";
 
   return (
@@ -258,21 +267,38 @@ export default async function RequestsPage({
                           </button>
                         </form>
                       )}
-                      <ConfirmForm
-                        action={banEmailValue.bind(
-                          null,
-                          request.email,
-                          `banned from the request queue`,
-                        )}
-                        confirmText={`Ban ${request.email}? It blocks new requests and every license using that address.`}
-                      >
-                        <button
-                          type="submit"
-                          className="link-underline text-soft hover:text-ink"
+                      {emailBans.has(request.email) ? (
+                        <ConfirmForm
+                          action={removeBan.bind(
+                            null,
+                            emailBans.get(request.email)!,
+                          )}
+                          confirmText={`Unban ${request.email}? It can request keys and activate again immediately.`}
                         >
-                          Ban email
-                        </button>
-                      </ConfirmForm>
+                          <button
+                            type="submit"
+                            className="link-underline text-accent hover:text-ink"
+                          >
+                            Unban email
+                          </button>
+                        </ConfirmForm>
+                      ) : (
+                        <ConfirmForm
+                          action={banEmailValue.bind(
+                            null,
+                            request.email,
+                            `banned from the request queue`,
+                          )}
+                          confirmText={`Ban ${request.email}? It blocks new requests and every license using that address.`}
+                        >
+                          <button
+                            type="submit"
+                            className="link-underline text-soft hover:text-ink"
+                          >
+                            Ban email
+                          </button>
+                        </ConfirmForm>
+                      )}
                       <ConfirmForm
                         action={deleteKeyRequest.bind(null, request.id)}
                         confirmText="Delete this request from the log? The license it produced, if any, stays."

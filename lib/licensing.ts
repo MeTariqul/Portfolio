@@ -191,11 +191,16 @@ export function isLicenseUsable(license: {
 // How the dashboard labels a license. Lives here rather than in the two
 // admin pages so both agree, and because deciding it reads the clock —
 // work for a plain function, not a render body.
+//
+// "Blocked" is the licence-level switch (LicenseStatus.SUSPENDED, which is
+// what the activation API reports as `suspended`); "Banned" is the separate
+// email/device deny list and is applied by the pages, which know the ban
+// table.
 export function licenseStateLabel(license: {
   status: "ACTIVE" | "SUSPENDED";
   expiresAt: Date | null;
-}): "Active" | "Suspended" | "Expired" {
-  if (license.status === "SUSPENDED") return "Suspended";
+}): "Active" | "Blocked" | "Expired" {
+  if (license.status === "SUSPENDED") return "Blocked";
   if (license.expiresAt && license.expiresAt.getTime() <= Date.now()) return "Expired";
   return "Active";
 }

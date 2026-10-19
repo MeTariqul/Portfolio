@@ -10,6 +10,7 @@ import {
   banActivationDevice,
   banLicenseEmail,
   deleteLicense,
+  removeBan,
   resetLicenseActivations,
   setActivationRevoked,
   setLicenseStatus,
@@ -67,10 +68,12 @@ export default async function LicensePage({
         kind: "DEVICE",
         value: { in: license.activations.map((a) => a.deviceId) },
       },
-      select: { value: true },
+      select: { id: true, value: true },
     }),
   ]);
-  const bannedDevices = new Set(deviceBanRows.map((b) => b.value));
+  // deviceId -> ban row id, so a banned device can be unbanned in place.
+  const deviceBans = new Map(deviceBanRows.map((b) => [b.value, b.id]));
+  const bannedDevices = new Set(deviceBans.keys());
   const liveDeviceBanned = license.activations.some(
     (a) => !a.revoked && bannedDevices.has(a.deviceId),
   );
@@ -118,14 +121,15 @@ export default async function LicensePage({
         <p className="mt-3 text-sm text-accent">
           This email address is banned
           {emailBan.reason ? ` (${emailBan.reason})` : ""} — it cannot request a
-          key or activate anything.{" "}
+          key or activate anything. Unban it above, or from the{" "}
           <Link
             href="/admin/apps/bans"
             prefetch={false}
             className="link-underline text-accent"
           >
-            Manage bans
-          </Link>
+            Bans
+          </Link>{" "}
+          screen.
         </p>
       )}
 
@@ -138,19 +142,29 @@ export default async function LicensePage({
           )}
         >
           <button type="submit" className="link-underline text-soft hover:text-ink">
-            {license.status === "ACTIVE" ? "Suspend license" : "Resume license"}
+            {license.status === "ACTIVE" ? "Block this key" : "Unblock this key"}
           </button>
         </form>
-        {license.email && !emailBan && (
-          <ConfirmForm
-            action={banLicenseEmail.bind(null, license.id)}
-            confirmText={`Ban ${license.email}? It blocks new key requests and every license using that address, on every app. Reversible from the Bans screen.`}
-          >
-            <button type="submit" className="link-underline text-soft hover:text-ink">
-              Ban email
-            </button>
-          </ConfirmForm>
-        )}
+        {license.email &&
+          (emailBan ? (
+            <ConfirmForm
+              action={removeBan.bind(null, emailBan.id)}
+              confirmText={`Unban ${license.email}? It can request keys and activate again immediately.`}
+            >
+              <button type="submit" className="link-underline text-accent hover:text-ink">
+                Unban email
+              </button>
+            </ConfirmForm>
+          ) : (
+            <ConfirmForm
+              action={banLicenseEmail.bind(null, license.id)}
+              confirmText={`Ban ${license.email}? It blocks new key requests and every license using that address, on every app. Reversible from the Bans screen.`}
+            >
+              <button type="submit" className="link-underline text-soft hover:text-ink">
+                Ban email
+              </button>
+            </ConfirmForm>
+          ))}
         <ConfirmForm
           action={resetLicenseActivations.bind(null, license.id)}
           confirmText="Clear every device from this license? Users will need to activate again on each machine."
@@ -281,7 +295,19 @@ export default async function LicensePage({
                           {a.revoked ? "Restore" : "Revoke"}
                         </button>
                       </ConfirmForm>
-                      {!bannedDevices.has(a.deviceId) && (
+                      {bannedDevices.has(a.deviceId) ? (
+                        <ConfirmForm
+                          action={removeBan.bind(null, deviceBans.get(a.deviceId)!)}
+                          confirmText={`Unban ${a.deviceId}? That machine can activate again on any app.`}
+                        >
+                          <button
+                            type="submit"
+                            className="link-underline text-accent hover:text-ink"
+                          >
+                            Unban device
+                          </button>
+                        </ConfirmForm>
+                      ) : (
                         <ConfirmForm
                           action={banActivationDevice.bind(null, a.id)}
                           confirmText="Ban this device? It is refused on every app, whatever key it presents, until the ban is lifted."

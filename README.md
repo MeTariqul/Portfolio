@@ -88,10 +88,11 @@ users activate against `POST /api/license/activate`; the app re-checks with
 `GET /api/license/pubkey` (Ed25519, so shipped apps can verify but never mint).
 
 Per-key controls: device slots (1–100, enforced with a transaction so two devices
-cannot race for the last seat), optional expiry (empty = lifetime), suspend/resume,
+cannot race for the last seat), optional expiry (empty = lifetime), block/unblock
+(the `LicenseStatus.SUSPENDED` switch the API reports as `suspended`),
 per-device revoke/restore, reset activations, custom or generated keys
 (`MYAPP-7QK4-2XP9-MZ34`). Tokens stay valid offline for `RECHECK_DAYS` (7) in
-`lib/licensing.ts`, so a suspension, expiry or revoked device takes effect at the
+`lib/licensing.ts`, so a block, ban, expiry or revoked device takes effect at the
 next online re-check. Everything is stored in the dashboard: no third-party service,
 and the signing keys live in the `Setting` table (`license_keys`), generated on first
 use. Each app page carries the endpoint list, the public key and a copy-paste client

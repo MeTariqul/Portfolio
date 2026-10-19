@@ -6,7 +6,7 @@ import { licenseStateLabel, normalizeEmail } from "@/lib/licensing";
 import { AppsTabs } from "@/components/admin/apps-tabs";
 import { CopyText } from "@/components/admin/copy-text";
 import { ConfirmForm } from "@/components/admin/confirm-form";
-import { banLicenseEmail, deleteLicense, setLicenseStatus } from "../actions";
+import { banActivationDevice, banLicenseEmail, deleteLicense, removeBan, setLicenseStatus } from "../actions";
 
 export const metadata: Metadata = {
   title: "Keys",
@@ -42,14 +42,17 @@ export default async function KeysPage({
       orderBy: { name: "asc" },
       select: { id: true, name: true, slug: true },
     }),
-    prisma.ban.findMany({ select: { kind: true, value: true } }),
+    prisma.ban.findMany({
+      select: { id: true, kind: true, value: true },
+    }),
   ]);
 
-  const bannedEmails = new Set(
-    bans.filter((b) => b.kind === "EMAIL").map((b) => b.value),
+  // value -> ban row id, so a banned row can offer "Unban" in place.
+  const emailBans = new Map(
+    bans.filter((b) => b.kind === "EMAIL").map((b) => [b.value, b.id]),
   );
-  const bannedDevices = new Set(
-    bans.filter((b) => b.kind === "DEVICE").map((b) => b.value),
+  const deviceBans = new Map(
+    bans.filter((b) => b.kind === "DEVICE").map((b) => [b.value, b.id]),
   );
 
   const where: Prisma.LicenseWhereInput = {};
@@ -74,16 +77,19 @@ export default async function KeysPage({
 
   const rows = licenses.map((license) => {
     const live = license.activations.filter((a) => !a.revoked);
-    const emailBanned =
-      !!license.email && bannedEmails.has(normalizeEmail(license.email));
-    const deviceBanned = live.some((a) => bannedDevices.has(a.deviceId));
+    const emailKey = license.email ? normalizeEmail(license.email) : null;
+    const emailBanId = emailKey ? (emailBans.get(emailKey) ?? null) : null;
+    const deviceBanned = live.some((a) => deviceBans.has(a.deviceId));
+    const bound = live[0] ?? null;
     return {
       license,
       live,
-      emailBanned,
+      bound,
+      emailBanId,
+      deviceBanId: bound ? (deviceBans.get(bound.deviceId) ?? null) : null,
       deviceBanned,
-      label: emailBanned || deviceBanned ? "Banned" : licenseStateLabel(license),
-      lastSeen: live[0]?.lastSeenAt ?? null,
+      label: emailBanId || deviceBanned ? "Banned" : licenseStateLabel(license),
+      lastSeen: bound?.lastSeenAt ?? null,
     };
   });
 
@@ -107,6 +113,25 @@ export default async function KeysPage({
         Every license key on the server, across all apps, with the state the
         activation API currently reports for it.
       </p>
+
+      <div className="mt-5 grid gap-x-6 gap-y-3 rounded-xl border border-line bg-surface p-5 text-xs text-soft sm:grid-cols-2 lg:grid-cols-4">
+        <p>
+          <span className="text-ink">Block / Unblock</span> — that one key
+          stops working, or starts again. Reversible, nothing deleted.
+        </p>
+        <p>
+          <span className="text-ink">Ban / Unban email</span> — that address
+          cannot request a key, activate or re-check on any app.
+        </p>
+        <p>
+          <span className="text-ink">Ban / Unban device</span> — that machine
+          is refused on any app, whatever key it presents.
+        </p>
+        <p>
+          <span className="text-ink">Revoke / Restore</span> — drops a single
+          machine from one key, on that key&apos;s own page.
+        </p>
+      </div>
 
       <div className="mt-6">
         <AppsTabs />
@@ -213,7 +238,7 @@ export default async function KeysPage({
               </tr>
             </thead>
             <tbody>
-              {filtered.map(({ license, live, label, lastSeen }) => (
+              {filtered.map(({ license, live, bound, emailBanId, deviceBanId, label, lastSeen }) => (
                 <tr
                   key={license.id}
                   className={`border-b border-line align-top last:border-b-0 ${
@@ -256,14 +281,14 @@ export default async function KeysPage({
                     {live.length}/{license.maxDevices}
                   </td>
                   <td className="py-4 pr-4">
-                    {live[0] ? (
+                    {bound ? (
                       <>
-                        <span>{live[0].deviceName ?? "Unnamed device"}</span>
+                        <span>{bound.deviceName ?? "Unnamed device"}</span>
                         <code
                           className="mt-1 block max-w-[180px] truncate font-mono text-[0.7rem] text-soft"
-                          title={live[0].deviceId}
+                          title={bound.deviceId}
                         >
-                          {live[0].deviceId}
+                          {bound.deviceId}
                         </code>
                       </>
                     ) : (
@@ -293,22 +318,61 @@ export default async function KeysPage({
                           type="submit"
                           className="link-underline text-soft hover:text-ink"
                         >
-                          {license.status === "ACTIVE" ? "Suspend" : "Resume"}
+                          {license.status === "ACTIVE" ? "Block" : "Unblock"}
                         </button>
                       </form>
-                      {license.email && (
-                        <ConfirmForm
-                          action={banLicenseEmail.bind(null, license.id)}
-                          confirmText={`Ban ${license.email}? It blocks new key requests and every license using that address, on every app.`}
-                        >
-                          <button
-                            type="submit"
-                            className="link-underline text-soft hover:text-ink"
+                      {license.email &&
+                        (emailBanId ? (
+                          <ConfirmForm
+                            action={removeBan.bind(null, emailBanId)}
+                            confirmText={`Unban ${license.email}? It can request keys and activate again immediately.`}
                           >
-                            Ban email
-                          </button>
-                        </ConfirmForm>
-                      )}
+                            <button
+                              type="submit"
+                              className="link-underline text-accent hover:text-ink"
+                            >
+                              Unban email
+                            </button>
+                          </ConfirmForm>
+                        ) : (
+                          <ConfirmForm
+                            action={banLicenseEmail.bind(null, license.id)}
+                            confirmText={`Ban ${license.email}? It blocks new key requests and every license using that address, on every app.`}
+                          >
+                            <button
+                              type="submit"
+                              className="link-underline text-soft hover:text-ink"
+                            >
+                              Ban email
+                            </button>
+                          </ConfirmForm>
+                        ))}
+                      {bound &&
+                        (deviceBanId ? (
+                          <ConfirmForm
+                            action={removeBan.bind(null, deviceBanId)}
+                            confirmText={`Unban ${bound.deviceId}? That machine can activate again on any app.`}
+                          >
+                            <button
+                              type="submit"
+                              className="link-underline text-accent hover:text-ink"
+                            >
+                              Unban device
+                            </button>
+                          </ConfirmForm>
+                        ) : (
+                          <ConfirmForm
+                            action={banActivationDevice.bind(null, bound.id)}
+                            confirmText="Ban this device? It is refused on every app, whatever key it presents, until the ban is lifted."
+                          >
+                            <button
+                              type="submit"
+                              className="link-underline text-soft hover:text-ink"
+                            >
+                              Ban device
+                            </button>
+                          </ConfirmForm>
+                        ))}
                       <ConfirmForm
                         action={deleteLicense.bind(null, license.id)}
                         confirmText={`Delete ${license.key}? The key stops working and its device history goes with it.`}

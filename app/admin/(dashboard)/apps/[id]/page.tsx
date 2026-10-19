@@ -176,8 +176,9 @@ export default async function AppDetailPage({
         </dl>
         <p className="mt-3 text-xs text-soft">
           Tokens are Ed25519-signed and valid offline for {RECHECK_DAYS} days (or
-          until the license expires, whichever comes first). Suspending a key,
-          expiring it or revoking a device takes effect at that re-check.
+          until the license expires, whichever comes first). Blocking a key,
+          banning it, expiring it or revoking a device takes effect at that
+          re-check.
         </p>
       </section>
 
@@ -374,7 +375,7 @@ export default async function AppDetailPage({
                           )}
                         >
                           <button type="submit" className="link-underline text-soft hover:text-ink">
-                            {license.status === "ACTIVE" ? "Suspend" : "Resume"}
+                            {license.status === "ACTIVE" ? "Block" : "Unblock"}
                           </button>
                         </form>
                       </div>

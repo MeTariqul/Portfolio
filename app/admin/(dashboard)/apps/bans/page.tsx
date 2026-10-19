@@ -80,13 +80,13 @@ export default async function BansPage() {
                   <td className="py-4">
                     <ConfirmForm
                       action={removeBan.bind(null, ban.id)}
-                      confirmText={`Lift the ban on ${ban.value}? It can ask for keys and activate again immediately.`}
+                      confirmText={`Unban ${ban.value}? It can request keys and activate again immediately.`}
                     >
                       <button
                         type="submit"
                         className="link-underline text-soft hover:text-ink"
                       >
-                        Lift ban
+                        Unban
                       </button>
                     </ConfirmForm>
                   </td>
