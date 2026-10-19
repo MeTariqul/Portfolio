@@ -175,6 +175,8 @@ export type LicenseCheck =
   | { status: "device_limit" }
   | { status: "revoked_device" }
   | { status: "not_activated" }
+  | { status: "banned" }
+  | { status: "banned_device" }
   | { status: "invalid" };
 
 export function isLicenseUsable(license: {
@@ -196,4 +198,36 @@ export function licenseStateLabel(license: {
   if (license.status === "SUSPENDED") return "Suspended";
   if (license.expiresAt && license.expiresAt.getTime() <= Date.now()) return "Expired";
   return "Active";
+}
+
+// ── Bans ────────────────────────────────────────────────────────────────
+
+// Emails are matched case-insensitively; device ids are opaque strings the
+// app generates, so they are compared exactly.
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+export type BanHit = {
+  kind: "EMAIL" | "DEVICE";
+  value: string;
+  reason: string | null;
+};
+
+// One query covering both kinds, run on every request, activation and
+// re-check. A hit means the caller is refused before anything else about
+// the license matters — a ban outranks suspension and expiry.
+export async function banHit(input: {
+  email?: string | null;
+  deviceId?: string | null;
+}): Promise<BanHit | null> {
+  const values: { kind: "EMAIL" | "DEVICE"; value: string }[] = [];
+  if (input.email) values.push({ kind: "EMAIL", value: normalizeEmail(input.email) });
+  if (input.deviceId) values.push({ kind: "DEVICE", value: input.deviceId });
+  if (values.length === 0) return null;
+
+  return prisma.ban.findFirst({
+    where: { OR: values },
+    select: { kind: true, value: true, reason: true },
+  });
 }

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { ipOf } from "@/lib/request-info";
-import { isLicenseUsable } from "@/lib/licensing";
+import { banHit, isLicenseUsable } from "@/lib/licensing";
 import { deny, grant, readApp } from "@/lib/license-api";
 
 // POST /api/license/verify
@@ -54,6 +54,12 @@ export async function POST(req: Request) {
     include: { activations: { where: { deviceId } } },
   });
   if (!license) return deny("invalid");
+
+  // Bans outrank suspension and expiry — see the note in the activate route.
+  const ban = await banHit({ email: license.email, deviceId });
+  if (ban?.kind === "EMAIL") return deny("banned");
+  if (ban) return deny("banned_device");
+
   if (license.status === "SUSPENDED") return deny("suspended");
   if (!isLicenseUsable(license)) return deny("expired");
 

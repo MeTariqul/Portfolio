@@ -15,7 +15,7 @@ export async function readApp(req: Request) {
   if (!apiKey || apiKey.length > 200) return null;
   const app = await prisma.app.findUnique({
     where: { apiKey },
-    select: { id: true, slug: true, active: true },
+    select: { id: true, slug: true, name: true, active: true, requestMode: true },
   });
   if (!app || !app.active) return null;
   return app;
@@ -28,6 +28,8 @@ const MESSAGES: Record<LicenseCheck["status"], string> = {
   device_limit: "All device slots for this license are in use.",
   revoked_device: "This device was removed from the license.",
   not_activated: "Activate this device before verifying.",
+  banned: "This license was blocked. Contact support.",
+  banned_device: "This device was blocked. Contact support.",
   invalid: "This license key is not valid for this app.",
 };
 
@@ -38,6 +40,8 @@ const CODES: Record<LicenseCheck["status"], number> = {
   device_limit: 409,
   revoked_device: 403,
   not_activated: 409,
+  banned: 403,
+  banned_device: 403,
   invalid: 404,
 };
 

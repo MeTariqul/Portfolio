@@ -11,8 +11,10 @@ import {
   deleteApp,
   rotateAppKey,
   setLicenseStatus,
+  setRequestMode,
   toggleApp,
 } from "../actions";
+import { AppsTabs } from "@/components/admin/apps-tabs";
 
 export const metadata: Metadata = {
   title: "App",
@@ -97,6 +99,9 @@ export default async function AppDetailPage({
 
   const base = site.url.replace(/\/$/, "");
   const publicKey = await publicKeyPem();
+  const pendingRequests = await prisma.keyRequest.count({
+    where: { appId: app.id, status: "PENDING" },
+  });
 
   return (
     <div>
@@ -143,6 +148,10 @@ export default async function AppDetailPage({
             Delete app
           </button>
         </ConfirmForm>
+      </div>
+
+      <div className="mt-6">
+        <AppsTabs />
       </div>
 
       <section className="mt-8 rounded-xl border border-line bg-surface p-5">
@@ -204,6 +213,84 @@ export default async function AppDetailPage({
         <pre className="mt-3 overflow-x-auto rounded-lg border border-line bg-bg p-3 text-[0.7rem] leading-relaxed">
 {snippet(base)}
         </pre>
+      </section>
+
+      <section className="mt-10 rounded-xl border border-line bg-surface p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-sm uppercase tracking-wide text-soft">
+              Key requests
+            </h2>
+            <p className="mt-1 max-w-[560px] text-xs text-soft">
+              Users ask for a key from inside the software, which calls
+              {" "}
+              <code className="font-mono">POST {base}/api/license/request</code>{" "}
+              with this app&apos;s API key and their email. What happens next:
+            </p>
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            {pendingRequests > 0 && (
+              <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs text-accent-contrast tabular-nums">
+                {pendingRequests} waiting
+              </span>
+            )}
+            <Link
+              href={`/admin/apps/requests?app=${app.slug}`}
+              prefetch={false}
+              className="link-underline text-accent hover:text-ink"
+            >
+              Open queue
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          {(
+            [
+              {
+                mode: "OFF",
+                title: "Off",
+                note: "The endpoint refuses. Nobody can request a key.",
+              },
+              {
+                mode: "AUTO",
+                title: "Auto",
+                note: "A single-device key is created and emailed the moment someone asks.",
+              },
+              {
+                mode: "REVIEW",
+                title: "Review",
+                note: "Requests wait in the queue until you approve or reject them.",
+              },
+            ] as const
+          ).map((option) => {
+            const current = app.requestMode === option.mode;
+            return (
+              <form
+                key={option.mode}
+                action={setRequestMode.bind(null, app.id, option.mode)}
+                className={`rounded-xl border p-4 ${
+                  current ? "border-accent" : "border-line"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm text-ink">{option.title}</p>
+                  {current ? (
+                    <span className="text-xs text-accent">Current</span>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="link-underline text-xs text-soft hover:text-ink"
+                    >
+                      Use this
+                    </button>
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-soft">{option.note}</p>
+              </form>
+            );
+          })}
+        </div>
       </section>
 
       <h2 className="mt-10 text-xl">Licenses</h2>

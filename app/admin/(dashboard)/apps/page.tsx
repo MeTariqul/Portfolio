@@ -5,6 +5,7 @@ import { AppForm } from "@/components/admin/app-form";
 import { CopyText } from "@/components/admin/copy-text";
 import { ConfirmForm } from "@/components/admin/confirm-form";
 import { deleteApp, rotateAppKey, toggleApp } from "./actions";
+import { AppsTabs } from "@/components/admin/apps-tabs";
 
 export const metadata: Metadata = {
   title: "Apps",
@@ -36,6 +37,10 @@ export default async function AppsPage() {
         Activation server for the apps you build and ship. Each app gets its
         own API key; its users activate license keys you issue here.
       </p>
+
+      <div className="mt-6">
+        <AppsTabs />
+      </div>
 
       <div className="mt-6">
         <AppForm />

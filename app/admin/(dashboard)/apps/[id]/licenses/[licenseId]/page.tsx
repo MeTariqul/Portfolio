@@ -5,8 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { CopyText } from "@/components/admin/copy-text";
 import { ConfirmForm } from "@/components/admin/confirm-form";
-import { licenseStateLabel } from "@/lib/licensing";
+import { licenseStateLabel, normalizeEmail } from "@/lib/licensing";
 import {
+  banActivationDevice,
+  banLicenseEmail,
   deleteLicense,
   resetLicenseActivations,
   setActivationRevoked,
@@ -49,8 +51,33 @@ export default async function LicensePage({
   });
   if (!license || license.appId !== id) notFound();
 
+  // Bans live in their own table, so the page asks about the address on this
+  // license and the devices that activated it.
+  const [emailBan, deviceBanRows] = await Promise.all([
+    license.email
+      ? prisma.ban.findUnique({
+          where: {
+            kind_value: { kind: "EMAIL", value: normalizeEmail(license.email) },
+          },
+          select: { id: true, reason: true },
+        })
+      : Promise.resolve(null),
+    prisma.ban.findMany({
+      where: {
+        kind: "DEVICE",
+        value: { in: license.activations.map((a) => a.deviceId) },
+      },
+      select: { value: true },
+    }),
+  ]);
+  const bannedDevices = new Set(deviceBanRows.map((b) => b.value));
+  const liveDeviceBanned = license.activations.some(
+    (a) => !a.revoked && bannedDevices.has(a.deviceId),
+  );
+
   const seats = license.activations.filter((a) => !a.revoked).length;
-  const state = licenseStateLabel(license);
+  const state =
+    emailBan || liveDeviceBanned ? "Banned" : licenseStateLabel(license);
 
   return (
     <div>
@@ -87,6 +114,21 @@ export default async function LicensePage({
         <p className="mt-3 max-w-[680px] whitespace-pre-wrap text-sm text-soft">{license.notes}</p>
       )}
 
+      {emailBan && (
+        <p className="mt-3 text-sm text-accent">
+          This email address is banned
+          {emailBan.reason ? ` (${emailBan.reason})` : ""} — it cannot request a
+          key or activate anything.{" "}
+          <Link
+            href="/admin/apps/bans"
+            prefetch={false}
+            className="link-underline text-accent"
+          >
+            Manage bans
+          </Link>
+        </p>
+      )}
+
       <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
         <form
           action={setLicenseStatus.bind(
@@ -99,6 +141,16 @@ export default async function LicensePage({
             {license.status === "ACTIVE" ? "Suspend license" : "Resume license"}
           </button>
         </form>
+        {license.email && !emailBan && (
+          <ConfirmForm
+            action={banLicenseEmail.bind(null, license.id)}
+            confirmText={`Ban ${license.email}? It blocks new key requests and every license using that address, on every app. Reversible from the Bans screen.`}
+          >
+            <button type="submit" className="link-underline text-soft hover:text-ink">
+              Ban email
+            </button>
+          </ConfirmForm>
+        )}
         <ConfirmForm
           action={resetLicenseActivations.bind(null, license.id)}
           confirmText="Clear every device from this license? Users will need to activate again on each machine."
@@ -205,23 +257,44 @@ export default async function LicensePage({
                   <td className="whitespace-nowrap py-4 pr-4 text-soft">
                     {formatDateTime(a.lastSeenAt)}
                   </td>
-                  <td className="py-4 pr-4">{a.revoked ? "Revoked" : "Active"}</td>
+                  <td className="py-4 pr-4">
+                    {a.revoked
+                      ? "Revoked"
+                      : bannedDevices.has(a.deviceId)
+                        ? "Banned"
+                        : "Active"}
+                  </td>
                   <td className="py-4">
-                    <ConfirmForm
-                      action={setActivationRevoked.bind(null, a.id, !a.revoked)}
-                      confirmText={
-                        a.revoked
-                          ? "Restore this device? It keeps the same activation row."
-                          : "Revoke this device? The app locks out on its next check and cannot re-activate with this key."
-                      }
-                    >
-                      <button
-                        type="submit"
-                        className="link-underline text-soft hover:text-ink"
+                    <div className="flex flex-wrap items-center gap-4">
+                      <ConfirmForm
+                        action={setActivationRevoked.bind(null, a.id, !a.revoked)}
+                        confirmText={
+                          a.revoked
+                            ? "Restore this device? It keeps the same activation row."
+                            : "Revoke this device? The app locks out on its next check and cannot re-activate with this key."
+                        }
                       >
-                        {a.revoked ? "Restore" : "Revoke"}
-                      </button>
-                    </ConfirmForm>
+                        <button
+                          type="submit"
+                          className="link-underline text-soft hover:text-ink"
+                        >
+                          {a.revoked ? "Restore" : "Revoke"}
+                        </button>
+                      </ConfirmForm>
+                      {!bannedDevices.has(a.deviceId) && (
+                        <ConfirmForm
+                          action={banActivationDevice.bind(null, a.id)}
+                          confirmText="Ban this device? It is refused on every app, whatever key it presents, until the ban is lifted."
+                        >
+                          <button
+                            type="submit"
+                            className="text-soft transition-colors hover:text-accent"
+                          >
+                            Ban device
+                          </button>
+                        </ConfirmForm>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

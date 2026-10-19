@@ -279,18 +279,32 @@ model ShortLinkClick {
 // to the activation API. It travels in the app's own configuration, never
 // in anything an end user sees, and can be rotated from the dashboard.
 model App {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   name        String
-  slug        String   @unique // used as the key prefix: MYAPP-XXXX-…
+  slug        String      @unique // used as the key prefix: MYAPP-XXXX-…
   description String?
-  apiKey      String   @unique // "appk_…"
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  apiKey      String      @unique // "appk_…"
+  active      Boolean     @default(true)
+  // What happens when the software asks for a key for someone's email:
+  // OFF closes the door, AUTO emails a fresh key immediately, REVIEW parks
+  // the request until the admin approves it. Off by default, so shipping
+  // an app never silently turns the endpoint into a public key faucet.
+  requestMode RequestMode @default(OFF)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
-  licenses License[]
+  licenses    License[]
+  keyRequests KeyRequest[]
 
   @@index([createdAt])
+}
+
+// OFF = requests refused; AUTO = key emailed straight away; REVIEW = the
+// admin decides (KeyRequestStatus.PENDING).
+enum RequestMode {
+  OFF
+  AUTO
+  REVIEW
 }
 
 enum LicenseStatus {
@@ -315,6 +329,7 @@ model License {
   updatedAt  DateTime      @updatedAt
 
   activations LicenseActivation[]
+  requests    KeyRequest[]
 
   @@index([appId, status])
   @@index([createdAt])
@@ -338,4 +353,59 @@ model LicenseActivation {
 
   @@unique([licenseId, deviceId])
   @@index([licenseId, lastSeenAt])
+}
+
+// ─── Key requests and bans ──────────────────────────────────────────────
+
+// One "email me a key" request from inside a shipped app
+// (POST /api/license/request). Kept as an audit trail: what was asked for,
+// whether it was answered, and why not, so the dashboard can show a request
+// sitting in REVIEW and a failed delivery can be retried.
+model KeyRequest {
+  id         String           @id @default(cuid())
+  appId      String
+  app        App              @relation(fields: [appId], references: [id], onDelete: Cascade)
+  email      String // lowercased
+  status     KeyRequestStatus @default(PENDING)
+  note       String? // why it failed / was refused, and any admin note
+  ip         String?
+  platform   String?
+  // The key this request produced, if any. Kept so "resend" can send the
+  // same key again instead of minting a duplicate.
+  licenseId  String?
+  license    License?         @relation(fields: [licenseId], references: [id], onDelete: SetNull)
+  createdAt  DateTime         @default(now())
+  resolvedAt DateTime?
+
+  @@index([appId, status])
+  @@index([email])
+  @@index([createdAt])
+}
+
+enum KeyRequestStatus {
+  PENDING // waiting for the admin (REVIEW mode), or delivery failed
+  SENT // key emailed
+  REJECTED // admin refused
+  BLOCKED // banned email, or requests closed for the app
+  FAILED // mail provider refused the send
+}
+
+// A denied email address or device id, checked on every request, activation
+// and re-check (see banHit in lib/licensing.ts). Deliberately a separate
+// table rather than a flag on a row: a ban is global — one device cannot be
+// locked out of one app and allowed into another by accident.
+model Ban {
+  id         String   @id @default(cuid())
+  kind       BanKind
+  value      String // lowercased email, or the exact device id
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@unique([kind, value])
+  @@index([createdAt])
+}
+
+enum BanKind {
+  EMAIL
+  DEVICE
 }

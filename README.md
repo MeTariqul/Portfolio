@@ -97,11 +97,50 @@ and the signing keys live in the `Setting` table (`license_keys`), generated on 
 use. Each app page carries the endpoint list, the public key and a copy-paste client
 snippet.
 
+### Self-service keys (the request window inside your app)
+
+A user can ask for a key from inside the app instead of you typing one out.
+The app calls `POST /api/license/request` with its API key plus the user's email;
+what happens next is the app's **request mode** on its dashboard page:
+
+| Mode | Behaviour |
+| --- | --- |
+| `Off` | the endpoint refuses; nothing is issued |
+| `Auto` | a single-device key is created (or the existing one reused) and emailed at once |
+| `Review` | the request waits in **Requests** until you approve or reject it |
+
+New apps start `Off`, so shipping an app never silently opens a key faucet.
+Keys are mailed through Brevo (`lib/license-mail.ts`); if the send fails the
+request is logged as **Failed** and **Retry send** sends the same key again —
+a key is never minted twice for one address, and asking twice only resends.
+
+The four surfaces are the tab row on every **Apps** screen:
+
+- **Apps** — register apps, API key, request mode, endpoint list, client snippet
+- **Keys** (`/admin/apps/licenses`) — every key on the server across all apps,
+  with state, device slots, bound device and last re-check; filter by app,
+  state or text
+- **Requests** (`/admin/apps/requests`) — the queue behind the mode above, with
+  approve / reject / retry / ban actions
+- **Bans** (`/admin/apps/bans`) — banned emails and device ids
+
+**Bans** are global and checked first on every request, activation and re-check:
+a banned email is refused when it asks for a key *and* when it activates or
+re-checks; a banned device is refused whatever key it presents. Nothing is
+deleted, so lifting a ban restores access immediately. Bans can be added by
+hand or with one click from a license, a device row or a request row.
+
+`docs/activation-client-prompt.md` is a paste-ready prompt that describes this
+whole contract for the agent working on the software itself.
+
 `npm run verify:license` (with `npm run dev` running) exercises the whole
-activation flow against a throwaway app it creates and deletes: seat limits,
-suspension, per-device revocation, expiry, and offline token verification
-including a tampered-token check. Alternatively point it at production with
-`TEST_BASE=https://metariqul.vercel.app` — it only touches its own temp rows.
+activation flow against throwaway apps it creates and deletes: seat limits,
+suspension, per-device revocation, expiry, offline token verification including
+a tampered-token check, all three request modes, the no-duplicate-key rule, and
+email/device bans with a lift. It uses `@example.invalid` addresses, which the
+mail provider refuses, so it never mails a person. Alternatively point it at
+production with `TEST_BASE=https://metariqul.vercel.app` — it only touches its
+own temp rows.
 
 ## Short links with click logging
 
