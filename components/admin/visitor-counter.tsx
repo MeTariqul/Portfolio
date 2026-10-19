@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 // Live visitor numbers for the admin dashboard. The initial values come
-// from the server render; this polls app/api/visit every 10 seconds.
+// from the server render; this polls app/api/visit every 10 seconds, and
+// the Refresh button pulls them on demand.
 export function VisitorCounter({
   initialOnline,
   initialVisits,
@@ -13,21 +15,40 @@ export function VisitorCounter({
 }) {
   const [online, setOnline] = useState(initialOnline);
   const [visits, setVisits] = useState(initialVisits);
+  const [refreshing, setRefreshing] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+
+  // Shared by the poll and the button, so both mean the same thing.
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/visit", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as { online?: number; visits?: number };
+      if (typeof data.online === "number") setOnline(data.online);
+      if (typeof data.visits === "number") setVisits(data.visits);
+    } catch {
+      // Server unreachable — keep showing the last known numbers.
+    }
+  }, []);
 
   useEffect(() => {
-    const timer = setInterval(async () => {
-      try {
-        const res = await fetch("/api/visit", { cache: "no-store" });
-        if (!res.ok) return;
-        const data = (await res.json()) as { online?: number; visits?: number };
-        if (typeof data.online === "number") setOnline(data.online);
-        if (typeof data.visits === "number") setVisits(data.visits);
-      } catch {
-        // Server unreachable — keep showing the last known numbers.
-      }
-    }, 10_000);
+    const timer = setInterval(load, 10_000);
     return () => clearInterval(timer);
-  }, []);
+  }, [load]);
+
+  // Only the button raises the spinner, so the 10s background poll updates
+  // the numbers silently instead of flickering the button.
+  async function refresh() {
+    setRefreshing(true);
+    await load();
+    setUpdatedAt(
+      new Date().toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+    );
+    setRefreshing(false);
+  }
 
   return (
     <section
@@ -53,7 +74,20 @@ export function VisitorCounter({
           {visits === 1 ? "visit total" : "visits total"}
         </span>
       </p>
-      <span className="ml-auto text-xs text-soft">refreshes every 10s</span>
+      <div className="ml-auto flex items-center gap-3">
+        <span className="hidden text-xs text-soft sm:inline">
+          {updatedAt ? `Updated ${updatedAt}` : "Auto-refreshes every 10s"}
+        </span>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onClick={refresh}
+          disabled={refreshing}
+        >
+          {refreshing ? "Refreshing…" : "Refresh"}
+        </Button>
+      </div>
     </section>
   );
 }

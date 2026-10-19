@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { deleteProject } from "@/app/admin/(dashboard)/projects/actions";
 import { ConfirmForm } from "@/components/admin/confirm-form";
+import { ProjectsManual } from "@/components/admin/projects-manual";
 
 export const metadata: Metadata = {
   title: "Projects",
@@ -27,6 +28,8 @@ export default async function AdminProjectsPage() {
           New project
         </Link>
       </div>
+
+      <ProjectsManual className="mt-6" />
 
       {projects.length === 0 && (
         <p className="mt-8 rounded-xl border border-dashed border-line p-6 text-sm text-soft">

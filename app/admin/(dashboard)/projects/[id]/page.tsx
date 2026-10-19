@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ProjectForm } from "@/components/admin/project-form";
+import { ProjectsManual } from "@/components/admin/projects-manual";
 
 export const metadata: Metadata = {
   title: "Edit project",
@@ -20,7 +21,8 @@ export default async function EditProjectPage({
   return (
     <div className="max-w-[860px]">
       <h1 className="text-3xl">Edit project</h1>
-      <p className="mt-2 mb-8 text-soft">/{project.slug}</p>
+      <p className="mt-2 text-soft">/{project.slug}</p>
+      <ProjectsManual className="mt-6 mb-8" />
       <ProjectForm
         project={{
           ...project,
