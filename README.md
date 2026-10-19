@@ -93,7 +93,11 @@ Per-key controls: device slots (1–100, enforced with a transaction so two devi
 cannot race for the last seat), optional expiry (empty = lifetime), block/unblock
 (the `LicenseStatus.SUSPENDED` switch the API reports as `suspended`),
 per-device revoke/restore, reset activations, custom or generated keys
-(`MYAPP-7QK4-2XP9-MZ34`). Tokens stay valid offline for `RECHECK_DAYS` (7) in
+(`MYAPP-7QK4-2XP9-MZ34`). A machine holds **one key per app**: activating a
+different key releases it from the key it held before, so a user can change keys
+without a support step and the old key gets its device slot back (the release
+happens in the same transaction as the new seat, so a swap onto a full key fails
+as a whole). Tokens stay valid offline for `RECHECK_DAYS` (7) in
 `lib/licensing.ts`, so a block, ban, expiry or revoked device takes effect at the
 next online re-check. Everything is stored in the dashboard: no third-party service,
 and the signing keys live in the `Setting` table (`license_keys`), generated on first
@@ -141,7 +145,8 @@ whole contract for the agent working on the software itself.
 `npm run verify:license` (with `npm run dev` running) exercises the whole
 activation flow against throwaway apps it creates and deletes: seat limits,
 suspension, per-device revocation, expiry, offline token verification including
-a tampered-token check, all three request modes, the no-duplicate-key rule, and
+a tampered-token check, all three request modes, the no-duplicate-key rule,
+key swaps that release the old device without touching another app, and
 email/device bans with a lift. It uses `@example.invalid` addresses, which the
 mail provider refuses, so it never mails a person. Alternatively point it at
 production with `TEST_BASE=https://metariqul.vercel.app` — it only touches its

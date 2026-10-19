@@ -317,6 +317,72 @@ await prisma.ban.delete({ where: { id: emailBanRow.id } });
 const restored = await post("/api/license/verify", { key: emailLicense.key, deviceId: emailDevice }, reqKey);
 check("verify after lifting the ban", `${restored.code} ${restored.body.status}`, "200 active");
 
+console.log(`\n── One machine, one key ─────────────────────────────`);
+
+// 25. A machine holds one key per app: activating a different key releases it
+// from the key it held before, so the old slot comes back and no phantom
+// device is left behind. `device-ffff` is on `license` from step 23.
+const swapDevice = `device-ffff-${tag}`;
+const swapLicense = await prisma.license.create({
+  data: {
+    appId: app.id,
+    key: `SWAP-${tag.toUpperCase()}-AAAA-BBBB`,
+    maxDevices: 1,
+    label: "Replacement key",
+  },
+});
+
+// The same machine holds a key in the other app, which must survive: the
+// release is per app, not global.
+const crossLicense = await prisma.license.create({
+  data: { appId: reqApp.id, key: `XAPP-${tag.toUpperCase()}-AAAA-BBBB`, maxDevices: 1 },
+});
+const crossFirst = await post(
+  "/api/license/activate",
+  { key: crossLicense.key, deviceId: swapDevice },
+  reqKey,
+);
+check("activate (same machine, other app)", `${crossFirst.code} ${crossFirst.body.status}`, "200 active");
+
+const swapped = await post("/api/license/activate", { key: swapLicense.key, deviceId: swapDevice });
+check("activate (different key, same machine)", `${swapped.code} ${swapped.body.status}`, "200 active");
+check(
+  "the key it held before is released",
+  await prisma.licenseActivation.count({ where: { licenseId: license.id, deviceId: swapDevice } }),
+  0,
+);
+check(
+  "the released slot is free again",
+  await prisma.licenseActivation.count({ where: { licenseId: license.id, revoked: false } }),
+  2,
+);
+check(
+  "another app's key on the same machine is untouched",
+  await prisma.licenseActivation.count({
+    where: { licenseId: crossLicense.id, deviceId: swapDevice },
+  }),
+  1,
+);
+
+// A swap onto a key with no room must fail whole: the user keeps the key they
+// had rather than ending up on neither. `swapLicense` is full (1 device).
+const refusedSwap = await post("/api/license/activate", { key: swapLicense.key, deviceId: device });
+check("activate (swap onto a full key)", `${refusedSwap.code} ${refusedSwap.body.status}`, "409 device_limit");
+check(
+  "a refused swap keeps the key it had",
+  await prisma.licenseActivation.count({ where: { licenseId: license.id, deviceId: device } }),
+  1,
+);
+
+// Swapping back works the same way round.
+const swappedBack = await post("/api/license/activate", { key: license.key, deviceId: swapDevice });
+check("activate (swap back)", `${swappedBack.code} ${swappedBack.body.status}`, "200 active");
+check(
+  "the replacement key is released in turn",
+  await prisma.licenseActivation.count({ where: { licenseId: swapLicense.id, deviceId: swapDevice } }),
+  0,
+);
+
 console.log(`\n── Cleanup ──────────────────────────────────────────`);
 
 // The apps cascade to their licenses, activations and requests. Bans are

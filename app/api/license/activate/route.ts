@@ -18,6 +18,10 @@ import { deny, grant, readApp } from "@/lib/license-api";
 //
 // Idempotent per device: calling it again on an activated device just
 // refreshes the record and re-issues the token.
+//
+// A machine holds one key per app: activating a different key releases it
+// from the key it held before, so a user can change keys without support and
+// the old key gets its device slot back.
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -75,11 +79,21 @@ export async function POST(req: Request) {
     ip,
   };
 
+  // A machine holds one key per app. Re-activating frees it from every other
+  // key of this app, so a user who changes keys leaves no stale device on the
+  // old one — the slot goes back and the old key can be used again. Scoped to
+  // the app: the same machine may legitimately hold a key for another app.
+  const releaseOtherKeys = {
+    deviceId,
+    licenseId: { not: license.id },
+    license: { appId: app.id },
+  };
+
   if (existing) {
-    await prisma.licenseActivation.update({
-      where: { id: existing.id },
-      data: details,
-    });
+    await prisma.$transaction([
+      prisma.licenseActivation.update({ where: { id: existing.id }, data: details }),
+      prisma.licenseActivation.deleteMany({ where: releaseOtherKeys }),
+    ]);
     return grant({
       licenseId: license.id,
       appSlug: app.slug,
@@ -90,15 +104,19 @@ export async function POST(req: Request) {
   }
 
   // Seat check and claim in one transaction, so two devices racing for
-  // the last slot cannot both win.
+  // the last slot cannot both win. The old key is released inside the same
+  // transaction, and only once the new seat is actually held — a swap onto a
+  // full key fails as a whole rather than stranding the user on neither key.
   const claimed = await prisma.$transaction(async (tx) => {
     const used = await tx.licenseActivation.count({
       where: { licenseId: license.id, revoked: false },
     });
     if (used >= license.maxDevices) return null;
-    return tx.licenseActivation.create({
+    const row = await tx.licenseActivation.create({
       data: { licenseId: license.id, deviceId, ...details },
     });
+    await tx.licenseActivation.deleteMany({ where: releaseOtherKeys });
+    return row;
   });
 
   if (!claimed) return deny("device_limit");

@@ -28,8 +28,9 @@ A single "Activation" window with two states:
       • one status line for success/failure messages
 
   (b) Activated — shows the license label (or the email), the expiry date
-      ("Lifetime" when none) and a "Deactivate this device" / "Sign out"
-      button that clears the stored licence.
+      ("Lifetime" when none), a "Deactivate this device" / "Sign out" button
+      that clears the stored licence, and a "Change key" link that reveals
+      the key field again (changing keys is supported — see section 7).
 
 On first launch, and on every launch after, the app checks the licence
 offline first (section 4) and only talks to the network when the stored
@@ -153,8 +154,13 @@ re-check must not interrupt a working session mid-action.
     keep the last known good `i` and don't extend the licence.
   • Never store the API key where the user can read it easily, and never
     send the license key to any host other than LICENSE_SERVER.
-  • One key = one device. "Deactivate this device" should just clear the
-    local licence (tell the user to ask support to free the slot).
+  • One key = one device per app. A machine holds one key at a time:
+    activating a different key on it releases the machine from the key it
+    held before (same app), so "change key" needs no support ticket and the
+    old key's slot goes back.
+  • "Deactivate this device" clears only the local licence — the server still
+    counts the machine. Have the user activate the new key (which frees the
+    old one) or ask support to clear the device.
   • All requests need a timeout (~15s) and must fail soft.
   • Phone-home calls must be HTTPS only.
 
