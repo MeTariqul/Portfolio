@@ -109,29 +109,6 @@ export default async function KeysPage({
   return (
     <div>
       <h1 className="text-3xl">Keys</h1>
-      <p className="mt-2 max-w-[720px] text-soft">
-        Every license key on the server, across all apps, with the state the
-        activation API currently reports for it.
-      </p>
-
-      <div className="mt-5 grid gap-x-6 gap-y-3 rounded-xl border border-line bg-surface p-5 text-xs text-soft sm:grid-cols-2 lg:grid-cols-4">
-        <p>
-          <span className="text-ink">Block / Unblock</span> — that one key
-          stops working, or starts again. Reversible, nothing deleted.
-        </p>
-        <p>
-          <span className="text-ink">Ban / Unban email</span> — that address
-          cannot request a key, activate or re-check on any app.
-        </p>
-        <p>
-          <span className="text-ink">Ban / Unban device</span> — that machine
-          is refused on any app, whatever key it presents.
-        </p>
-        <p>
-          <span className="text-ink">Revoke / Restore</span> — drops a single
-          machine from one key, on that key&apos;s own page.
-        </p>
-      </div>
 
       <div className="mt-6">
         <AppsTabs />

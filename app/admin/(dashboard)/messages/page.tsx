@@ -22,9 +22,6 @@ export default async function MessagesPage() {
   return (
     <div>
       <h1 className="text-3xl">Messages</h1>
-      <p className="mt-2 text-soft">
-        Everything sent through the contact form.
-      </p>
 
       {messages.length === 0 && (
         <p className="mt-8 rounded-xl border border-dashed border-line p-6 text-sm text-soft">

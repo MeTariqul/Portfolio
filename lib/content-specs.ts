@@ -7,7 +7,7 @@
 //   1. add a model to prisma/schema.prisma and `prisma db push`;
 //   2. add an entry to CONTENT_SPECS below;
 //   3. add a case in lib/content-rows.ts (list/get/upsert/delete);
-//   4. add a NavLink in app/admin/(dashboard)/layout.tsx.
+//   4. add an entry to the nav array in app/admin/(dashboard)/layout.tsx.
 // The routes under app/admin/(dashboard)/content/[kind] serve every kind.
 
 export type ContentKind = "services" | "experience" | "skills" | "uses";

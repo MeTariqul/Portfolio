@@ -21,6 +21,25 @@ export default async function AdminDashboardLayout({
     prisma.keyRequest.count({ where: { status: "PENDING" } }),
   ]);
 
+  // One list, so the rail and the active-state rule can't drift apart.
+  const nav: { href: string; label: string; badge?: number }[] = [
+    { href: "/admin", label: "Dashboard" },
+    { href: "/admin/posts", label: "Posts" },
+    { href: "/admin/projects", label: "Projects" },
+    { href: "/admin/content/services", label: "Services" },
+    { href: "/admin/content/experience", label: "Experience" },
+    { href: "/admin/content/skills", label: "Skills" },
+    { href: "/admin/content/uses", label: "Uses" },
+    { href: "/admin/copy", label: "Copy" },
+    { href: "/admin/links", label: "Links" },
+    { href: "/admin/apps", label: "Apps" },
+    { href: "/admin/apps/licenses", label: "Keys", badge: pendingKeys },
+    { href: "/admin/messages", label: "Messages", badge: unread },
+    { href: "/admin/media", label: "Media" },
+    { href: "/admin/settings", label: "Settings" },
+  ];
+  const hrefs = nav.map((item) => item.href);
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <SessionWatch />
@@ -34,24 +53,9 @@ export default async function AdminDashboardLayout({
           aria-label="Admin"
           className="flex gap-1 overflow-x-auto px-3 py-3 md:flex-col md:overflow-visible"
         >
-          <NavLink href="/admin" label="Dashboard" />
-          <NavLink href="/admin/posts" label="Posts" />
-          <NavLink href="/admin/projects" label="Projects" />
-          <NavLink href="/admin/content/services" label="Services" />
-          <NavLink href="/admin/content/experience" label="Experience" />
-          <NavLink href="/admin/content/skills" label="Skills" />
-          <NavLink href="/admin/content/uses" label="Uses" />
-          <NavLink href="/admin/copy" label="Copy" />
-          <NavLink href="/admin/links" label="Links" />
-          <NavLink href="/admin/apps" label="Apps" />
-          <NavLink
-            href="/admin/apps/licenses"
-            label="Keys"
-            badge={pendingKeys}
-          />
-          <NavLink href="/admin/messages" label="Messages" badge={unread} />
-          <NavLink href="/admin/media" label="Media" />
-          <NavLink href="/admin/settings" label="Settings" />
+          {nav.map((item) => (
+            <NavLink key={item.href} {...item} siblings={hrefs} />
+          ))}
         </nav>
 
         <div className="mt-auto hidden border-t border-line px-5 py-4 md:block">

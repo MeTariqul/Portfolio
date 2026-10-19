@@ -58,7 +58,6 @@ export default async function AdminDashboardPage() {
   return (
     <div>
       <h1 className="text-3xl">Dashboard</h1>
-      <p className="mt-2 text-soft">Everything on your site, at a glance.</p>
 
       <VisitorCounter
         initialOnline={visitorStats.online}

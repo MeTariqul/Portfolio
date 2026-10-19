@@ -29,14 +29,10 @@ export default async function CopyPage({
   return (
     <div>
       <h1 className="text-3xl">Copy</h1>
-      <p className="mt-2 mb-2 max-w-[680px] text-soft">
-        Every word on the public site. Clear a field to return it to its
-        default.
-      </p>
-      <p className="mb-8 max-w-[680px] text-sm text-soft">
-        Not here: the home headline, intro, availability note and about story
-        (Settings screen); posts, projects and the content rows under
-        Services, Experience, Skills and Uses (their own screens).
+      <p className="mt-2 mb-8 max-w-[680px] text-soft">
+        Clear a field to return it to its default. The home headline and intro
+        are on Settings; posts, projects and the four row lists have their own
+        screens.
       </p>
 
       {saved && (

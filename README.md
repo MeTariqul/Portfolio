@@ -165,7 +165,7 @@ The dashboard routes under `app/admin/(dashboard)/content/[kind]` serve every co
 1. Add a model to `prisma/schema.prisma`, then run `npm run db:push`.
 2. Extend the `ContentKind` union and add an entry to `CONTENT_SPECS` in `lib/content-specs.ts` (fields, labels, validation, which pages to refresh).
 3. Add a case to the switch in `lib/content-rows.ts` (list, get, upsert, delete) so the server can type the model.
-4. Add a `NavLink` in `app/admin/(dashboard)/layout.tsx` so the sidebar links to it.
+4. Add an entry to the `nav` array in `app/admin/(dashboard)/layout.tsx` so the sidebar links to it.
 
 The list, new, edit and delete screens then work as-is.
 
