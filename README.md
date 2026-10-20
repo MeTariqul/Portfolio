@@ -28,6 +28,12 @@ Sign in at `http://localhost:3000/admin/login` with the `ADMIN_EMAIL` and `ADMIN
 
 `npm run db:seed` is safe to re-run: it only fills empty tables, only adds settings that are missing, and only creates the admin if that email does not exist yet. Deleting a seeded row in the admin keeps it deleted.
 
+Two dependency details are worth knowing:
+
+`prisma.config.ts` holds the schema path and the seed command. Prisma 7 removes the old `prisma` block from `package.json`, so this file is the replacement. The CLI stops reading `.env` by itself once the file exists, which is why the config loads it explicitly and guards the call — on Vercel and in CI the variables are already in the environment and no `.env` file is present.
+
+`allowScripts` in `package.json` is npm's install-script approval list. Prisma and `unrs-resolver` need their postinstall hooks to fetch native binaries, and npm warns about any hook it has not seen approved. The entries are pinned to exact versions, so a Prisma upgrade re-opens the warning on purpose: review it, then approve the new version with `npm install-scripts approve <pkg>`.
+
 ## Scripts
 
 | Command | What it does |
