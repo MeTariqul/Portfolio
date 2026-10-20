@@ -206,9 +206,12 @@ type CreativeWorkInput = {
 
 /**
  * CreativeWork for a portfolio project case study. Deliberately NOT
- * SoftwareApplication/Product: those invite extra required properties and
- * review-style markup we cannot honestly provide, and mismatched schema is
- * treated as spam rather than as a boost.
+ * SoftwareApplication/Product on its own: those invite extra required
+ * properties and review-style markup we cannot honestly provide, and
+ * mismatched schema is treated as spam rather than as a boost.
+ *
+ * A project that actually ships a downloadable build gets a second,
+ * narrower node from `softwareApplicationJsonLd` below — see the note there.
  */
 export function creativeWorkJsonLd(input: CreativeWorkInput) {
   return {
@@ -221,6 +224,72 @@ export function creativeWorkJsonLd(input: CreativeWorkInput) {
     inLanguage: "en",
     creator: personJsonLd(),
     ...(input.keywords?.length ? { keywords: input.keywords.join(", ") } : {}),
+    ...(input.sameAs ? { sameAs: input.sameAs } : {}),
+  };
+}
+
+/**
+ * The platforms a project runs on, read from words the page already uses
+ * ("Windows Desktop App"). Returns null when nothing matches, so the caller
+ * omits `operatingSystem` rather than guessing one.
+ */
+export function operatingSystemsFor(text: string): string | null {
+  const patterns: [RegExp, string][] = [
+    [/windows/i, "Windows 10, Windows 11"],
+    [/macos|mac os/i, "macOS"],
+    [/linux/i, "Linux"],
+    [/android/i, "Android"],
+    [/ios|iphone|ipad/i, "iOS"],
+  ];
+  const found = patterns.filter(([re]) => re.test(text)).map(([, os]) => os);
+  return found.length ? found.join(", ") : null;
+}
+
+/**
+ * SoftwareApplication, for a case study that ships a real downloadable build.
+ *
+ * This is the one place where the "no app markup" rule above does not apply:
+ * every property here is something the page states in words — the name, the
+ * price (free), the platform, the download URL, the file size. What it never
+ * invents is the part that gets sites penalised: no aggregateRating, no
+ * review, no fake version or vendor.
+ *
+ * `applicationCategory` is required for the markup to validate, so the caller
+ * passes the one that matches the project rather than inheriting a default.
+ */
+export function softwareApplicationJsonLd(input: {
+  name: string;
+  description: string;
+  path: string;
+  image?: string | null;
+  applicationCategory: string;
+  operatingSystem?: string | null;
+  downloadUrl?: string | null;
+  /** Download size in bytes, when the page states it. */
+  fileSizeBytes?: number | null;
+  sameAs?: string | null;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: input.name,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    image: absoluteUrl(input.image || defaultOgImage),
+    applicationCategory: input.applicationCategory,
+    author: personJsonLd(),
+    // Free software with a price of 0 is a valid, honest offer. Leaving
+    // `offers` out entirely is what makes SoftwareApplication markup fail
+    // validation.
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+    },
+    ...(input.operatingSystem ? { operatingSystem: input.operatingSystem } : {}),
+    ...(input.downloadUrl ? { downloadUrl: absoluteUrl(input.downloadUrl) } : {}),
+    ...(input.fileSizeBytes ? { fileSize: String(input.fileSizeBytes) } : {}),
     ...(input.sameAs ? { sameAs: input.sameAs } : {}),
   };
 }

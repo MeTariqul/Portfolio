@@ -22,9 +22,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   return [
+    // No lastModified for the fixed pages. They are rendered from the CMS and
+    // do not change on a schedule, and this file regenerates hourly: claiming
+    // "everything changed just now" on every fetch is exactly the signal that
+    // teaches a crawler to ignore the dates in the rest of the sitemap.
     ...staticPages.map((p) => ({
       url: `${site.url}${p.path}`,
-      lastModified: now,
       changeFrequency: p.changeFrequency,
       priority: p.priority,
     })),

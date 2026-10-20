@@ -10,6 +10,8 @@ import {
   breadcrumbJsonLd,
   creativeWorkJsonLd,
   defaultOgImage,
+  operatingSystemsFor,
+  softwareApplicationJsonLd,
 } from "@/lib/seo";
 import { downloadHref } from "@/lib/storage";
 import { site } from "@/lib/site";
@@ -96,6 +98,27 @@ export default async function ProjectPage({ params }: Props) {
       keywords: [...project.stack, project.category],
       sameAs: project.liveUrl || project.githubUrl || null,
     }),
+    // A downloadable build is genuinely a software application, so it gets the
+    // narrower node as well — that is what tells an engine "this page is about
+    // a free Windows app with a download", instead of only "a document about
+    // one". Cases that ship nothing (a website, a design study) keep just the
+    // CreativeWork node.
+    ...(project.downloadUrl && /app/i.test(project.category)
+      ? [
+          softwareApplicationJsonLd({
+            name: project.title,
+            description: project.summary,
+            path: `/projects/${project.slug}`,
+            image: project.screenshots[0]?.url,
+            applicationCategory: "UtilitiesApplication",
+            operatingSystem: operatingSystemsFor(
+              `${project.title} ${project.category}`,
+            ),
+            downloadUrl: project.downloadUrl,
+            sameAs: project.githubUrl || project.liveUrl || null,
+          }),
+        ]
+      : []),
     breadcrumbJsonLd([
       { name: site.name, path: "/" },
       { name: copy["projects.title"], path: "/projects" },
