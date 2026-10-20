@@ -308,6 +308,12 @@ model App {
   slug        String      @unique // used as the key prefix: MYAPP-XXXX-…
   description String?
   apiKey      String      @unique // "appk_…"
+  // The key from the last rotation, still accepted until it expires. A
+  // rotation used to break every deployed copy of the app at once, because
+  // the old key was thrown away; now the old one keeps working for a grace
+  // period, long enough to ship an update that carries the new key.
+  previousApiKey          String?   @unique
+  previousApiKeyExpiresAt DateTime?
   active      Boolean     @default(true)
   // What happens when the software asks for a key for someone's email:
   // AUTO emails a fresh key immediately (the default), REVIEW parks the

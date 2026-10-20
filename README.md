@@ -40,6 +40,8 @@ Sign in at `http://localhost:3000/admin/login` with the `ADMIN_EMAIL` and `ADMIN
 | `npm run db:push` | push `prisma/schema.prisma` to the database |
 | `npm run db:seed` | seed sample content and the admin user |
 | `npm run db:studio` | Prisma Studio |
+| `npm run db:backup` | write every table to a JSON file |
+| `npm run db:restore -- <file> --yes` | put a backup back (replaces the rows) |
 
 ## Environment variables
 
@@ -127,6 +129,28 @@ atomic upsert, so two requests arriving together cannot both see the same
 count. Only if both are unavailable does it fall back to memory, and the
 security-sensitive callers refuse the request instead of allowing it.
 
+## Backing the database up
+
+The database is the whole site: the content, the licences, the bans, the
+signing keys. Nothing else holds a copy, and the application keeps no history
+of what it deleted — a row that goes is gone.
+
+```bash
+npm run db:backup                     # -> backups/portfolio-<date>.json
+npm run db:restore -- <file> --yes    # put it back
+```
+
+`db:backup` reads every table and writes one JSON file. `db:restore` replaces
+the rows in the tables the backup holds, and refuses to do anything without
+`--yes` — it prints what it is about to change first.
+
+The `backups/` folder is gitignored on purpose: a backup contains the admin's
+password hash and the private signing key, so it must never be pushed. It is
+also not a backup while it sits on the same disk as the database — copy it
+somewhere else.
+
+Run a backup before any change to `prisma/schema.prisma`.
+
 ## Editing content
 
 Nothing on the site is hardcoded in a page file:
@@ -207,6 +231,13 @@ matches after a change of firmware.
 valid without checking in (7 days by default, 1–90). It is the longest a
 blocked licence or a revoked device keeps working offline, so shorten it when
 that matters and lengthen it when the app should not phone home too often.
+
+**Rotating an API key does not break installed copies.** The key from the
+last rotation keeps working for 30 days, and the app's page shows it with the
+date it stops. That is long enough to ship an update carrying the new key,
+and *Stop accepting it* ends the grace period early. Without this, rotating
+a key cut off every copy of the app that was already installed — which is
+exactly what happened when the app was deleted and re-registered.
 
 `docs/activation-client-prompt.md` is a paste-ready prompt that describes this
 whole contract for the agent working on the software itself.

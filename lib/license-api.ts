@@ -10,11 +10,28 @@ import { buildClaims, signToken, type LicenseCheck } from "@/lib/licensing";
 // exact key (the DB index does the comparison); the key carries 192 bits
 // of entropy, so guessing is not a realistic attack, and the rate limits
 // in each route cap attempts anyway.
+//
+// Two keys are accepted: the current one, and the one from the last
+// rotation while it is still within its grace period. That is what lets a
+// rotation happen without breaking every copy of the app that is already
+// installed — the old key stops working when the grace period ends, not the
+// moment the new key is created.
 export async function readApp(req: Request) {
   const apiKey = req.headers.get("x-app-key")?.trim() ?? "";
   if (!apiKey || apiKey.length > 200) return null;
-  const app = await prisma.app.findUnique({
-    where: { apiKey },
+
+  const now = new Date();
+  const app = await prisma.app.findFirst({
+    where: {
+      active: true,
+      OR: [
+        { apiKey },
+        {
+          previousApiKey: apiKey,
+          previousApiKeyExpiresAt: { gt: now },
+        },
+      ],
+    },
     select: {
       id: true,
       slug: true,
@@ -24,7 +41,7 @@ export async function readApp(req: Request) {
       recheckDays: true,
     },
   });
-  if (!app || !app.active) return null;
+  if (!app) return null;
   return app;
 }
 

@@ -27,6 +27,12 @@ npm-debug.log*
 .env*
 !.env.example
 
+# database backups. These hold the admin's password hash, the signing keys
+# and every licence, so they must never be pushed. Copy them somewhere else
+# (another disk, a private repo) — this folder is not a backup.
+/backups/
+backup-*.json
+
 # vercel
 .vercel
 

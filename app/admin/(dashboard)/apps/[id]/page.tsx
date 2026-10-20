@@ -10,6 +10,7 @@ import { ConfirmForm } from "@/components/admin/confirm-form";
 import {
   deleteApp,
   rotateAppKey,
+  revokePreviousAppKey,
   setLicenseStatus,
   setRequestMode,
   setRecheckDays,
@@ -139,7 +140,7 @@ export default async function AppDetailPage({
         </form>
         <ConfirmForm
           action={rotateAppKey.bind(null, app.id)}
-          confirmText="Rotate the API key? Deployed copies must be updated with the new key before they can activate or verify."
+          confirmText="Rotate the API key? The new key works immediately. The old one keeps working for 30 days, so installed copies are not cut off — end that early once your update is out."
         >
           <button type="submit" className="link-underline text-soft hover:text-ink">
             Rotate API key
@@ -154,6 +155,33 @@ export default async function AppDetailPage({
           </button>
         </ConfirmForm>
       </div>
+
+      {app.previousApiKey && (
+        <div className="mt-4 rounded-lg border border-line bg-surface p-4 text-sm">
+          <p className="text-xs uppercase tracking-wide text-soft">
+            Previous key — still working
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <code className="rounded-md border border-line px-2 py-1 font-mono text-xs">
+              {app.previousApiKey}
+            </code>
+            <CopyText text={app.previousApiKey} label="Copy" />
+            <span className="text-xs text-soft">
+              {app.previousApiKeyExpiresAt
+                ? `Accepted until ${app.previousApiKeyExpiresAt.toISOString().slice(0, 10)}.`
+                : "Accepted until you end it."}
+            </span>
+            <ConfirmForm
+              action={revokePreviousAppKey.bind(null, app.id)}
+              confirmText="Stop accepting the previous key now? Installed copies still carrying it will not be able to activate or verify."
+            >
+              <button type="submit" className="link-underline text-soft hover:text-ink">
+                Stop accepting it
+              </button>
+            </ConfirmForm>
+          </div>
+        </div>
+      )}
 
       <div className="mt-6">
         <AppsTabs />

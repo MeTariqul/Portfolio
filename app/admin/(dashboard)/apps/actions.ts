@@ -66,9 +66,44 @@ export async function createApp(
   return { apiKey, slug: parsed.data.slug };
 }
 
+// How long the key from the last rotation keeps working. Long enough to
+// ship an update that carries the new key, short enough that a leaked key
+// is not a permanent liability.
+const API_KEY_GRACE_DAYS = 30;
+
+// Rotating the key used to break every installed copy of the app at once,
+// because the old key was thrown away on the spot. The old key now keeps
+// working for a grace period, and can be ended early once the update is
+// out.
 export async function rotateAppKey(id: string) {
   await requireOwner();
-  await prisma.app.update({ where: { id }, data: { apiKey: newAppApiKey() } });
+  const app = await prisma.app.findUnique({
+    where: { id },
+    select: { apiKey: true },
+  });
+  if (!app) return;
+
+  await prisma.app.update({
+    where: { id },
+    data: {
+      previousApiKey: app.apiKey,
+      previousApiKeyExpiresAt: new Date(
+        Date.now() + API_KEY_GRACE_DAYS * 24 * 60 * 60_000,
+      ),
+      apiKey: newAppApiKey(),
+    },
+  });
+  revalidatePath(`/admin/apps/${id}`);
+  revalidatePath("/admin/apps");
+}
+
+// Ends the grace period: the key from the last rotation stops working now.
+export async function revokePreviousAppKey(id: string) {
+  await requireOwner();
+  await prisma.app.update({
+    where: { id },
+    data: { previousApiKey: null, previousApiKeyExpiresAt: null },
+  });
   revalidatePath(`/admin/apps/${id}`);
   revalidatePath("/admin/apps");
 }
