@@ -67,6 +67,12 @@ export async function sendMail(opts: {
   subject: string;
   html: string;
   replyTo?: string;
+  // What the recipient sees instead of the address. Gmail does not verify a
+  // display name, so each mail type can introduce itself: the licence key
+  // arrives looking like it came from the software, a contact notification
+  // looks like the website. The address itself stays GMAIL_USER either way —
+  // Gmail rewrites anything else back to the account that authenticated.
+  fromName?: string;
 }): Promise<boolean> {
   const user = process.env.GMAIL_USER;
   const pass = process.env.GMAIL_APP_PASSWORD;
@@ -92,7 +98,7 @@ export async function sendMail(opts: {
 
   try {
     await transport.sendMail({
-      from: { name: site.name, address: user },
+      from: { name: opts.fromName?.trim() || site.name, address: user },
       to: opts.to,
       ...(opts.replyTo ? { replyTo: opts.replyTo } : {}),
       subject: opts.subject,

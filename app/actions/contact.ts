@@ -85,6 +85,9 @@ export async function sendContact(
   const notified = await sendMail({
     to: process.env.CONTACT_EMAIL ?? site.email,
     replyTo: parsed.data.email,
+    // The owner's inbox shows the website, not the developer's name: this is
+    // the site talking, and it must not look like a licence key arriving.
+    fromName: "Portfolio contact",
     subject: `New message from ${parsed.data.name}`,
     html: `
       <p><strong>${escapeHtml(parsed.data.name)}</strong> wrote via your portfolio:</p>

@@ -68,6 +68,8 @@ Two dependency details are worth knowing:
 | `GMAIL_SMTP_PORT` | optional. 465 by default; 587 is the fallback |
 | `KV_REST_API_URL`, `KV_REST_API_TOKEN` | optional. Upstash Redis rate limiting. Without them the limits that matter (license keys, sign-in) run on the database instead, so they are still global; see [Rate limiting](#rate-limiting) |
 
+The name in front of the address is per message, not per account: `sendMail` takes a `fromName`, so a contact notification arrives as **Portfolio contact** and an activation key arrives as **Internet Speed Monitor** (the app's own name). The address underneath is always `GMAIL_USER` — Gmail rewrites any other From address back to the authenticated account unless it is a verified alias, and verifying an alias needs a domain you control.
+
 `RESEND_API_KEY`, `GROQ_API_KEY` and `CLOUDINARY_*` are not read by the current code.
 
 ## Deploy (Vercel)

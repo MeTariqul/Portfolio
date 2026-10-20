@@ -45,6 +45,9 @@ export async function sendActivationKey(opts: {
   return sendMail({
     to: opts.to,
     replyTo: site.email,
+    // The customer installed a program, not a portfolio. Introducing the mail
+    // as the software itself is what makes it recognisable in a busy inbox.
+    fromName: opts.appName,
     subject: `Your ${opts.appName} activation key`,
     html: activationEmailHtml({ appName: opts.appName, key: opts.key }),
   });
