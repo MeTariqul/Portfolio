@@ -83,27 +83,27 @@ model Post {
 }
 
 model Project {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  summary     String   @db.Text
-  problem     String   @db.Text
-  solutionMD  String   @db.Text
-  learnedMD   String   @db.Text
-  stack       String[]
-  category    String
-  screenshots Json // [{ url, alt }] — alt required by admin validation
-  liveUrl     String?
-  githubUrl   String?
+  id               String   @id @default(cuid())
+  title            String
+  slug             String   @unique
+  summary          String   @db.Text
+  problem          String   @db.Text
+  solutionMD       String   @db.Text
+  learnedMD        String   @db.Text
+  stack            String[]
+  category         String
+  screenshots      Json // [{ url, alt }] — alt required by admin validation
+  liveUrl          String?
+  githubUrl        String?
   // Direct file URL behind the public "Download" button, plus the original
   // filename (it names the file in Content-Disposition). Null = no button.
   // Uploaded files live in Supabase Storage under `projects/`.
   downloadUrl      String?
   downloadFilename String?
-  featured    Boolean  @default(false)
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  featured         Boolean  @default(false)
+  order            Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([category, order])
 }
@@ -120,23 +120,23 @@ model Skill {
 
 // About-page timeline (education, freelance work, jobs).
 model Experience {
-  id          String        @id @default(cuid())
+  id          String         @id @default(cuid())
   kind        ExperienceKind
   title       String
   org         String
   period      String
-  description String        @db.Text
-  order       Int           @default(0)
+  description String         @db.Text
+  order       Int            @default(0)
 
   @@index([order])
 }
 
 model Service {
-  id           String  @id @default(cuid())
-  title        String
-  descriptionMD String @db.Text
-  priceNote    String?
-  order        Int     @default(0)
+  id            String  @id @default(cuid())
+  title         String
+  descriptionMD String  @db.Text
+  priceNote     String?
+  order         Int     @default(0)
 
   @@index([order])
 }
@@ -185,11 +185,11 @@ model Page {
 }
 
 model UsesItem {
-  id          String @id @default(cuid())
+  id          String  @id @default(cuid())
   title       String
-  description String @db.Text
+  description String  @db.Text
   group       String?
-  order       Int    @default(0)
+  order       Int     @default(0)
 
   @@index([order])
 }
@@ -303,29 +303,29 @@ model ShortLinkClick {
 // to the activation API. It travels in the app's own configuration, never
 // in anything an end user sees, and can be rotated from the dashboard.
 model App {
-  id          String      @id @default(cuid())
-  name        String
-  slug        String      @unique // used as the key prefix: MYAPP-XXXX-…
-  description String?
-  apiKey      String      @unique // "appk_…"
+  id                      String      @id @default(cuid())
+  name                    String
+  slug                    String      @unique // used as the key prefix: MYAPP-XXXX-…
+  description             String?
+  apiKey                  String      @unique // "appk_…"
   // The key from the last rotation, still accepted until it expires. A
   // rotation used to break every deployed copy of the app at once, because
   // the old key was thrown away; now the old one keeps working for a grace
   // period, long enough to ship an update that carries the new key.
-  previousApiKey          String?   @unique
+  previousApiKey          String?     @unique
   previousApiKeyExpiresAt DateTime?
-  active      Boolean     @default(true)
+  active                  Boolean     @default(true)
   // What happens when the software asks for a key for someone's email:
   // AUTO emails a fresh key immediately (the default), REVIEW parks the
   // request until the admin approves it, OFF closes the door. Switch it to
   // OFF or REVIEW per app from the app's dashboard page.
-  requestMode RequestMode @default(AUTO)
+  requestMode             RequestMode @default(AUTO)
   // How long a token stays valid offline before the app must re-check with
   // the server. Shorter = a revoked licence stops working sooner, at the
   // cost of the app talking to the server more often. 1–90 days.
-  recheckDays Int         @default(7)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  recheckDays             Int         @default(7)
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
 
   licenses    License[]
   keyRequests KeyRequest[]
@@ -374,16 +374,16 @@ model License {
 // stores anything more identifying than that plus the request IP.
 // `revoked` lets a single device be kicked without killing the whole key.
 model LicenseActivation {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   licenseId   String
-  license     License   @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  license     License  @relation(fields: [licenseId], references: [id], onDelete: Cascade)
   deviceId    String
   deviceName  String?
   platform    String?
   ip          String?
-  revoked     Boolean   @default(false)
-  firstSeenAt DateTime  @default(now())
-  lastSeenAt  DateTime  @updatedAt
+  revoked     Boolean  @default(false)
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @updatedAt
 
   @@unique([licenseId, deviceId])
   @@index([licenseId, lastSeenAt])
@@ -429,11 +429,11 @@ enum KeyRequestStatus {
 // table rather than a flag on a row: a ban is global — one device cannot be
 // locked out of one app and allowed into another by accident.
 model Ban {
-  id         String   @id @default(cuid())
-  kind       BanKind
-  value      String // lowercased email, or the exact device id
-  reason     String?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  kind      BanKind
+  value     String // lowercased email, or the exact device id
+  reason    String?
+  createdAt DateTime @default(now())
 
   @@unique([kind, value])
   @@index([createdAt])
